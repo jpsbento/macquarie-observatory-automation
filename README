@@ -1,0 +1,6 @@
+First run:
+ ./make_command_list labjack_server.py
+Then run:
+ ./labjack_main
+NB Make sure that /usr/bin/python is the correct version of python, or
+alternatively change labjack_main.
