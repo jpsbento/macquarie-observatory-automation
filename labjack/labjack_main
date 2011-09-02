@@ -1,0 +1,11 @@
+#!/usr/bin/python
+#This is the main program. It should be *very* simple.
+import labjack_server
+import sys
+sys.path.append('..')
+import server_socket
+lj=labjack_server.LabjackServer()
+ss=server_socket.ServerSocket(23456, 'labjack', lj)	
+ss.add_job(lj.wheel_move)
+ss.run()
+ss.close()

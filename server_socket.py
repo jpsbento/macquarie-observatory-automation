@@ -1,7 +1,7 @@
 # This python object is designed to take as inputs a socket number, a server name
 # and a hardware object, and to do all communication in the same way for all servers.
 
-#*********************************************************************#
+#*************************************************************************#
 #Code the runs on module import starts here.
 #1) Import all modules that we need. 
 
@@ -28,7 +28,8 @@ class ServerSocket:
 		self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 #See /usr/include/sus/socket.h
 #SOL_SOCK and SO_REUSE_ADDR. This stops the port from blocking after a crash etc.
-		self.server.setsockopt(0xffff, 0x0004, 1)
+#		self.server.setsockopt(0xffff, 0x0004, 1)
+		self.server.setsockopt(1, 2, 1)
 #See /usr/include/netinet/in.h
 #IPPROTO_TCP, TCP_NODELAY. This makes the packet get sent straight away (instead of waiting for extra data 
 #that might arrive).
