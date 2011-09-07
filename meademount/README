@@ -1,0 +1,8 @@
+First run:
+ ./make_command_list meademount_server.py
+Then run:
+ ./meademount_main
+NB Make sure that /usr/bin/python is the correct version of python, or
+alternatively change meademount_main.
+
+NOTE: This code is not complete.

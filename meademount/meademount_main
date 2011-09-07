@@ -1,0 +1,10 @@
+#!/usr/bin/python
+#This is the main program. It should be *very* simple.
+import meademount_server
+sys.path.append('..')
+import server_socket
+mm=meademount_server.MeademountServer()
+ss=server_socket.ServerSocket(23456, 'weatherstation', mm)	
+#ss.add_job(ws.serialread)
+ss.run()
+ss.close()
