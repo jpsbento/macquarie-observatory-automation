@@ -1,0 +1,10 @@
+#!/usr/bin/python
+#This is the main program. It should be *very* simple.
+import bisquemount_server
+import sys
+sys.path.append('..')
+import server_socket
+bm=bisquemount_server.BisqueMountServer()
+ss=server_socket.ServerSocket(23458, 'bisquemount', bm)	
+ss.run()
+ss.close()

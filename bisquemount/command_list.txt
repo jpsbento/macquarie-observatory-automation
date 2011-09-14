@@ -1,0 +1,11 @@
+LookNorth
+LookSouth
+LookEast
+LookWest
+MoveLeft
+MoveRight
+MoveUp
+MoveDown
+ZoomIn
+ZoomOut
+close
