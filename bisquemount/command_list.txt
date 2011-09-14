@@ -2,10 +2,11 @@ LookNorth
 LookSouth
 LookEast
 LookWest
+LookUp
 MoveLeft
 MoveRight
 MoveUp
 MoveDown
 ZoomIn
 ZoomOut
-close
+GrabScreen

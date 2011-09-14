@@ -17,64 +17,74 @@ class BisqueMountServer:
 		'''Tell the telescope to look north.'''
 		command = '/* Java Script */TheSkyXAction.execute(TheSkyXAction.LookNorth); var Out; Out = "OK"'
 		client_socket.send(command)
-		return client_socket.recv(512)
+		return client_socket.recv(1024)
 
 	def cmd_LookSouth(self,the_command):
 		'''Tell the telescope to look south.'''
 		command = '/* Java Script */TheSkyXAction.execute(TheSkyXAction.LookSouth); var Out; Out = "OK"'
 		client_socket.send(command)
-		return client_socket.recv(512)
+		return client_socket.recv(1024)
 
 	def cmd_LookEast(self,the_command):
 		'''Tell the telescope to look east.'''
 		command = '/* Java Script */TheSkyXAction.execute(TheSkyXAction.LookEast); var Out; Out = "OK"'
 		client_socket.send(command)
-		return client_socket.recv(512)
+		return client_socket.recv(1024)
 
 	def cmd_LookWest(self,the_command):
 		'''Tell the telescope to look west.'''
 		command = '/* Java Script */TheSkyXAction.execute(TheSkyXAction.LookWest); var Out; Out = "OK"'
 		client_socket.send(command)
-		return client_socket.recv(512)
+		return client_socket.recv(1024)
+
+	def cmd_LookUp(self,the_command):
+		'''Tell the telescope to look up.'''
+		command = '/* Java Script */TheSkyXAction.execute(TheSkyXAction.LookUp); var Out; Out = "OK"'
+		client_socket.send(command)
+		return client_socket.recv(1024)
 
 	def cmd_MoveLeft(self,the_command):
 		'''Tell the telescope to move left.'''
 		command = '/* Java Script */TheSkyXAction.execute(TheSkyXAction.MoveLeft); var Out; Out = "OK"'
 		client_socket.send(command)
-		return client_socket.recv(512)
+		return client_socket.recv(1024)
 
 	def cmd_MoveRight(self,the_command):
 		'''Tell the telescope to move right.'''
 		command = '/* Java Script */TheSkyXAction.execute(TheSkyXAction.MoveRight); var Out; Out = "OK"'
 		client_socket.send(command)
-		return client_socket.recv(512)
+		return client_socket.recv(1024)
 
 	def cmd_MoveUp(self,the_command):
 		'''Tell the telescope to move up.'''
 		command = '/* Java Script */TheSkyXAction.execute(TheSkyXAction.MoveUp); var Out; Out = "OK"'
 		client_socket.send(command)
-		return client_socket.recv(512)
+		return client_socket.recv(1024)
 
 	def cmd_MoveDown(self,the_command):
 		'''Tell the telescope to move down.'''
 		command = '/* Java Script */TheSkyXAction.execute(TheSkyXAction.MoveDown); var Out; Out = "OK"'
 		client_socket.send(command)
-		return client_socket.recv(512)
+		return client_socket.recv(1024)
 
 	def cmd_ZoomIn(self,the_command):
 		'''Tell the telescope to zoom in.'''
 		command = '/* Java Script */TheSkyXAction.execute(TheSkyXAction.ZoomIn); var Out; Out = "OK"'
 		client_socket.send(command)
-		return client_socket.recv(512)
+		return client_socket.recv(1024)
 
 	def cmd_ZoomOut(self,the_command):
 		'''Tell the telescope to zoom out.'''
 		command = '/* Java Script */TheSkyXAction.execute(TheSkyXAction.ZoomOut); var Out; Out = "OK"'
 		client_socket.send(command)
-		return client_socket.recv(512)
+		return client_socket.recv(1024)
 
-	def cmd_close(self,the_command):
-		'''Close connection with the sky.'''
-		client_socket.close();
-		return "Goodbye! Connection with TheSkyX closed."
+	def cmd_GrabScreen(self,the_command):   #Will need to change var Folder to "c:/" when this is installed on windows
+		'''Grab the current screen TheSkyX is displaying.'''
+		command = '/* Java Script *//* Save TheSkyXs current star chart as a JPG image*/ var Folder; var Width = 1000; var Height = 800; var USETHESKYS = -999.0; var cmd = 14; var uid = 100; var Out; Out = "here"; Folder = "/"; Out = "bagel"; sky6Web.CurAz = USETHESKYS; sky6Web.CurAlt = USETHESKYS; sky6Web.CurRotation = USETHESKYS; sky6Web.CurFOV = USETHESKYS; sky6Web.CurRa = sky6StarChart.RightAscension; sky6Web.CurDec = sky6StarChart.Declination; sky6Web.LASTCOMERROR = 0; sky6Web.CreateStarChart(USETHESKYS, cmd, uid, USETHESKYS, USETHESKYS, USETHESKYS, Width, Height, Folder); Out = "wibble"; if (sky6Web.LASTCOMERROR == 0) { Out = sky6Web.outputChartFileName;} else {Out = "Error  + sky6Web.LASTCOMERROR";}'
+		client_socket.send(command)
+		return client_socket.recv(1024)
+
+#Part I took out to get it to work: //enum operatingSystem {osUnknown=0,osWindows=1,osMac=2,osLinux=3}; Out = "cheese"; if (Application.operatingSystem == 1) {Folder = "c:/";} else
+
 		
