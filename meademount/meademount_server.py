@@ -7,17 +7,18 @@ import sys
 import select
 import string
 from datetime import datetime
+import time
 
 #Open port 0 at "9600,8,N,1", no timeout
-ser = serial.Serial(0)  #open first serial port, we talk to the mount
+ser = serial.Serial('/dev/ttyUSB0',9600, timeout = 1)  #open first serial port, we talk to the mount
                         #via serial comms
 print ser.portstr       #check which port was really used
-
+print ser.isOpen()
 
 class MeademountServer:
 
 #Global variables
-
+	mountmoving = False
 
 #A list of user commands:
 
@@ -26,9 +27,9 @@ class MeademountServer:
 	def cmd_getRA(self,the_command):
 		'''Returns the current right ascension of the telescope.'''
 		ser.write(':GR#')
-		return ser.readline()
+		return ser.read(100)
 
-	def cmd_getDEC(self,the_command):
+	def cmd_getDec(self,the_command):
 		'''Returns the current declination of the telescope.'''
 		ser.write(':GD#')
 		return ser.readline()
@@ -82,11 +83,7 @@ class MeademountServer:
 		return ser.readline()
 
 	def cmd_setCalanderDate(self,the_command): #****************more than one output
-		'''Sets the calendar date. NOTE: After the Ok, if the date is
-		valid, two strings will be sent. The first will contain the
-		message “Updating planetary data,” the second (sent
-		after the planetary calculations) will contain only blanks.
-		Both strings will be terminated by the “#” symbol.'''
+		'''Sets the calendar date.'''
 		ser.write('SC MM/DD/YY#')
 		message = ser.readline()
 		message = message + ser.readline()
@@ -129,6 +126,7 @@ class MeademountServer:
 
 	def cmd_move(self,the_command):
 		'''Starts motion 'north', 'south', 'east', or 'west' at the current rate.'''
+		self.mountmoving = True
 		commands = str.split(the_command)
 		if commands[1] == 'north':
 			ser.write(':Mn#')
@@ -143,16 +141,10 @@ class MeademountServer:
 			ser.write(':Mw#')
 			return 'moving west'
 		else:
-			return 'error, see help'
+			return 'ERROR, see "help move"'
 
 	def cmd_slewcoord(self,the_command): #*** more than one output
-		'''Slews telescope to current object coordinates. 0 is
-		returned if the telescope can complete the slew, 1 is
-		returned if the object is below the horizon, 2 is returned if
-		the object is below the “higher” limit, and 4 is returned if
-		the object is above the lower limit. If 1, 2, or 4 is returned,
-		a string containing an appropriate message is also
-		returned.'''
+		'''Slews telescope to current object coordinates'''
 		ser.write(':MS#')
 		return ser.readline()
 
@@ -164,26 +156,15 @@ class MeademountServer:
 		return ser.readline()
 		
 
-	def cmd_stopmove(self,the_command):
-		'''Stop motion 'north', 'south', 'east', west and 'slew'.'''
-		commands = str.split(the_command)
-		if commands[1] == 'north':
-			ser.write(':Qn#')
-			return 'stopped motion north'
-		elif commands[1] == 'south':
-			ser.write(':Qs#')
-			return 'stopped motion south'
-		elif commands[1] == 'east':
-			ser.write(':Qe#')
-			return 'stopped motion east'
-		elif commands[1] == 'west':
-			ser.write(':Qw#')
-			return 'stopped motion west'
-		elif commands[1] == 'slew':
-			ser.write(':Q#')
-			return 'stopped slew'
-		else:
-			return 'Error, see help'
+	def cmd_s(self,the_command):
+		'''Stops motion of telescope.'''
+		self.mountmoving = False
+		ser.write(':Qn#')
+		ser.write(':Qs#')
+		ser.write(':Qe#')
+		ser.write(':Qw#')
+		ser.write(':Q#')
+		return 'stopped move'
 
 	def cmd_setMotionRate(self,the_command):
 		'''Sets the motion rate to 'guide', 'center', 'find' or 'slew'.'''
@@ -201,7 +182,7 @@ class MeademountServer:
 			ser.write(':RS#')
 			return 'motion rate set to slew'
 		else:
-			return 'Error, see help'
+			return 'ERROR, see "help setMotionRate"'
 
 	def cmd_setMaxSlewRate(self,the_command): #******************************
 		'''Sets the max slew rate to "N" degrees per second
@@ -212,7 +193,7 @@ class MeademountServer:
 			ser.write(':Sw '+N+'#')
 			return ser.readline()
 		else:
-			return 'Error, did not put in valid number'
+			return 'ERROR, see "help setMaxSlewRate"'
 
 	#********************* Part d) Home Postion commands *******************#
 
@@ -251,8 +232,8 @@ class MeademountServer:
 
 	def cmd_setObjectRA(self,the_command): # user input
 		'''Sets object right ascension. Please input in form:
-		HH:MM:T'''
-		commands = str.split(the_commands)
+		HH:MM:SS'''
+		commands = str.split(the_command)
 		RA = commands[1]
 		ser.write(':Sr '+RA+'#')
 		return ser.readline()
@@ -280,7 +261,7 @@ class MeademountServer:
 	def cmd_setObjectAz(self,the_command):
 		'''Sets object azimuth (for MA command). Please input in
 		form: DDD*MM'''
-		commands = str.split(the_command):
+		commands = str.split(the_command)
 		Az = commands[1]
 		ser.write(':Sz '+Az+'#')
 		return ser.readline()
@@ -435,7 +416,7 @@ class MeademountServer:
 		'''Sets the object to the NGC specified by the number. Object
 		type returned depends ob which object type is selected with
 		the Lo command. Please input in form: NNNN'''
-		commands = str.split(the_command):
+		commands = str.split(the_command)
 		NGC = commands[1]
 		ser.write(':LC '+NGC+'#')
 		return 'object set to NGC '+NGC
@@ -508,7 +489,7 @@ class MeademountServer:
 			ser.write(':B3#')
 			return 'reticle flashing mode 3'
 		else:
-			return 'Error, incorrect input, see help'
+			return 'ERROR, see "help reticleBrightness"'
 
 	def cmd_focus(self,the_command):
 		''''out' starts focus out, 'in' starts focus in, 'stop' stops focus
@@ -534,7 +515,7 @@ class MeademountServer:
 
 	def cmd_getSiteName(self,the_command):
 		'''Get SITE name. Put 1, 2, 3 or 4 for corresponding site name.'''
-		commands = str.split(the_command):
+		commands = str.split(the_command)
 		if commands[1] == '1':
 			ser.write(':GM#')
 			return ser.readline()
@@ -662,11 +643,59 @@ class MeademountServer:
 		self.log(message)
 		return message
 
-	def serialcommand(self,command):
-		ser.write(command)
 
 	#definition to log the output, stores all data in a file
 	def log(self,message):
 		print(str(datetime.now())+" "+str(message)+'\n'),
 
+#	def Altitude_check(self):
+#		if self.mountmoving == True:
+#			ser.write(':GA#')
+#			Alt = ser.read(10)
+#			temp = list(Alt)
+#			checkAlt = temp[0] + temp[1] + temp[2]
+#			#print str(int(checkAlt))
+#			if int(checkAlt) < 35:
+#				ser.write(':Qn#')
+#				ser.write(':Qs#')
+#				ser.write(':Qe#')
+#				ser.write(':Qw#')
+#				ser.write(':Q#')
+#				print 'stopped movement'
+#				#time.sleep(5)
+#				#ser.write(':Mn#')
+#				#print 'moving north slightly'
+#				#time.sleep(5)
+#				#ser.write(':Qn#')
+#				#print 'stopped movement'
+#				self.mountmoving = False
+#
+#			#print checkAlt
+#			#print temp
+#			return
+#		else: return
+		
+#This meathod will avoid crashing the telescope with the mount	
+	def too_low_check(self):
+		ser.write(':GA#')
+		Alt = ser.read(10)
+		temp = list(Alt)
+		checkAlt = temp[0] + temp[1] + temp[2]
+		#print str(int(checkAlt))
+		if int(checkAlt) < 10:
+			print 'telescope too low, moving up, Altitude at'+Alt
+			ser.write(':Qn#')
+			ser.write(':Qs#')
+			ser.write(':Qe#')
+			ser.write(':Qw#')
+			ser.write(':Q#')
+			ser.write(':RM#')
+			self.mountmoving= False
+			time.sleep(5)
+			ser.write(':Mn#')
+			time.sleep(5)
+			ser.write(':Qn#')
+			print 'stopped movement'
+			return
+		else: return
 

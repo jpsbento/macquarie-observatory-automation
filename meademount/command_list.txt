@@ -1,5 +1,5 @@
 getRA
-getDEC
+getDec
 getAlt
 getAz
 getSiderealTime
@@ -18,7 +18,7 @@ setGMToffset
 move
 slewcoord
 slewaltaz
-stopmove
+s
 setMotionRate
 setMaxSlewRate
 homeSearchSavePos
