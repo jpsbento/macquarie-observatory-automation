@@ -49,17 +49,19 @@ class MeademountServer:
 		ser.write(':GS#')
 		return ser.readline()
 
-	def cmd_setSiderealTime(self,the_command): #**********************
+	def cmd_setSiderealTime(self,the_command): #********************** DONE
 		'''Sets the sidereal time. Format should be HH:MM:SS'''
-		temp=string.split(the_command)
-		if (len(temp)==1):
-			return "Error, incorrect format"
-		elif (len(temp)==2):
-			command = ':SS '+str(temp[1])+'#'
-			ser.write(command)
-			return ser.readline()
-		else:
-			return "Error, incorrect format"
+		if (len(the_command) ==2):
+			commands = str.split(the_command)
+			settime = commands[1]
+			temp = list(settime)
+			if (len(temp) = 8):
+				if temp[2] == ':' and temp[5] == ':' and temp[0].isdigit() and temp[1].isdigit() and temp[3].isdigit() and temp[4].isdigit() and temp[6].isdigit() and temp[7].isdigit:
+					ser.write(':SS '+settime+'#')
+					return ser.readline()
+				else: return 'ERROR, input in incorrect form'
+			else: return 'ERROR input of incorrect length'
+		else: return 'ERROR: Incorrect format, see help'
 			
 
 	def cmd_getLocalTime24(self,the_command):
@@ -72,42 +74,85 @@ class MeademountServer:
 		ser.write(':Ga#')
 		return ser.readline()
 
-	def cmd_setLocalTime(self,the_command): #********************
-		'''Sets the local time. NOTE parameter should always be in 24 hour format.'''
-		ser.write(':SL HH:MM:SS#')
-		return ser.readline()
+	def cmd_setLocalTime(self,the_command): #******************** DONE
+		'''Sets the local time. Please input in form HH:MM:SS ie 17:05:30.
+		NOTE parameter should always be in 24 hour format.'''
+		if (len(the_command) ==2):
+			commands = str.split(the_command)
+			settime = commands[1]
+			temp = list(settime)
+			if (len(temp) = 8):
+				if temp[2] == ':' and temp[5] == ':' and temp[0].isdigit() and temp[1].isdigit() and temp[3].isdigit() and temp[4].isdigit() and temp[6].isdigit() and temp[7].isdigit:
+					ser.write(':SL '+settime+'#')
+					return ser.readline()
+				else: return 'ERROR, input in incorrect form'
+			else: return 'ERROR input of incorrect length'
+		else: return 'ERROR: Incorrect format, see help'
 
 	def cmd_getCalanderDate(self,the_command):
 		'''Gets the calander date.'''
 		ser.write(':GC#')
 		return ser.readline()
 
-	def cmd_setCalanderDate(self,the_command): #****************more than one output
-		'''Sets the calendar date.'''
-		ser.write('SC MM/DD/YY#')
-		message = ser.readline()
-		message = message + ser.readline()
-		return message
+#************************** cmd_SetCalanderDate
+	def cmd_setCalanderDate(self,the_command): #****************more than one output!!!!!!!!!! DONE
+		'''Sets the calendar date. Please input in form: MM/DD/YY ie 08/25/89.'''
+		if len(the_command) == 2:
+			commands = str.split(the_command)
+			setdate = command[1]
+			temp = list(setdate)
+			if (len(temp) == 8):
+				if temp[0].isdigit() and temp[1].isdigit() and temp[2] == '/' and temp[3].isdigit() and temp[4].isdigit() and temp[5] == '/' and temp[6].isdigit and temp[8].isdigit():
+					ser.write(':SC '+setdate+'#')
+					message = ser.readline()
+					message = message + ser.readline()
+					return message
+				else: return "ERROR, incorrect input format"
+			else: return "ERROR, incorrect input length."
+		else: return "ERROR, incorrect input length"
+
 
 	def cmd_getLatSite(self,the_command):
 		'''Gets the latitude of the currently selected site.'''
-		ser.write('Gt#')
+		ser.write(':Gt#')
 		return ser.readline()
 
-	def cmd_setLatSite(self,the_command): #****************************
-		'''Sets the latitude of the currently selected site.'''
-		ser.write(':St sDD*MM#')
-		return ser.readline()
+	def cmd_setLatSite(self,the_command): #**************************** DONE
+		'''Sets the latitude of the currently selected site. Please input as
+		sDD*MM ie '+45*59'. Range: -90*00 to +90.00'''
+		if len(the_command) == 2:
+			commands = str.split(the_command)
+			lat = commands[1]
+			temp = list(lat)
+			if (len(temp) == 6):
+				if temp[0] == '-' or temp[0] == '+':
+					if temp[1].isdigit() and temp[2].isdigit and temp[3] == '.' and temp[4].isdigit and temp[5].isdigit():
+						ser.write(':St '+lat+'#')
+						return ser.readline()
+					else: return 'ERROR incorrect input format'
+				else: return 'ERROR incorrect input format'
+			else: return 'ERROR incorrect input length'
+		else: return 'ERROR, incorrect input length'
 
 	def cmd_getLongSite(self,the_command):
 		'''Gets the longitude of the currently selected site.'''
 		ser.write(':Gg#')
 		return ser.readline()
 
-	def cmd_setLongSite(self,the_command): #*****************************
-		'''Sets the longitude of the currently selected site.'''
-		ser.write(':Sg DDD*MM#')
-		return ser.readline()
+	def cmd_setLongSite(self,the_command): #***************************** DONE
+		'''Sets the longitude of the currently selected site. Please input
+		in form: DDD*MM ie: 254*09. Range 000*00 to 359*59'''
+		if (len(the_command) == 2):
+			commands = str.split(the_command)
+			lon = commands[1]
+			temp = list(lon)
+			if (len(temp) == 6):
+				if temp[0].isdigit() and temp[1].isdigit and temp[2].isdigit and temp[3] == '*' and temp[4].isdigit() and temp[5].isdigit():
+					ser.write(':Sg '+lon+'#')
+					return ser.readline()
+				else: return 'ERROR, incorrect input format'
+			else: return 'ERROR, incorrect input length'
+		else: return "ERROR, incorrect input length"
 
 	def cmd_getGMToffset(self,the_command):
 		'''Gets the offset from Greenwich Mean Time.'''
@@ -115,36 +160,54 @@ class MeademountServer:
 		return ser.readline()
 		
 
-	def cmd_setGMToffset(self,the_command): #**************************
-		'''Sets the offset from Greenwich Mean Time.'''
-		ser.write(':SG sHH#')
-		return ser.readline()
+	def cmd_setGMToffset(self,the_command):#************************** DONE!!!
+		'''Sets the offset from Greenwich Mean Time. Input as sHH ie '-05' Range:
+		-24 to +24 (Might need to change to allow -5 instead of -05)'''
+		if (len(the_command) ==2):
+			commands = str.split(the_command)
+			offset = commands[1]
+			temp = list(offset)
+			if (len(offset) == 3):
+				if temp[0] == '-' or temp[0] == '+':
+					if temp[1].isdigit() and temp[2].isdigit():
+						ser.write(':SG '+offset'#')
+						return ser.readline()
+					else: return 'ERROR, incorrect input format'
+				else: return 'ERROR, incorrect input format'
+			else: return 'ERROR, incorrect input length'
+		else: return 'ERROR, incorrect input length'
 
 	#****END of part B commands go here, don't understand currently****#
 
 	#******START of part C commands to control telescope motion********#	
 
-	def cmd_move(self,the_command):
+	def cmd_move(self,the_command): #**************************DONE
 		'''Starts motion 'north', 'south', 'east', or 'west' at the current rate.'''
-		self.mountmoving = True
-		commands = str.split(the_command)
-		if commands[1] == 'north':
-			ser.write(':Mn#')
-			return 'moving north'
-		elif commands[1] == 'south':
-			ser.write(':Ms#')
-			return 'moving south'
-		elif commands[1] == 'east':
-			ser.write(':Me#')
-			return 'moving east'
-		elif commands[1] == 'west':
-			ser.write(':Mw#')
-			return 'moving west'
-		else:
-			return 'ERROR, see "help move"'
+		if (len(the_command) == 2):
+			commands = str.split(the_command)
+			if commands[1] == 'north':
+				ser.write(':Mn#')
+				return 'moving north'
+			elif commands[1] == 'south':
+				ser.write(':Ms#')
+				return 'moving south'
+			elif commands[1] == 'east':
+				ser.write(':Me#')
+				return 'moving east'
+			elif commands[1] == 'west':
+				ser.write(':Mw#')
+				return 'moving west'
+			else:
+				return 'error, see help'
+		else: return 'ERROR, incorrect input length.'
 
+#**************cmd_slewcoord missing comment...
 	def cmd_slewcoord(self,the_command): #*** more than one output
-		'''Slews telescope to current object coordinates'''
+		'''Slews telescope to current object coordinates. 0 returned if the
+		telescope can complete the slew, 1 returned if object is below the
+		horizon, 2 returned if the object is below the higher limit, 4
+		returned if object is above the lower limit. If 1, 2 or 4 is returned
+		a string containing an appropritate message is also returned.'''
 		ser.write(':MS#')
 		return ser.readline()
 
@@ -156,44 +219,50 @@ class MeademountServer:
 		return ser.readline()
 		
 
-	def cmd_s(self,the_command):
-		'''Stops motion of telescope.'''
-		self.mountmoving = False
+	def cmd_s(self,the_command): #***********************DONE
+		'''Stop all motion.'''
+		ser.write(':Q#')
 		ser.write(':Qn#')
 		ser.write(':Qs#')
 		ser.write(':Qe#')
-		ser.write(':Qw#')
-		ser.write(':Q#')
-		return 'stopped move'
+		ser.write(':Qq#')
+		return 'telescope movement stopped'
 
-	def cmd_setMotionRate(self,the_command):
+	def cmd_setMotionRate(self,the_command): #*************************DONE
 		'''Sets the motion rate to 'guide', 'center', 'find' or 'slew'.'''
-		commands = str.split(the_command)
-		if commands[1] == 'guide':
-			ser.write(':RG#')
-			return 'motion rate set to guide'
-		elif commands[1] == 'center':
-			ser.write(':RC#')
-			return 'motion rate set to center'
-		elif commands[1] == 'find':
-			ser.write(':RM#')
-			return 'motion rate set to find'
-		elif commands[1] == 'slew':
-			ser.write(':RS#')
-			return 'motion rate set to slew'
-		else:
-			return 'ERROR, see "help setMotionRate"'
+		if (len(the_command) == 2):
+			commands = str.split(the_command)
+			if commands[1] == 'guide':
+				ser.write(':RG#')
+				return 'motion rate set to guide'
+			elif commands[1] == 'center':
+				ser.write(':RC#')
+				return 'motion rate set to center'
+			elif commands[1] == 'find':
+				ser.write(':RM#')
+				return 'motion rate set to find'
+			elif commands[1] == 'slew':
+				ser.write(':RS#')
+				return 'motion rate set to slew'
+			else:
+				return 'Error, see help'
+		else: return 'ERROR, invalid input.'
 
-	def cmd_setMaxSlewRate(self,the_command): #******************************
+	def cmd_setMaxSlewRate(self,the_command): #****************************** DONE
 		'''Sets the max slew rate to "N" degrees per second
 		where N is 2 through 4.'''
-		commands = str.split(the_command)
-		if int(commands[1]): #*** does it allow floats????
-			N = int(commands[1])
-			ser.write(':Sw '+N+'#')
-			return ser.readline()
-		else:
-			return 'ERROR, see "help setMaxSlewRate"'
+		if (len(the_command) ==2):
+			commands = str.split(the_command)
+			if int(commands[1]): #*** does it allow floats????
+				if int(commands[1]) < 2 or int(commands[1] > 4):
+					return 'ERROR, value not in range'
+				else:
+					N = int(commands[1])
+					ser.write(':Sw '+N+'#')
+					return ser.readline()
+			else:
+				return 'Error, did not put input number'
+		else: return 'ERROR, incorrect input length'
 
 	#********************* Part d) Home Postion commands *******************#
 
@@ -216,7 +285,7 @@ class MeademountServer:
 		ser.write(':hP#')
 		return 'slewing to home position'
 
-	def cmd_homeStatus(self,the_command): # Need to process value
+	def cmd_homeStatus(self,the_command): # Need to process value!!!!!!!
 		'''Returns the home status: 0 if home search failed or not
 		yet attempted, 1 if home position found, or 2 if a home
 		search is in progress.'''
@@ -230,47 +299,80 @@ class MeademountServer:
 		ser.write(':Gr#')
 		return ser.readline()
 
-	def cmd_setObjectRA(self,the_command): # user input
+	def cmd_setObjectRA(self,the_command): # ***************** DONE
 		'''Sets object right ascension. Please input in form:
-		HH:MM:SS'''
-		commands = str.split(the_command)
-		RA = commands[1]
-		ser.write(':Sr '+RA+'#')
-		return ser.readline()
+		HH:MM:SS ie 09:08:02'''
+		if (len(the_command) == 2):
+			commands = str.split(the_commands) #************** DONE
+			RA = commands[1]
+			temp = list(RA)
+			if (len(temp) == 8):
+				if temp[0].isdigit() and temp[1].isdigit() and temp[2] == ':' and temp[3].isdigit() and temp[4].isdigit() and temp[5] ==':' and temp[6].isdigit() and temp[7].isdigit():
+					ser.write(':Sr '+RA+'#')
+					return ser.readline()
+				else: return 'ERROR, incorrect format'
+			else: return 'ERROR, incorrect format'
+		else: return 'ERROR, incorrect input length'
 
 	def cmd_getObjectDec(self,the_command):
 		'''Gets object declination.'''
 		ser.write(':Gd#')
 		return ser.readline()
 
-	def cmd_setObjectDec(self,the_command):
-		'''Sets object declination.'''
-		commands = str.split(the_command)
-		DEC = commands[1]
-		ser.write(':Sa '+DEC+'#')
-		return ser.readline()
+	def cmd_setObjectDec(self,the_command): #************ DONE
+		'''Sets object declination. Please input in form: sDD*MM ie +59.09'''
+		if (len(the_command) == 2):
+			commands = str.split(the_command)
+			DEC = commands[1]
+			temp = list(DEC)
+			if (len(temp) == 6):
+				if temp[0] == '+' or temp[0] == '-':
+					if temp[1].isdigit() and temp[2].isdigit() and temp[3] == '*' and temp[4].isdigit() and temp[5].isdigit():
+						ser.write(':Sa '+DEC+'#')
+						return ser.readline()
+					else: return 'ERROR, incorrect input form'
+				else: return 'ERROR incorrect input format'
+			else: return 'ERROR, incorrect input length'
+		else: return 'ERROR, incorrect input length'
 
-	def cmd_setObjectAlt(self,the_command):
+	def cmd_setObjectAlt(self,the_command): #***************DONE
 		'''Sets object altitude (for MA command). Please input in
-		form: sDD*MM'''
-		commands = str.split(the_command)
-		Alt = commands[1]
-		ser.write(':Sa '+Alt+'#')
-		return ser.readline()
+		form: sDD*MM ie +10*06'''
+		if (len(the_command) == 2):
+			commands = str.split(the_command)
+			Alt = commands[1]
+			temp = list(Alt)
+			if len(temp) == 6:
+				if temp[0] == '+' or temp[0] == '-':
+					if temp[1].isdigit() and temp[2].isdigit() and temp[3] == '*' and temp[4].isdigit and temp[5].isdigit:
+						ser.write(':Sa '+Alt+'#')
+						return ser.readline()
+				else: return 'ERROR, incorrect input format'
+			else: return 'ERROR, incorrect input format'
+		else: return 'ERROR, incorrect input length'
 
-	def cmd_setObjectAz(self,the_command):
+	def cmd_setObjectAz(self,the_command): #*******************DONE
 		'''Sets object azimuth (for MA command). Please input in
-		form: DDD*MM'''
-		commands = str.split(the_command)
-		Az = commands[1]
-		ser.write(':Sz '+Az+'#')
-		return ser.readline()
+		form: DDD*MM ie 258*09'''
+		if (len(the_command) == 2):
+			commands = str.split(the_command)
+			Az = commands[1]
+			temp = list(Az)
+			if len(temp) == 6:
+				if temp[0].isdigit and temp[1].isdigit() and temp[2].isdigit() and temp[3] == '*' and temp[4].isdigit and temp[5].isdigit:
+					ser.write(':Sa '+Az+'#')
+					return ser.readline()
+			else: return 'ERROR, incorrect input format'
+		else: return 'ERROR, incorrect input length'
 
-	def cmd_sync(self,the_command):
+
+
+	def cmd_sync(self,the_command): #OUTPUT?
 		'''Sync. Matches current telescope coordinates to the object
-		coordinates and sends a strinf indicating which objects
+		coordinates and sends a string indicating which objects
 		coordinates were used.'''
 		ser.write(':CM#')
+		return ser.readline()
 		
 
 	def cmd_getFindType(self,the_command):
@@ -280,14 +382,21 @@ class MeademountServer:
 		ser.write(':Gy#')
 		return ser.readline()
 
-	def cmd_setFindType(self,the_command):
+	def cmd_setFindType(self,the_command): #************************DONE
 		'''Sets the 'type' string for the FIND operation. Input should
 		look like: GPDCO a capital indicates the corresponding type is
 		selected while a lower case indicates it is not.'''
-		commands = str.split(the_command)
-		findtype = commands[1]
-		ser.write(':Sy '+findtype+'#')
-		return ser.readline()
+		if len(the_command) == 2:
+			commands = str.split(the_command)
+			findtype = commands[1]
+			temp = list(findtype)
+			if len(temp) == 5:
+				if (temp[0] == 'G' or temp[0] == 'g') and (temp[1] == 'P' or temp[1] == 'p') and (temp[2] == 'D' or temp[2] == 'd') and (temp[3] == 'C' or temp[3] == 'c') and (temp[4] == 'O' or temp[4] == 'o'):
+					ser.write(':Sy '+findtype+'#')
+					return ser.readline()
+				else: return 'ERROR, invalid input'
+			else: return 'ERROR, incorrect input'
+		else: return 'ERROR, incorrect input length'
 
 	def cmd_getFindMin(self,the_command): #Don't understand output
 		'''Gets the current minimum quality for the FIND operation.'''
@@ -304,26 +413,40 @@ class MeademountServer:
 		ser.write(':Gh#')
 		return ser.readline()
 
-	def cmd_setHigherLim(self,the_command):
+	def cmd_setHigherLim(self,the_command):  #*****************DONE
 		'''Sets the current 'higher' limit. Please input in
 		form: DD.'''
-		commands = str.split(the_command)
-		lim = commands[1]
-		ser.write(':Sh '+lim+'#')
-		return ser.readline()
+		if len(the_command) == 2:
+			commands = str.split(the_command)
+			lim = commands[1]
+			temp = list(lim)
+			if len(temp) == 2:
+				if temp[0].isdigit() and temp[1].isdigit():
+					ser.write(':Sh '+lim+'#')
+					return ser.readline()
+				else: return 'ERROR, invalid input'
+			else: return 'ERROR, invalid input'
+		else: return 'ERROR incorrect input length'
 
 	def cmd_getLowerLim(self,the_command):
 		'''Gets the current 'lower' limit.'''
 		ser.write(':Go#')
 		return ser.readline()
 
-	def cmd_setLowerLim(self,the_command):
+	def cmd_setLowerLim(self,the_command): #************** DONE
 		'''Sets the current 'lower limit. Please use
 		form" DD'''
-		commands = str.split(the_command)
-		lim = commands[1]
-		ser.write(':So '+lim+'*#')
-		return ser.readline()
+		if len(the_command) == 2:
+			commands = str.split(the_command)
+			lim = commands[1]
+			temp = list(lim)
+			if len(temp) == 2:
+				if temp[0].isdigit() and temp[1].isdigit():
+					ser.write(':Sh '+lim+'#')
+					return ser.readline()
+				else: return 'ERROR, invalid input'
+			else: return 'ERROR, invalid input'
+		else: return 'ERROR incorrect input length'
 
 	def cmd_getBrightMagLim(self,the_command):
 		'''Gets the brighter magnitude limit for the FIND operation.'''
@@ -335,21 +458,35 @@ class MeademountServer:
 		ser.write(':Gf#')
 		return ser.readline()
 
-	def cmd_setBrightMagLim(self,the_command):
+	def cmd_setBrightMagLim(self,the_command): #***************DONE
 		'''Sets the brighter magnitude limit for the FIND operation.
-		Please input in format: sMM.M'''
-		commands = str.split(the_command)
-		lim = command[1]
-		ser.write(':Sb '+lim+'#')
-		return ser.readline()
+		Please input in format: sMM.M Range 05.5 to 20.0. ie: 02.5'''
+		if len(the_command) == 2:
+			commands = str.split(the_command)
+			lim = command[1]
+			temp = list(lim)
+			if len(temp) == 4:
+				if temp[0].isdigit() and temp[1].isdigit() and temp[2] == '.' and temp[3].isdigit():
+					ser.write(':Sb '+lim+'#')
+					return ser.readline()
+				else: return 'ERROR, incorrect input'
+			else: return 'ERROR, invalid input'
+		else: return 'ERROR, incorrect input length'
 
-	def cmd_setFaintMagLim(self,the_command):
+	def cmd_setFaintMagLim(self,the_command): #****************DONE
 		'''Sets the fainter magnitude limit for the FIND operation.
-		Please input in format: sMM.M'''
-		commands = str.split(the_command)
-		lim = commands[1]
-		ser.write(':Sf '+lim+'#')
-		return ser.readline()
+		Please input in format: sMM.M Range 05.5 to 20.0. ie 02.5'''
+		if len(the_command) == 2:
+			commands = str.split(the_command)
+			lim = command[1]
+			temp = list(lim)
+			if len(temp) == 4:
+				if temp[0].isdigit() and temp[1].isdigit() and temp[2] == '.' and temp[3].isdigit():
+					ser.write(':Sb '+lim+'#')
+					return ser.readline()
+				else: return 'ERROR, incorrect input'
+			else: return 'ERROR, invalid input'
+		else: return 'ERROR, incorrect input length'
 
 	def cmd_getLargeSizeLim(self,the_command):
 		'''Gets the larger size limit for the FIND operation.'''
@@ -361,34 +498,55 @@ class MeademountServer:
 		ser.write(':Gs#')
 		return ser.readline()
 
-	def cmd_setLargeSizeLim(self,the_command):
+	def cmd_setLargeSizeLim(self,the_command): #********************DONE
 		'''Sets the larger size limit for the FIND operation. Please
-		use form: NNN'''
-		commands = str.split(the_command)
-		lim = commands[1]
-		ser.write(':Sl '+lim+'#')
-		return ser.readline()
+		use form: NNN, range 000 to 200'''
+		if len(the_command) == 2:
+			commands = str.split(the_command)
+			lim = commands[1]
+			temp = list(lim)
+			if len(temp) == 3:
+				if temp[0].isdigit() and temp[1].isdigit() and temp[2].isdigit():
+					ser.write(':Sl '+lim+'#')
+					return ser.readline()
+				else: return 'ERROR, invalid input'
+			else: return 'ERROR, invalid input'
+		else: return 'ERROR, incorrect input length'
 
-	def cmd_setSmallSizeLim(self,the_command):
+	def cmd_setSmallSizeLim(self,the_command): #***********************DONE
 		'''Sets the smaller size limit for the FIND operation. Please
-		use form: NNN'''
-		commands = str.split(the_command)
-		lim = commands[1]
-		ser.write(':Ss '+lim+'#')
-		return ser.readline()
+		use form: NNN, range 000 to 200'''
+		if len(the_command) == 2:
+			commands = str.split(the_command)
+			lim = commands[1]
+			temp = list(lim)
+			if len(temp) == 3:
+				if temp[0].isdigit() and temp[1].isdigit() and temp[2].isdigit():
+					ser.write(':Sl '+lim+'#')
+					return ser.readline()
+				else: return 'ERROR, invalid input'
+			else: return 'ERROR, invalid input'
+		else: return 'ERROR, incorrect input length'
 
 	def cmd_getFieldRadius(self,the_command):
 		'''Gets the field radius of the FIELD operation.'''
 		ser.write(':GF#')
 		return ser.readline()
 
-	def cmd_setFieldRadius(self,the_command):
+	def cmd_setFieldRadius(self,the_command): #********************DONE
 		'''Sets the field radius of the FIELD operation. Please use
 		form: NNN'''
-		commands = str.split(the_command)
-		radius = command[1]
-		ser.write(':SF '+radius+'#')
-		return ser.readline()
+		if len(the_command) == 2:
+			commands = str.split(the_command)
+			radius = command[1]
+			temp = list(radius)
+			if len(temp) == 3:
+				if temp[0].isdigit() and temp[1].isdigit() and temp[2].isdigit():
+					ser.write(':SF '+radius+'#')
+					return ser.readline()
+				else: return 'ERROR, invalid input'
+			else: return 'ERROR, invalid input'
+		else: return 'ERROR, incorrect input length'
 
 	def cmd_startFind(self,the_command):
 		'''Starts a FIND operation.'''
@@ -412,157 +570,212 @@ class MeademountServer:
 		ser.write(':Lf#')
 		return ser.readline()
 
-	def cmd_setObjNGC(self,the_command): #change help
+	def cmd_setObjNGC(self,the_command): #change help ********************DONE
 		'''Sets the object to the NGC specified by the number. Object
 		type returned depends ob which object type is selected with
-		the Lo command. Please input in form: NNNN'''
-		commands = str.split(the_command)
-		NGC = commands[1]
-		ser.write(':LC '+NGC+'#')
-		return 'object set to NGC '+NGC
+		the Lo command. Please input in form: NNNN ie 1234'''
+		if len(the_command) == 2:
+			commands = str.split(the_command)
+			NGC = commands[1]
+			temp = list(NGC)
+			if len(temp) == 4:
+				if temp[0].isdigit() and temp[1].isdigit() and temp[2].isdigit() and temp[3].isdigit():
+					ser.write(':LC '+NGC+'#')
+					return 'object set to NGC '+NGC
+				else: return 'ERROR, invalid input'
+			else: return 'ERROR invalid input'
+		else: return 'ERROR, incorrect input length'
 
-	def cmd_setObjMessier(self,the_command):
+	def cmd_setObjMessier(self,the_command): #***********************DONE
 		'''Sets the object to the Messier specified by the number.
-		Please input in form: NNNN'''
-		commands = str.split(the_command)
-		Messier = commands[1]
-		ser.write(':LM '+Messier+'#')
-		return 'object set to Messier '+Messier
+		Please input in form: NNNN ie 1234'''
+		if len(the_command) == 2:
+			commands = str.split(the_command)
+			Messier = commands[1]
+			temp = list(Messier)
+			if len(temp) == 4:
+				if temp[0].isdigit() and temp[1].isdigit() and temp[2].isdigit() and temp[3].isdigit():
+					ser.write(':LM '+Messier+'#')
+					return 'object set to Messier '+Messier
+				else: return 'ERROR, invalid input'
+			else: return 'ERROR invalid input'
+		else: return 'ERROR, incorrect input length'
 
-	def cmd_setObjStar(self,the_command): #change help
+	def cmd_setObjStar(self,the_command): #change help *******************DONE
 		'''Sets the object to the Star specified by the number. Planets
 		are 'stars' 901-909. Object type returned depends on which
 		object type has been selected with the Ls command. Please input
-		in form: NNNN'''
-		commands = str.split(the_command)
-		star = commands[1]
-		ser.write(':LS '+star+'#')
-		return 'object set to star '+star
+		in form: NNNN ie 1234'''
+		if len(the_command) == 2:
+			commands = str.split(the_command)
+			star = commands[1]
+			temp = list(star)
+			if len(temp) == 4:
+				if temp[0].isdigit() and temp[1].isdigit() and temp[2].isdigit() and temp[3].isdigit():
+					ser.write(':LS '+star+'#')
+					return 'object set to star '+star
+				else: return 'ERROR, invalid input'
+			else: return 'ERROR invalid input'
+		else: return 'ERROR, incorrect input length'
 
 	def cmd_objectInfo(self,the_command):
 		'''Gets the current object information.'''
 		ser.write(':LI#')
 		return ser.readline()
 
-	def cmd_setNGCType(self,the_command):
+	def cmd_setNGCType(self,the_command): #*********************DONE
 		'''Sets the NGC object library type. 0 is the NGC library,
 		1 is the IC library, and 2 is the UGC library. This operation
 		is successful only if the user has a version of the software
 		that includes the desired library.'''
-		commands = str.split(the_command)
-		libtype = commands[1]
-		ser.write(':Lo '+libtype+'#')
-		return ser.readline()
+		if len(the_command) == 2:
+			commands = str.split(the_command)
+			libtype = commands[1]
+			temp = list(libtype)
+			if len(temp) == 1 and temp[0].isdigit():
+				if (int(temp[0] == 0) or (int(temp[0]) == 1) or (int(temp[0]) == 2):
+					ser.write(':Lo '+libtype+'#')
+					return ser.readline()
+				else: return 'ERROR, invalid input'
+			else: return 'ERROR, invalid input'
+		else: return 'ERROR, invalid input length'
 
-	def cmd_setStarType(self,the_command):
+	def cmd_setStarType(self,the_command): #******************DONE
 		'''Sets the STAR object library type. 0 is the STAR library
 		1 is the SAO library, and 2 is the GCVS library. This operation
 		is successful only if the user has a version of the software that
 		includes the desired library.'''
-		commands = str.split(the_command)
-		libtype = commands[1]
-		ser.write(':Ls '+libtype+'#')
-		return ser.readline()
+		if len(the_command) == 2:
+			commands = str.split(the_command)
+			libtype = commands[1]
+			temp = list(libtype)
+			if len(temp) == 1 and temp[0].isdigit():
+				if (int(temp[0] == 0) or (int(temp[0]) == 1) or (int(temp[0]) == 2):
+					ser.write(':Ls '+libtype+'#')
+					return ser.readline()
+				else: return 'ERROR, invalid input'
+			else: return 'ERROR, invalid input'
+		else: return 'ERROR, invalid input length'
 
 	#********* Part f) Miscellaneous ***********#
 
-	def cmd_reticleBrightness(self,the_command):
+	def cmd_reticleBrightness(self,the_command): #********************DONE
 		'''Control reticle brightness. + increases, - decreases, or 
 		0, 1, 2, 3 sets to one of the corresponding flashing modes.'''
-		commands = str.split(the_command)
-		if commands[1] == '+':
-			ser.write(':B+#')
-			return 'reticle brightness increased'
-		elif commands[1] == '-':
-			ser.write(':B-#')
-			return 'reticle brightness decreased'
-		elif commands[1] == '0':
-			ser.write(':B0#')
-			return 'reticle flashing mode 0'
-		elif commands[1] == '1':
-			ser.write(':B1#')
-			return 'reticle flashing mode 1'
-		elif commands[1] == '2':
-			ser.write(':B2#')
-			return 'reticle flashing mode 2'
-		elif commands[1] == '3':
-			ser.write(':B3#')
-			return 'reticle flashing mode 3'
-		else:
-			return 'ERROR, see "help reticleBrightness"'
+		if len(the_command) == 2:
+			commands = str.split(the_command)
+			if commands[1] == '+':
+				ser.write(':B+#')
+				return 'reticle brightness increased'
+			elif commands[1] == '-':
+				ser.write(':B-#')
+				return 'reticle brightness decreased'
+			elif commands[1] == '0':
+				ser.write(':B0#')
+				return 'reticle flashing mode 0'
+			elif commands[1] == '1':
+				ser.write(':B1#')
+				return 'reticle flashing mode 1'
+			elif commands[1] == '2':
+				ser.write(':B2#')
+				return 'reticle flashing mode 2'
+			elif commands[1] == '3':
+				ser.write(':B3#')
+				return 'reticle flashing mode 3'
+			else:
+				return 'ERROR, incorrect input, see help'
+		else: return 'ERROR, invalid input length'
 
-	def cmd_focus(self,the_command):
+	def cmd_focus(self,the_command): #*******************DONE
 		''''out' starts focus out, 'in' starts focus in, 'stop' stops focus
 		'fast' sets focus fast and 'slow' sets focus slow.'''
-		commands = str.split(the_command)
-		if commands[1] == 'out':
-			ser.write(':F+#')
-			return 'started focusing out'
-		elif commands[1] == 'in':
-			ser.write(':F-#')
-			return 'started focusing in'
-		elif commands[1] == 'stop':
-			ser.write(':FQ#')
-			return 'stopped focus change'
-		elif commands[1] == 'fast':
-			ser.write(':FF#')
-			return 'set focus fast'
-		elif commands[1] == 'slow':
-			ser.write(':FS#')
-			return 'set focus slow'
-		else:
-			'Error, see help'
+		if len(the_command) == 2:
+			commands = str.split(the_command)
+			if commands[1] == 'out':
+				ser.write(':F+#')
+				return 'started focusing out'
+			elif commands[1] == 'in':
+				ser.write(':F-#')
+				return 'started focusing in'
+			elif commands[1] == 'stop':
+				ser.write(':FQ#')
+				return 'stopped focus change'
+			elif commands[1] == 'fast':
+				ser.write(':FF#')
+				return 'set focus fast'
+			elif commands[1] == 'slow':
+				ser.write(':FS#')
+				return 'set focus slow'
+			else:
+				'ERROR, invalid input'
+		else: return 'ERROR, invalid input length'
 
-	def cmd_getSiteName(self,the_command):
+	def cmd_getSiteName(self,the_command): #******************DONE
 		'''Get SITE name. Put 1, 2, 3 or 4 for corresponding site name.'''
-		commands = str.split(the_command)
-		if commands[1] == '1':
-			ser.write(':GM#')
-			return ser.readline()
-		elif commands[1] == '2':
-			ser.write(':GN#')
-			return ser.readline()
-		elif commands[1] == '3':
-			ser.write(':GO#')
-			return ser.readline()
-		elif commands[1] == '4':
-			ser.write(':GP#')
-			return ser.readline()
-		else:
-			return 'Error, see help'
+		if len(the_command) == 2:
+			commands = str.split(the_command)
+			if commands[1] == '1':
+				ser.write(':GM#')
+				return ser.readline()
+			elif commands[1] == '2':
+				ser.write(':GN#')
+				return ser.readline()
+			elif commands[1] == '3':
+				ser.write(':GO#')
+				return ser.readline()
+			elif commands[1] == '4':
+				ser.write(':GP#')
+				return ser.readline()
+			else:
+				return 'ERROR, invalid input'
+		else: return 'ERROR, invalid input length'
 
-	def cmd_setSiteName(self,the_command):
+	def cmd_setSiteName(self,the_command): #*********************ASSUMING INPUT INTS DONE
 		'''Sets SITE name. Please input form: N XYZ where N is 
 		site number and XYZ is site name.'''
-		commands = str.split(the_command)
-		name = commands[2]
-		if command[1] == '1':
-			ser.write(':SM '+name+'#')
-			return ser.readline()
-		elif commands[1] == '2':
-			ser.write(':SN '+name+'#')
-			return ser.readline()
-		elif commands[1] == '3':
-			ser.write(':SO '+name+'#')
-			return ser.readline()
-		elif commands[1] == '4':
-			ser.write(':SP '+name+'#')
-			return ser.readline()
-		else:
-			return 'Error, see help'
+		if len(the_command) == 3:
+			commands = str.split(the_command)
+			name = commands[2]
+			temp = list(name)
+			if len(temp) == 3:
+				if temp[0].isdigit() and temp[1].isdigit() and temp[2].isdigit():
+					if command[1] == '1':
+						ser.write(':SM '+name+'#')
+						return ser.readline()
+					elif commands[1] == '2':
+						ser.write(':SN '+name+'#')
+						return ser.readline()
+					elif commands[1] == '3':
+						ser.write(':SO '+name+'#')
+						return ser.readline()
+					elif commands[1] == '4':
+						ser.write(':SP '+name+'#')
+						return ser.readline()
+					else:
+					return 'ERROR, invalid input, see help'
+				else: return 'ERROR, invalid input format'
+			else: return 'ERROR, invalid input format'
+		else: return 'ERROR, invalid input length'
 
 	def cmd_getTrackFreq(self,the_command):
 		'''Gets the current track 'frequency'.'''
 		ser.write(':GT#')
 		return ser.readline()
 
-	def cmd_setTrackFreq(self,the_command):
+	def cmd_setTrackFreq(self,the_command): #**********************DONE
 		'''Sets the current track 'frequency'. Please input in
-		form: TT.T'''
-		commands = str.split(the_command)
-		freq = commands[1]
-		ser.write('ST '+freq+'#')
-		return ser.readline()
+		form: TT.T ie 59.2, range 56.4 to 60.1'''
+		if len(the_command) == 2:
+			commands = str.split(the_command)
+			freq = commands[1]
+			temp = list(freq)
+			if len(temp) == 4:
+				if temp[0].isdigit() and temp[1].isdigit() and temp[2] == '.' and temp[3].isdigit():
+					ser.write('ST '+freq+'#')
+					return ser.readline()
+				else: return 'ERROR, invalid input'
+			else: return 'ERROR, invalid input'
+		else: return 'ERROR, invalid input length'
 
 	def cmd_switchManual(self,the_command):
 		'''Switch to manual.'''
@@ -574,128 +787,100 @@ class MeademountServer:
 		ser.write(':TQ#')
 		return 'set to quartz'
 
-	def cmd_changeManFreq(self,the_command):
+	def cmd_changeManFreq(self,the_command): #*****************DONE
 		'''+ increments manual frequency by one tenth. - decrements
 		manual frequency by one tenth.'''
-		commands = str.split(the_command)
-		if commands[1] == '+':
-			ser.write(':T+#')
-			return 'incremented manual frequency by one tenth'
-		elif commands[1] == '-':
-			ser.write('T-#')
-			return 'decremented manual frequency by one tenth'
-		else:
-			return 'Error, see help'
+		if len(the_command) == 2:
+			commands = str.split(the_command)
+			if commands[1] == '+':
+				ser.write(':T+#')
+				return 'incremented manual frequency by one tenth'
+			elif commands[1] == '-':
+				ser.write('T-#')
+				return 'decremented manual frequency by one tenth'
+			else:
+				return 'Error, see help'
+		else: return 'ERROR, invalid input length'
 
 	def cmd_getDistBars(self,the_command):
 		'''Gets te distance 'bars' string.'''
 		ser.write(':D#')
 		return ser.readline()
 
-	def cmd_setTelescopeAlignment(self,the_command):
+	def cmd_setTelescopeAlignment(self,the_command): #*****************DONE
 		'''Sets the telescopes alignment type to LAND, POLAR or ALTAZ.'''
-		commands = str.split(the_commands)
-		if commands[1] == 'LAND':
-			ser.write(':AL#')
-			return 'set telescope alignment type to LAND.'
-		elif commands[1] == 'POLAR':
-			ser.write(':AP#')
-			return 'set telescope alignment type to POLAR'
-		elif commands[1] == 'ALTAZ':
-			ser.write(':AA#')
-			return 'set telescope alignment type to ALTAZ'
-		else:
-			return 'Error, see help'
+		if len(the_command) == 2:
+			commands = str.split(the_commands)
+			if commands[1] == 'LAND':
+				ser.write(':AL#')
+				return 'set telescope alignment type to LAND.'
+			elif commands[1] == 'POLAR':
+				ser.write(':AP#')
+				return 'set telescope alignment type to POLAR'
+			elif commands[1] == 'ALTAZ':
+				ser.write(':AA#')
+				return 'set telescope alignment type to ALTAZ'
+			else:
+				return 'ERROR, see help'
+		else: return 'ERROR, invalid input length'
 
-	def cmd_fieldDerotator(self,the_command):
+	def cmd_fieldDerotator(self,the_command): #****************DONE
 		'''Turns the field de-rotator on and off ('on' for on and
-		'off' for off.. obviously.'''
-		commands = str.split(the_command)
-		if commands[1] == 'on':
-			ser.write(':r+#')
-			return 'field de-rotator on'
-		elif commands[1] == 'off':
-			ser.write(':r-#')
-			return 'field de-rotator off'
-		else:
-			return 'Error, see help'
+		'off' for off.. obviously.)'''
+		if len(the_command) == 2:
+			commands = str.split(the_command)
+			if commands[1] == 'on':
+				ser.write(':r+#')
+				return 'field de-rotator on'
+			elif commands[1] == 'off':
+				ser.write(':r-#')
+				return 'field de-rotator off'
+			else:
+				return 'ERROR, see help'
+		else: return 'ERROR, invalid input length.'
 
-	def cmd_fan(self,the_command):
+	def cmd_fan(self,the_command): #********************DONE
 		'''Turns the fan on ('on') and off ('off').'''
-		commands = str.split(the_command)
-		if commands[1] == 'on':
-			ser.write(':f+#')
-			return 'fan is on'
-		elif commands[1] == 'off':
-			ser.write(':f-#')
-			return 'fan is off'
+		if len(the_command) == 2:
+			commands = str.split(the_command)
+			if commands[1] == 'on':
+				ser.write(':f+#')
+				return 'fan is on'
+			elif commands[1] == 'off':
+				ser.write(':f-#')
+				return 'fan is off'
+			else: return 'ERROR, invalid input'
+		else: return 'ERROR, invalid input length'
 
 
 #************************* End of user commands ********************************#
 
 	#definition to write to the serial port
 	#this is where we give the telescope mount a command
-	#
-	def serialread(self):
-		
-		self.data = str.split(ser.readline(),',')
-
-		self.log(message)
-		return message
 
 
 	#definition to log the output, stores all data in a file
 	def log(self,message):
 		print(str(datetime.now())+" "+str(message)+'\n'),
 
-#	def Altitude_check(self):
-#		if self.mountmoving == True:
-#			ser.write(':GA#')
-#			Alt = ser.read(10)
-#			temp = list(Alt)
-#			checkAlt = temp[0] + temp[1] + temp[2]
-#			#print str(int(checkAlt))
-#			if int(checkAlt) < 35:
-#				ser.write(':Qn#')
-#				ser.write(':Qs#')
-#				ser.write(':Qe#')
-#				ser.write(':Qw#')
-#				ser.write(':Q#')
-#				print 'stopped movement'
-#				#time.sleep(5)
-#				#ser.write(':Mn#')
-#				#print 'moving north slightly'
-#				#time.sleep(5)
-#				#ser.write(':Qn#')
-#				#print 'stopped movement'
-#				self.mountmoving = False
-#
-#			#print checkAlt
-#			#print temp
-#			return
-#		else: return
-		
-#This meathod will avoid crashing the telescope with the mount	
 	def too_low_check(self):
 		ser.write(':GA#')
 		Alt = ser.read(10)
 		temp = list(Alt)
-		checkAlt = temp[0] + temp[1] + temp[2]
-		#print str(int(checkAlt))
-		if int(checkAlt) < 10:
-			print 'telescope too low, moving up, Altitude at'+Alt
-			ser.write(':Qn#')
-			ser.write(':Qs#')
-			ser.write(':Qe#')
-			ser.write(':Qw#')
-			ser.write(':Q#')
-			ser.write(':RM#')
-			self.mountmoving= False
-			time.sleep(5)
-			ser.write(':Mn#')
-			time.sleep(5)
-			ser.write(':Qn#')
-			print 'stopped movement'
-			return
-		else: return
-
+		if len(temp) > 2:
+			checkAlt = temp[0] + temp[1] + temp[2]
+			if int(checkAlt) < 10:
+				print 'telescope too low, moving up. Altitude at '+Alt
+				ser.write(':Q#')
+				ser.write(':Qn#')
+				ser.write(':Qs#')
+				ser.write(':Qe#')
+				ser.write(':Qq#')
+				ser.write(':RM#')
+				time.sleep(5)
+				ser.write(':Mn#')
+				time.sleep(5)
+				ser.write('Qn#')
+				return 'stopped movement'
+			else: return
+		else: return 'ERROR reading Alitude'
