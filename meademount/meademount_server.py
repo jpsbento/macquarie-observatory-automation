@@ -9,16 +9,14 @@ import string
 from datetime import datetime
 import time
 
-#Open port 0 at "9600,8,N,1", no timeout
-ser = serial.Serial('/dev/ttyUSB0',9600, timeout = 1)  #open first serial port, we talk to the mount
-                        #via serial comms
+#Open port connected to the mount
+ser = serial.Serial('/dev/ttyUSB0',9600, timeout = 1)
+
 print ser.portstr       #check which port was really used
-print ser.isOpen()
+#print ser.isOpen() #Bug test to check that the port is actually open
 
 class MeademountServer:
 
-#Global variables
-	mountmoving = False
 
 #A list of user commands:
 
@@ -49,7 +47,7 @@ class MeademountServer:
 		ser.write(':GS#')
 		return ser.readline()
 
-	def cmd_setSiderealTime(self,the_command): #********************** DONE
+	def cmd_setSiderealTime(self,the_command):
 		'''Sets the sidereal time. Format should be HH:MM:SS'''
 		if (len(the_command) ==2):
 			commands = str.split(the_command)
@@ -74,7 +72,7 @@ class MeademountServer:
 		ser.write(':Ga#')
 		return ser.readline()
 
-	def cmd_setLocalTime(self,the_command): #******************** DONE
+	def cmd_setLocalTime(self,the_command):
 		'''Sets the local time. Please input in form HH:MM:SS ie 17:05:30.
 		NOTE parameter should always be in 24 hour format.'''
 		if (len(the_command) ==2):
@@ -94,8 +92,8 @@ class MeademountServer:
 		ser.write(':GC#')
 		return ser.readline()
 
-#************************** cmd_SetCalanderDate
-	def cmd_setCalanderDate(self,the_command): #****************more than one output!!!!!!!!!! DONE
+
+	def cmd_setCalanderDate(self,the_command): #need to check output
 		'''Sets the calendar date. Please input in form: MM/DD/YY ie 08/25/89.'''
 		if len(the_command) == 2:
 			commands = str.split(the_command)
@@ -117,7 +115,7 @@ class MeademountServer:
 		ser.write(':Gt#')
 		return ser.readline()
 
-	def cmd_setLatSite(self,the_command): #**************************** DONE
+	def cmd_setLatSite(self,the_command):
 		'''Sets the latitude of the currently selected site. Please input as
 		sDD*MM ie '+45*59'. Range: -90*00 to +90.00'''
 		if len(the_command) == 2:
@@ -139,7 +137,7 @@ class MeademountServer:
 		ser.write(':Gg#')
 		return ser.readline()
 
-	def cmd_setLongSite(self,the_command): #***************************** DONE
+	def cmd_setLongSite(self,the_command):
 		'''Sets the longitude of the currently selected site. Please input
 		in form: DDD*MM ie: 254*09. Range 000*00 to 359*59'''
 		if (len(the_command) == 2):
@@ -160,9 +158,9 @@ class MeademountServer:
 		return ser.readline()
 		
 
-	def cmd_setGMToffset(self,the_command):#************************** DONE!!!
+	def cmd_setGMToffset(self,the_command):
 		'''Sets the offset from Greenwich Mean Time. Input as sHH ie '-05' Range:
-		-24 to +24 (Might need to change to allow -5 instead of -05)'''
+		-24 to +24)'''
 		if (len(the_command) ==2):
 			commands = str.split(the_command)
 			offset = commands[1]
@@ -181,7 +179,7 @@ class MeademountServer:
 
 	#******START of part C commands to control telescope motion********#	
 
-	def cmd_move(self,the_command): #**************************DONE
+	def cmd_move(self,the_command):
 		'''Starts motion 'north', 'south', 'east', or 'west' at the current rate.'''
 		if (len(the_command) == 2):
 			commands = str.split(the_command)
@@ -198,10 +196,9 @@ class MeademountServer:
 				ser.write(':Mw#')
 				return 'moving west'
 			else:
-				return 'error, see help'
+				return 'ERROR, invalid input see help'
 		else: return 'ERROR, incorrect input length.'
 
-#**************cmd_slewcoord missing comment...
 	def cmd_slewcoord(self,the_command): #*** more than one output
 		'''Slews telescope to current object coordinates. 0 returned if the
 		telescope can complete the slew, 1 returned if object is below the
@@ -219,16 +216,16 @@ class MeademountServer:
 		return ser.readline()
 		
 
-	def cmd_s(self,the_command): #***********************DONE
-		'''Stop all motion.'''
+	def cmd_s(self,the_command):
+		'''Stops all motion.'''
 		ser.write(':Q#')
 		ser.write(':Qn#')
 		ser.write(':Qs#')
 		ser.write(':Qe#')
-		ser.write(':Qq#')
+		ser.write(':Q#')
 		return 'telescope movement stopped'
 
-	def cmd_setMotionRate(self,the_command): #*************************DONE
+	def cmd_setMotionRate(self,the_command):
 		'''Sets the motion rate to 'guide', 'center', 'find' or 'slew'.'''
 		if (len(the_command) == 2):
 			commands = str.split(the_command)
@@ -248,12 +245,12 @@ class MeademountServer:
 				return 'Error, see help'
 		else: return 'ERROR, invalid input.'
 
-	def cmd_setMaxSlewRate(self,the_command): #****************************** DONE
+	def cmd_setMaxSlewRate(self,the_command):
 		'''Sets the max slew rate to "N" degrees per second
 		where N is 2 through 4.'''
 		if (len(the_command) ==2):
 			commands = str.split(the_command)
-			if int(commands[1]): #*** does it allow floats????
+			if int(commands[1]):
 				if int(commands[1]) < 2 or int(commands[1] > 4):
 					return 'ERROR, value not in range'
 				else:
@@ -285,12 +282,19 @@ class MeademountServer:
 		ser.write(':hP#')
 		return 'slewing to home position'
 
-	def cmd_homeStatus(self,the_command): # Need to process value!!!!!!!
+	def cmd_homeStatus(self,the_command):
 		'''Returns the home status: 0 if home search failed or not
 		yet attempted, 1 if home position found, or 2 if a home
 		search is in progress.'''
 		ser.write(':h?#')
-		return ser.readline()
+		value = ser.readline()
+		if value == '0':
+			return 'home search failed or not yet attempted'
+		elif value == '1':
+			return 'home position found'
+		elif value == '2'
+			return 'home search in progress'
+		else: return value
 
 	#******************* Part e) Library/Objects *********************#
 
@@ -299,11 +303,11 @@ class MeademountServer:
 		ser.write(':Gr#')
 		return ser.readline()
 
-	def cmd_setObjectRA(self,the_command): # ***************** DONE
+	def cmd_setObjectRA(self,the_command):
 		'''Sets object right ascension. Please input in form:
 		HH:MM:SS ie 09:08:02'''
 		if (len(the_command) == 2):
-			commands = str.split(the_commands) #************** DONE
+			commands = str.split(the_commands)
 			RA = commands[1]
 			temp = list(RA)
 			if (len(temp) == 8):
@@ -319,7 +323,7 @@ class MeademountServer:
 		ser.write(':Gd#')
 		return ser.readline()
 
-	def cmd_setObjectDec(self,the_command): #************ DONE
+	def cmd_setObjectDec(self,the_command):
 		'''Sets object declination. Please input in form: sDD*MM ie +59.09'''
 		if (len(the_command) == 2):
 			commands = str.split(the_command)
@@ -335,7 +339,7 @@ class MeademountServer:
 			else: return 'ERROR, incorrect input length'
 		else: return 'ERROR, incorrect input length'
 
-	def cmd_setObjectAlt(self,the_command): #***************DONE
+	def cmd_setObjectAlt(self,the_command):
 		'''Sets object altitude (for MA command). Please input in
 		form: sDD*MM ie +10*06'''
 		if (len(the_command) == 2):
@@ -351,7 +355,7 @@ class MeademountServer:
 			else: return 'ERROR, incorrect input format'
 		else: return 'ERROR, incorrect input length'
 
-	def cmd_setObjectAz(self,the_command): #*******************DONE
+	def cmd_setObjectAz(self,the_command):
 		'''Sets object azimuth (for MA command). Please input in
 		form: DDD*MM ie 258*09'''
 		if (len(the_command) == 2):
@@ -382,7 +386,7 @@ class MeademountServer:
 		ser.write(':Gy#')
 		return ser.readline()
 
-	def cmd_setFindType(self,the_command): #************************DONE
+	def cmd_setFindType(self,the_command):
 		'''Sets the 'type' string for the FIND operation. Input should
 		look like: GPDCO a capital indicates the corresponding type is
 		selected while a lower case indicates it is not.'''
@@ -398,7 +402,7 @@ class MeademountServer:
 			else: return 'ERROR, incorrect input'
 		else: return 'ERROR, incorrect input length'
 
-	def cmd_getFindMin(self,the_command): #Don't understand output
+	def cmd_getFindMin(self,the_command):
 		'''Gets the current minimum quality for the FIND operation.'''
 		ser.write(':Gq#')
 		return ser.readline()
@@ -413,7 +417,7 @@ class MeademountServer:
 		ser.write(':Gh#')
 		return ser.readline()
 
-	def cmd_setHigherLim(self,the_command):  #*****************DONE
+	def cmd_setHigherLim(self,the_command):
 		'''Sets the current 'higher' limit. Please input in
 		form: DD.'''
 		if len(the_command) == 2:
@@ -433,7 +437,7 @@ class MeademountServer:
 		ser.write(':Go#')
 		return ser.readline()
 
-	def cmd_setLowerLim(self,the_command): #************** DONE
+	def cmd_setLowerLim(self,the_command):
 		'''Sets the current 'lower limit. Please use
 		form" DD'''
 		if len(the_command) == 2:
@@ -458,7 +462,7 @@ class MeademountServer:
 		ser.write(':Gf#')
 		return ser.readline()
 
-	def cmd_setBrightMagLim(self,the_command): #***************DONE
+	def cmd_setBrightMagLim(self,the_command):
 		'''Sets the brighter magnitude limit for the FIND operation.
 		Please input in format: sMM.M Range 05.5 to 20.0. ie: 02.5'''
 		if len(the_command) == 2:
@@ -473,7 +477,7 @@ class MeademountServer:
 			else: return 'ERROR, invalid input'
 		else: return 'ERROR, incorrect input length'
 
-	def cmd_setFaintMagLim(self,the_command): #****************DONE
+	def cmd_setFaintMagLim(self,the_command):
 		'''Sets the fainter magnitude limit for the FIND operation.
 		Please input in format: sMM.M Range 05.5 to 20.0. ie 02.5'''
 		if len(the_command) == 2:
@@ -498,7 +502,7 @@ class MeademountServer:
 		ser.write(':Gs#')
 		return ser.readline()
 
-	def cmd_setLargeSizeLim(self,the_command): #********************DONE
+	def cmd_setLargeSizeLim(self,the_command):
 		'''Sets the larger size limit for the FIND operation. Please
 		use form: NNN, range 000 to 200'''
 		if len(the_command) == 2:
@@ -513,7 +517,7 @@ class MeademountServer:
 			else: return 'ERROR, invalid input'
 		else: return 'ERROR, incorrect input length'
 
-	def cmd_setSmallSizeLim(self,the_command): #***********************DONE
+	def cmd_setSmallSizeLim(self,the_command):
 		'''Sets the smaller size limit for the FIND operation. Please
 		use form: NNN, range 000 to 200'''
 		if len(the_command) == 2:
@@ -533,7 +537,7 @@ class MeademountServer:
 		ser.write(':GF#')
 		return ser.readline()
 
-	def cmd_setFieldRadius(self,the_command): #********************DONE
+	def cmd_setFieldRadius(self,the_command):
 		'''Sets the field radius of the FIELD operation. Please use
 		form: NNN'''
 		if len(the_command) == 2:
@@ -570,10 +574,10 @@ class MeademountServer:
 		ser.write(':Lf#')
 		return ser.readline()
 
-	def cmd_setObjNGC(self,the_command): #change help ********************DONE
+	def cmd_setObjNGC(self,the_command):
 		'''Sets the object to the NGC specified by the number. Object
 		type returned depends ob which object type is selected with
-		the Lo command. Please input in form: NNNN ie 1234'''
+		the setNGCType command. Please input in form: NNNN ie 1234'''
 		if len(the_command) == 2:
 			commands = str.split(the_command)
 			NGC = commands[1]
@@ -586,7 +590,7 @@ class MeademountServer:
 			else: return 'ERROR invalid input'
 		else: return 'ERROR, incorrect input length'
 
-	def cmd_setObjMessier(self,the_command): #***********************DONE
+	def cmd_setObjMessier(self,the_command):
 		'''Sets the object to the Messier specified by the number.
 		Please input in form: NNNN ie 1234'''
 		if len(the_command) == 2:
@@ -601,10 +605,10 @@ class MeademountServer:
 			else: return 'ERROR invalid input'
 		else: return 'ERROR, incorrect input length'
 
-	def cmd_setObjStar(self,the_command): #change help *******************DONE
+	def cmd_setObjStar(self,the_command):
 		'''Sets the object to the Star specified by the number. Planets
 		are 'stars' 901-909. Object type returned depends on which
-		object type has been selected with the Ls command. Please input
+		object type has been selected with the setStarType command. Please input
 		in form: NNNN ie 1234'''
 		if len(the_command) == 2:
 			commands = str.split(the_command)
@@ -623,7 +627,7 @@ class MeademountServer:
 		ser.write(':LI#')
 		return ser.readline()
 
-	def cmd_setNGCType(self,the_command): #*********************DONE
+	def cmd_setNGCType(self,the_command):
 		'''Sets the NGC object library type. 0 is the NGC library,
 		1 is the IC library, and 2 is the UGC library. This operation
 		is successful only if the user has a version of the software
@@ -640,7 +644,7 @@ class MeademountServer:
 			else: return 'ERROR, invalid input'
 		else: return 'ERROR, invalid input length'
 
-	def cmd_setStarType(self,the_command): #******************DONE
+	def cmd_setStarType(self,the_command):
 		'''Sets the STAR object library type. 0 is the STAR library
 		1 is the SAO library, and 2 is the GCVS library. This operation
 		is successful only if the user has a version of the software that
@@ -659,7 +663,7 @@ class MeademountServer:
 
 	#********* Part f) Miscellaneous ***********#
 
-	def cmd_reticleBrightness(self,the_command): #********************DONE
+	def cmd_reticleBrightness(self,the_command):
 		'''Control reticle brightness. + increases, - decreases, or 
 		0, 1, 2, 3 sets to one of the corresponding flashing modes.'''
 		if len(the_command) == 2:
@@ -686,7 +690,7 @@ class MeademountServer:
 				return 'ERROR, incorrect input, see help'
 		else: return 'ERROR, invalid input length'
 
-	def cmd_focus(self,the_command): #*******************DONE
+	def cmd_focus(self,the_command):
 		''''out' starts focus out, 'in' starts focus in, 'stop' stops focus
 		'fast' sets focus fast and 'slow' sets focus slow.'''
 		if len(the_command) == 2:
@@ -710,7 +714,7 @@ class MeademountServer:
 				'ERROR, invalid input'
 		else: return 'ERROR, invalid input length'
 
-	def cmd_getSiteName(self,the_command): #******************DONE
+	def cmd_getSiteName(self,the_command):
 		'''Get SITE name. Put 1, 2, 3 or 4 for corresponding site name.'''
 		if len(the_command) == 2:
 			commands = str.split(the_command)
@@ -730,7 +734,7 @@ class MeademountServer:
 				return 'ERROR, invalid input'
 		else: return 'ERROR, invalid input length'
 
-	def cmd_setSiteName(self,the_command): #*********************ASSUMING INPUT INTS DONE
+	def cmd_setSiteName(self,the_command):
 		'''Sets SITE name. Please input form: N XYZ where N is 
 		site number and XYZ is site name.'''
 		if len(the_command) == 3:
@@ -762,7 +766,7 @@ class MeademountServer:
 		ser.write(':GT#')
 		return ser.readline()
 
-	def cmd_setTrackFreq(self,the_command): #**********************DONE
+	def cmd_setTrackFreq(self,the_command):
 		'''Sets the current track 'frequency'. Please input in
 		form: TT.T ie 59.2, range 56.4 to 60.1'''
 		if len(the_command) == 2:
@@ -787,7 +791,7 @@ class MeademountServer:
 		ser.write(':TQ#')
 		return 'set to quartz'
 
-	def cmd_changeManFreq(self,the_command): #*****************DONE
+	def cmd_changeManFreq(self,the_command):
 		'''+ increments manual frequency by one tenth. - decrements
 		manual frequency by one tenth.'''
 		if len(the_command) == 2:
@@ -807,7 +811,7 @@ class MeademountServer:
 		ser.write(':D#')
 		return ser.readline()
 
-	def cmd_setTelescopeAlignment(self,the_command): #*****************DONE
+	def cmd_setTelescopeAlignment(self,the_command):
 		'''Sets the telescopes alignment type to LAND, POLAR or ALTAZ.'''
 		if len(the_command) == 2:
 			commands = str.split(the_commands)
@@ -824,7 +828,7 @@ class MeademountServer:
 				return 'ERROR, see help'
 		else: return 'ERROR, invalid input length'
 
-	def cmd_fieldDerotator(self,the_command): #****************DONE
+	def cmd_fieldDerotator(self,the_command):
 		'''Turns the field de-rotator on and off ('on' for on and
 		'off' for off.. obviously.)'''
 		if len(the_command) == 2:
@@ -839,7 +843,7 @@ class MeademountServer:
 				return 'ERROR, see help'
 		else: return 'ERROR, invalid input length.'
 
-	def cmd_fan(self,the_command): #********************DONE
+	def cmd_fan(self,the_command):
 		'''Turns the fan on ('on') and off ('off').'''
 		if len(the_command) == 2:
 			commands = str.split(the_command)
@@ -861,8 +865,10 @@ class MeademountServer:
 
 	#definition to log the output, stores all data in a file
 	def log(self,message):
-		print(str(datetime.now())+" "+str(message)+'\n'),
+		print(str(datetime.now())+" "+str(message)+'\n')
 
+#Background tast, will continually check the altitude of the mount
+# to insure no crashes take place.
 	def too_low_check(self):
 		ser.write(':GA#')
 		Alt = ser.read(10)
@@ -875,12 +881,12 @@ class MeademountServer:
 				ser.write(':Qn#')
 				ser.write(':Qs#')
 				ser.write(':Qe#')
-				ser.write(':Qq#')
+				ser.write(':Q#')
 				ser.write(':RM#')
 				time.sleep(5)
 				ser.write(':Mn#')
 				time.sleep(5)
-				ser.write('Qn#')
+				ser.write(':Qn#')
 				return 'stopped movement'
 			else: return
 		else: return 'ERROR reading Alitude'
