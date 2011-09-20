@@ -10,3 +10,7 @@ MoveDown
 ZoomIn
 ZoomOut
 GrabScreen
+GetTargetRADec
+MountGoTo
+MountGetRADec
+Find

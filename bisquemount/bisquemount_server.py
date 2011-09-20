@@ -81,10 +81,38 @@ class BisqueMountServer:
 
 	def cmd_GrabScreen(self,the_command):   #Will need to change var Folder to "c:/" when this is installed on windows
 		'''Grab the current screen TheSkyX is displaying.'''
-		command = '/* Java Script *//* Save TheSkyXs current star chart as a JPG image*/ var Folder; var Width = 1000; var Height = 800; var USETHESKYS = -999.0; var cmd = 14; var uid = 100; var Out; Out = "here"; Folder = "/"; Out = "bagel"; sky6Web.CurAz = USETHESKYS; sky6Web.CurAlt = USETHESKYS; sky6Web.CurRotation = USETHESKYS; sky6Web.CurFOV = USETHESKYS; sky6Web.CurRa = sky6StarChart.RightAscension; sky6Web.CurDec = sky6StarChart.Declination; sky6Web.LASTCOMERROR = 0; sky6Web.CreateStarChart(USETHESKYS, cmd, uid, USETHESKYS, USETHESKYS, USETHESKYS, Width, Height, Folder); Out = "wibble"; if (sky6Web.LASTCOMERROR == 0) { Out = sky6Web.outputChartFileName;} else {Out = "Error  + sky6Web.LASTCOMERROR";}'
+		command = '/* Java Script *//* Save TheSkyXs current star chart as a JPG image*/ var Folder; var Width = 1000; var Height = 800; var USETHESKYS = -999.0; var cmd = 14; var uid = 100; var Out; if (Application.operatingSystem == 1) {Folder = "c:/";} else{Folder = "/";} sky6Web.CurAz = USETHESKYS; sky6Web.CurAlt = USETHESKYS; sky6Web.CurRotation = USETHESKYS; sky6Web.CurFOV = USETHESKYS; sky6Web.CurRa = sky6StarChart.RightAscension; sky6Web.CurDec = sky6StarChart.Declination; sky6Web.LASTCOMERROR = 0; sky6Web.CreateStarChart(USETHESKYS, cmd, uid, USETHESKYS, USETHESKYS, USETHESKYS, Width, Height, Folder); if (sky6Web.LASTCOMERROR == 0) { Out = sky6Web.outputChartFileName;} else {Out = "Error  + sky6Web.LASTCOMERROR";}'
 		client_socket.send(command)
 		return client_socket.recv(1024)
 
-#Part I took out to get it to work: //enum operatingSystem {osUnknown=0,osWindows=1,osMac=2,osLinux=3}; Out = "cheese"; if (Application.operatingSystem == 1) {Folder = "c:/";} else
+	def cmd_GetTargetRADec(self,the_command):
+		'''Returns the RA and dec of the target.'''
+		commands = str.split(the_command)
+		command = '/* Java Script */var Target = "'+commands[1]+'";/*Parameterize*/var TargetRA=0; var TargetDec=0; var Out=""; var err; sky6StarChart.LASTCOMERROR=0; sky6StarChart.Find(Target); err = sky6StarChart.LASTCOMERROR; if (err != 0){Out =Target + " not found."}else{sky6ObjectInformation.Property(54);/*RA_NOW*/TargetRA = sky6ObjectInformation.ObjInfoPropOut; sky6ObjectInformation.Property(55);/*DEC_NOW*/ TargetDec = sky6ObjectInformation.ObjInfoPropOut; Out = "RA: "+String(TargetRA) + "|"+"Dec: "+ String(TargetDec);}'
+		client_socket.send(command)
+		return client_socket.recv(1024)
+
+	def cmd_MountGoTo(self,the_command):
+		'''Moves the mount to a given RA and Dec position. Input RA then Dec'''
+		commands = str.split(the_command)
+		RA = commands[1]
+		Dec = commands[2]
+		command = '/* Java Script */var TargetRA = "'+RA+'";var TargetDec = "'+Dec+'";var Out;sky6RASCOMTele.Connect();if (sky6RASCOMTele.IsConnected==0)/*Connect failed for some reason*/{Out = "Not connected"}else{sky6RASCOMTele.Asynchronous = true;sky6RASCOMTele.SlewToRaDec(TargetRA, TargetDec,"");Out  = "OK";}'
+		client_socket.send(command)
+		return client_socket.recv(1024)
+
+	def cmd_MountGetRADec(self,the_command):
+		'''Gets the current RA and Dec of the mount.'''
+		command = '/* Java Script */var Out;sky6RASCOMTele.Connect();if (sky6RASCOMTele.IsConnected==0)/*Connect failed for some reason*/{Out = "Not connected"}else{sky6RASCOMTele.GetRaDec();Out  = String(sky6RASCOMTele.dRa) +"| " + String(sky6RASCOMTele.dDec);}'
+		client_socket.send(command)
+		return client_socket.recv(1024)
+
+	def cmd_Find(self,the_command):
+		'''Will find an object.'''
+		#commands = str.split(the_command)
+		#obj = commands[1]
+		command = '/*Java Script */var PropCnt = 189; Out=""; sky6StarChart.Find("venus"); for (p=0;p<PropCnt;++p) { if (sky6ObjectInformation.PropertyApplies(p) != 0) { sky6ObjectInformation.Property(p); Out += sky6ObjectInformation.ObjInfoPropOut + "|"; }}'
+		client_socket.send(command)
+		return client_socket.recv(1024)
 
 		
