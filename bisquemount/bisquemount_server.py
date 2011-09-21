@@ -9,7 +9,7 @@ import socket
 from datetime import datetime
 
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client_socket.connect(("10.72.26.145",3040))
+client_socket.connect(("10.126.56.202",3040))
 
 class BisqueMountServer:
 
@@ -87,19 +87,23 @@ class BisqueMountServer:
 
 	def cmd_GetTargetRADec(self,the_command):
 		'''Returns the RA and dec of the target.'''
-		commands = str.split(the_command)
-		command = '/* Java Script */var Target = "'+commands[1]+'";/*Parameterize*/var TargetRA=0; var TargetDec=0; var Out=""; var err; sky6StarChart.LASTCOMERROR=0; sky6StarChart.Find(Target); err = sky6StarChart.LASTCOMERROR; if (err != 0){Out =Target + " not found."}else{sky6ObjectInformation.Property(54);/*RA_NOW*/TargetRA = sky6ObjectInformation.ObjInfoPropOut; sky6ObjectInformation.Property(55);/*DEC_NOW*/ TargetDec = sky6ObjectInformation.ObjInfoPropOut; Out = "RA: "+String(TargetRA) + "|"+"Dec: "+ String(TargetDec);}'
-		client_socket.send(command)
-		return client_socket.recv(1024)
+		if len(the_command) == 2:
+			commands = str.split(the_command)
+			command = '/* Java Script */var Target = "'+commands[1]+'";/*Parameterize*/var TargetRA=0; var TargetDec=0; var Out=""; var err; sky6StarChart.LASTCOMERROR=0; sky6StarChart.Find(Target); err = sky6StarChart.LASTCOMERROR; if (err != 0){Out =Target + " not found."}else{sky6ObjectInformation.Property(54);/*RA_NOW*/TargetRA = sky6ObjectInformation.ObjInfoPropOut; sky6ObjectInformation.Property(55);/*DEC_NOW*/ TargetDec = sky6ObjectInformation.ObjInfoPropOut; Out = "RA: "+String(TargetRA) + "|"+"Dec: "+ String(TargetDec);}'
+			client_socket.send(command)
+			return client_socket.recv(1024)
+		else: return 'ERROR, invalid input length'
 
 	def cmd_MountGoTo(self,the_command):
 		'''Moves the mount to a given RA and Dec position. Input RA then Dec'''
-		commands = str.split(the_command)
-		RA = commands[1]
-		Dec = commands[2]
-		command = '/* Java Script */var TargetRA = "'+RA+'";var TargetDec = "'+Dec+'";var Out;sky6RASCOMTele.Connect();if (sky6RASCOMTele.IsConnected==0)/*Connect failed for some reason*/{Out = "Not connected"}else{sky6RASCOMTele.Asynchronous = true;sky6RASCOMTele.SlewToRaDec(TargetRA, TargetDec,"");Out  = "OK";}'
-		client_socket.send(command)
-		return client_socket.recv(1024)
+		if len(the_command) == 3:
+			commands = str.split(the_command)
+			RA = commands[1]
+			Dec = commands[2]
+			command = '/* Java Script */var TargetRA = "'+RA+'";var TargetDec = "'+Dec+'";var Out;sky6RASCOMTele.Connect();if (sky6RASCOMTele.IsConnected==0)/*Connect failed for some reason*/{Out = "Not connected"}else{sky6RASCOMTele.Asynchronous = true;sky6RASCOMTele.SlewToRaDec(TargetRA, TargetDec,"");Out  = "OK";}'
+			client_socket.send(command)
+			return client_socket.recv(1024)
+		else: return 'ERROR, invalid input length'
 
 	def cmd_MountGetRADec(self,the_command):
 		'''Gets the current RA and Dec of the mount.'''
@@ -109,10 +113,12 @@ class BisqueMountServer:
 
 	def cmd_Find(self,the_command):
 		'''Will find an object.'''
-		#commands = str.split(the_command)
-		#obj = commands[1]
-		command = '/*Java Script */var PropCnt = 189; Out=""; sky6StarChart.Find("venus"); for (p=0;p<PropCnt;++p) { if (sky6ObjectInformation.PropertyApplies(p) != 0) { sky6ObjectInformation.Property(p); Out += sky6ObjectInformation.ObjInfoPropOut + "|"; }}'
-		client_socket.send(command)
-		return client_socket.recv(1024)
+		if len(the_command) == 2:
+			commands = str.split(the_command)
+			obj = commands[1]
+			command = '/* Java Script */ var Out; Var PropCnt = 189; Out = ""; Sky6StarChart.Find("moon"); for(p=0;p<PropCnt;++p){if(sky6ObjectInformation.PropertyApplies(p)!=0){sky6ObjectInformation.Property(p); Out += sky6ObjectInformation.ObjInfoPropOut+"|"}}'
+			client_socket.send(command)
+			return client_socket.recv(1024)
+		else: return 'ERROR, invalid input length'
 
 		

@@ -10,7 +10,8 @@ from datetime import datetime
 import time
 
 #Open port connected to the mount
-ser = serial.Serial('/dev/ttyUSB0',9600, timeout = 1)
+ser = serial.Serial('/dev/ttyUSB0',9600, timeout = 1) #non blocking serial port, will wait
+						      #for one second
 
 print ser.portstr       #check which port was really used
 #print ser.isOpen() #Bug test to check that the port is actually open
@@ -21,6 +22,20 @@ class MeademountServer:
 #A list of user commands:
 
 	#*************START of part B General telescope info**************#
+
+	def cmd_getAlignmentMenuEntry(self,the_command): #NEW
+		'''Gets the Aligment Menu Entry, 0 1 or 2.'''
+		if len(the_command) == 2:
+			commands = str.split(the_command)
+			temp = list(commands[1])
+			if len(temp) == 1:
+				if temp == '0' or temp == '1' or temp =='2':
+					ser.write(':G'+temp+'#')
+					return ser.read(1024)
+				else: return 'ERROR, invalid input'
+			else: return 'ERROR, invalid input'
+		else: return 'ERROR, invalid input length'
+			
 
 	def cmd_getRA(self,the_command):
 		'''Returns the current right ascension of the telescope.'''
@@ -225,6 +240,13 @@ class MeademountServer:
 		ser.write(':Q#')
 		return 'telescope movement stopped'
 
+	def cmd_highPrecisionToggle(self,the_command): #NEW
+		'''Toggles high precision pointing. Enables/disables it. When
+		high precision pointing is enabled scope will first allow the operator
+		to center a nearby bright star before moving to the actual target.'''
+		ser.write(':P#')
+		return ser.read(1024)
+
 	def cmd_setMotionRate(self,the_command):
 		'''Sets the motion rate to 'guide', 'center', 'find' or 'slew'.'''
 		if (len(the_command) == 2):
@@ -282,6 +304,16 @@ class MeademountServer:
 		ser.write(':hP#')
 		return 'slewing to home position'
 
+	def cmd_sleep(self,the_command):
+		'''Puts telescope to sleep. Powers off motors, encoders, displays and lights.'''
+		ser.write(':hN#')
+		return 'Telescope gone to sleep. *Zzzzzzz...*'
+
+	def cmd_wakeUp(self,the_command):
+		'''Wakes up sleeping telescope.'''
+		ser.write(':hW#')
+		return 'Telescope woken up. *Coffeeeeee...*'
+
 	def cmd_homeStatus(self,the_command):
 		'''Returns the home status: 0 if home search failed or not
 		yet attempted, 1 if home position found, or 2 if a home
@@ -303,7 +335,7 @@ class MeademountServer:
 		ser.write(':Gr#')
 		return ser.readline()
 
-	def cmd_setObjectRA(self,the_command):
+	def cmd_setObjectRA(self,the_command):G
 		'''Sets object right ascension. Please input in form:
 		HH:MM:SS ie 09:08:02'''
 		if (len(the_command) == 2):
@@ -377,20 +409,28 @@ class MeademountServer:
 		coordinates were used.'''
 		ser.write(':CM#')
 		return ser.readline()
+
+	def cmd_syncSelenopgraphic(self,the_command): #NEW
+		'''Syncs the telescope with the current Selenographic coordinates.'''
+		ser.write(':CL#')
+		return ser.read(1024)
 		
 
 	def cmd_getFindType(self,the_command):
 		'''Gets the "type" string for the FIND operation. A capital letter
 		means that the corresponding type is selected while a lower case
-		indicates it is not.'''
+		indicates it is not. G - galaxies, P - planetary nebulas,
+		D - diffuse nebulas, C - Globular clusters, O - Open clusters.'''
 		ser.write(':Gy#')
 		return ser.readline()
 
 	def cmd_setFindType(self,the_command):
 		'''Sets the 'type' string for the FIND operation. Input should
 		look like: GPDCO a capital indicates the corresponding type is
-		selected while a lower case indicates it is not.'''
-		if len(the_command) == 2:
+		selected while a lower case indicates it is not. G - galaxies,
+		P - planetary nebulas, D - diffuse nebulas, C - Globular clusters,
+		O - Open clusters.'''
+		if len(the_command) == 2:G
 			commands = str.split(the_command)
 			findtype = commands[1]
 			temp = list(findtype)
@@ -405,7 +445,22 @@ class MeademountServer:
 	def cmd_getFindMin(self,the_command):
 		'''Gets the current minimum quality for the FIND operation.'''
 		ser.write(':Gq#')
-		return ser.readline()
+		temp = ser.readline()
+		if temp == 'SU#':
+			return 'Super'
+		elif temp == 'EX#':
+			return 'Excellent'
+		elif temp == 'VG#':
+			return 'Very good'
+		elif temp == 'GD#':
+			return 'Good'
+		elif temp == 'FR#':
+			return 'fair'
+		elif temp == 'PR#':
+			return 'Poor'
+		elif temp == 'VP#':
+			return 'Very poor'
+		else: return temp
 
 	def cmd_nextFindMin(self,the_command):
 		'''Steps to the next minumum quantity for the FIND operation.'''
@@ -496,7 +551,7 @@ class MeademountServer:
 		'''Gets the larger size limit for the FIND operation.'''
 		ser.write(':Gl#')
 		return ser.readline()
-
+GC
 	def cmd_getSmallSizeLim(self,the_command):
 		'''Gets the smaller size limit for the FIND operation.'''
 		ser.write(':Gs#')
@@ -521,7 +576,7 @@ class MeademountServer:
 		'''Sets the smaller size limit for the FIND operation. Please
 		use form: NNN, range 000 to 200'''
 		if len(the_command) == 2:
-			commands = str.split(the_command)
+			commands = str.split(the_command)GC
 			lim = commands[1]
 			temp = list(lim)
 			if len(temp) == 3:
@@ -710,9 +765,38 @@ class MeademountServer:
 			elif commands[1] == 'slow':
 				ser.write(':FS#')
 				return 'set focus slow'
+			elif commands[1] == '1' or commands[1] == '2' or commands[1] == '3' or commands[1] == '4':
+				ser.write(':F'+commands[1]+'#')
+				return 'set focuser speed to '+commands[1]
 			else:
 				'ERROR, invalid input'
 		else: return 'ERROR, invalid input length'
+
+	def cmd_fs(self,the_command):
+		'''Halts the focuser motion.'''
+		ser.write(':FQ#')
+		return 'focuser motion stopped'
+
+	def cmd_GPS(self,the_command): #NEW
+		''''on' to turn the GPS on, 'off' for off, 'NMEA' for the NMEA
+		data stream to be turned on, 'power' to power up the GPS and
+		update the system time from the GPS stream.'''
+		if len(the_command) == 2:
+			commands = str.split(the_command)
+			temp = commands[1]
+			if temp == 'on':
+				ser.write(':g+#')
+				return 'GPS turned on'
+			elif temp == 'off':
+				ser.write('g-#')
+				return 'GPS turned off'
+			elif temp == 'NMEA':
+				ser.write(':gps#')
+				return ser.read(1024)
+			elif temp == 'power':
+				ser.write(':gT#')
+				return ser.read(1024)
+		else: return 'ERROR, invalid input'
 
 	def cmd_getSiteName(self,the_command):
 		'''Get SITE name. Put 1, 2, 3 or 4 for corresponding site name.'''
@@ -792,8 +876,8 @@ class MeademountServer:
 		return 'set to quartz'
 
 	def cmd_changeManFreq(self,the_command):
-		'''+ increments manual frequency by one tenth. - decrements
-		manual frequency by one tenth.'''
+		'''+ increments manual rate by 0.1 Hz. - decrements
+		manual rate by 0.1 Hz.'''
 		if len(the_command) == 2:
 			commands = str.split(the_command)
 			if commands[1] == '+':
@@ -828,6 +912,14 @@ class MeademountServer:
 				return 'ERROR, see help'
 		else: return 'ERROR, invalid input length'
 
+	def cmd_startTelescopeAutomaticAlignmentSequence(self,the_command): #NEW
+		'''Starts the Telescope Automatic Alignment Sequence. Returns
+		1 when complete (can take several minutes). 0 if scope not
+		AzEl mounted or align fails.'''
+		ser.write(':Aa#')
+		return ser.read(1024)
+
+
 	def cmd_fieldDerotator(self,the_command):
 		'''Turns the field de-rotator on and off ('on' for on and
 		'off' for off.. obviously.)'''
@@ -844,7 +936,8 @@ class MeademountServer:
 		else: return 'ERROR, invalid input length.'
 
 	def cmd_fan(self,the_command):
-		'''Turns the fan on ('on') and off ('off').'''
+		'''Turns the fan on ('on') and off ('off') or returns the
+		optical tube assembly temerature ('temp').'''
 		if len(the_command) == 2:
 			commands = str.split(the_command)
 			if commands[1] == 'on':
@@ -853,9 +946,31 @@ class MeademountServer:
 			elif commands[1] == 'off':
 				ser.write(':f-#')
 				return 'fan is off'
+			elif commands[1] == 'temp':
+				ser.write(':fT#')
+				return ser.read(1024)
 			else: return 'ERROR, invalid input'
 		else: return 'ERROR, invalid input length'
 
+	def cmd_?(self,the_command): #NEW
+		'''Set help text cursor to the start of the first line. '+' for
+		next line of help text and '-' for previous line of help text.'''
+		if len(the_command) == 1:
+			ser.write(':??#')
+			return ser.read(1024)
+		elif len(the_command) == 2:
+			commands = str.split(the_command)
+			if commands[1] == '+':
+				ser.write(':?+#')
+				return ser.read(1024)
+			elif commands[1] == '-':
+				ser.write('?-#')
+				return ser.read(1024)
+			else: return 'ERROR, invalid input'
+		else: return 'ERROR, invalid input'
+
+
+	
 
 #************************* End of user commands ********************************#
 
@@ -867,7 +982,7 @@ class MeademountServer:
 	def log(self,message):
 		print(str(datetime.now())+" "+str(message)+'\n')
 
-#Background tast, will continually check the altitude of the mount
+#Background task, will continually check the altitude of the mount
 # to insure no crashes take place.
 	def too_low_check(self):
 		ser.write(':GA#')
