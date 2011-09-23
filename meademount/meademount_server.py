@@ -25,8 +25,8 @@ class MeademountServer:
 
 	def cmd_getAlignmentMenuEntry(self,the_command): #NEW
 		'''Gets the Aligment Menu Entry, 0 1 or 2.'''
-		if len(the_command) == 2:
-			commands = str.split(the_command)
+		commands = str.split(the_command)
+		if len(commands) == 2:
 			temp = list(commands[1])
 			if len(temp) == 1:
 				if temp == '0' or temp == '1' or temp =='2':
@@ -64,8 +64,9 @@ class MeademountServer:
 
 	def cmd_setSiderealTime(self,the_command):
 		'''Sets the sidereal time. Format should be HH:MM:SS'''
-		if (len(the_command) ==2):
-			commands = str.split(the_command)
+		commands = str.split(the_command)
+		if (len(commands) ==2):
+
 			settime = commands[1]
 			temp = list(settime)
 			if (len(temp) = 8):
@@ -90,8 +91,8 @@ class MeademountServer:
 	def cmd_setLocalTime(self,the_command):
 		'''Sets the local time. Please input in form HH:MM:SS ie 17:05:30.
 		NOTE parameter should always be in 24 hour format.'''
-		if (len(the_command) ==2):
-			commands = str.split(the_command)
+		commands = str.split(the_command)
+		if (len(commands) ==2):
 			settime = commands[1]
 			temp = list(settime)
 			if (len(temp) = 8):
@@ -110,8 +111,8 @@ class MeademountServer:
 
 	def cmd_setCalanderDate(self,the_command): #need to check output
 		'''Sets the calendar date. Please input in form: MM/DD/YY ie 08/25/89.'''
-		if len(the_command) == 2:
-			commands = str.split(the_command)
+		commands = str.split(the_command)
+		if len(commands) == 2:
 			setdate = command[1]
 			temp = list(setdate)
 			if (len(temp) == 8):
@@ -133,8 +134,8 @@ class MeademountServer:
 	def cmd_setLatSite(self,the_command):
 		'''Sets the latitude of the currently selected site. Please input as
 		sDD*MM ie '+45*59'. Range: -90*00 to +90.00'''
-		if len(the_command) == 2:
-			commands = str.split(the_command)
+		commands = str.split(the_command)
+		if len(commands) == 2:
 			lat = commands[1]
 			temp = list(lat)
 			if (len(temp) == 6):
@@ -155,8 +156,8 @@ class MeademountServer:
 	def cmd_setLongSite(self,the_command):
 		'''Sets the longitude of the currently selected site. Please input
 		in form: DDD*MM ie: 254*09. Range 000*00 to 359*59'''
-		if (len(the_command) == 2):
-			commands = str.split(the_command)
+		commands = str.split(the_command)
+		if (len(commands) == 2):
 			lon = commands[1]
 			temp = list(lon)
 			if (len(temp) == 6):
@@ -176,8 +177,8 @@ class MeademountServer:
 	def cmd_setGMToffset(self,the_command):
 		'''Sets the offset from Greenwich Mean Time. Input as sHH ie '-05' Range:
 		-24 to +24)'''
-		if (len(the_command) ==2):
-			commands = str.split(the_command)
+		commands = str.split(the_command)
+		if (len(commands) ==2):
 			offset = commands[1]
 			temp = list(offset)
 			if (len(offset) == 3):
@@ -196,8 +197,8 @@ class MeademountServer:
 
 	def cmd_move(self,the_command):
 		'''Starts motion 'north', 'south', 'east', or 'west' at the current rate.'''
-		if (len(the_command) == 2):
-			commands = str.split(the_command)
+		commands = str.split(the_command)
+		if (len(commands) == 2):
 			if commands[1] == 'north':
 				ser.write(':Mn#')
 				return 'moving north'
@@ -249,8 +250,8 @@ class MeademountServer:
 
 	def cmd_setMotionRate(self,the_command):
 		'''Sets the motion rate to 'guide', 'center', 'find' or 'slew'.'''
-		if (len(the_command) == 2):
-			commands = str.split(the_command)
+		commands = str.split(the_command)
+		if (len(commands) == 2):
 			if commands[1] == 'guide':
 				ser.write(':RG#')
 				return 'motion rate set to guide'
@@ -270,8 +271,9 @@ class MeademountServer:
 	def cmd_setMaxSlewRate(self,the_command):
 		'''Sets the max slew rate to "N" degrees per second
 		where N is 2 through 4.'''
-		if (len(the_command) ==2):
-			commands = str.split(the_command)
+		commands = str.split(the_command)
+		if (len(commands) ==2):
+	
 			if int(commands[1]):
 				if int(commands[1]) < 2 or int(commands[1] > 4):
 					return 'ERROR, value not in range'
@@ -338,8 +340,8 @@ class MeademountServer:
 	def cmd_setObjectRA(self,the_command):G
 		'''Sets object right ascension. Please input in form:
 		HH:MM:SS ie 09:08:02'''
-		if (len(the_command) == 2):
-			commands = str.split(the_commands)
+		commands = str.split(the_commands)
+		if (len(commands) == 2):
 			RA = commands[1]
 			temp = list(RA)
 			if (len(temp) == 8):
@@ -357,8 +359,8 @@ class MeademountServer:
 
 	def cmd_setObjectDec(self,the_command):
 		'''Sets object declination. Please input in form: sDD*MM ie +59.09'''
-		if (len(the_command) == 2):
-			commands = str.split(the_command)
+		commands = str.split(the_command)
+		if (len(commands) == 2):
 			DEC = commands[1]
 			temp = list(DEC)
 			if (len(temp) == 6):
@@ -374,8 +376,8 @@ class MeademountServer:
 	def cmd_setObjectAlt(self,the_command):
 		'''Sets object altitude (for MA command). Please input in
 		form: sDD*MM ie +10*06'''
-		if (len(the_command) == 2):
-			commands = str.split(the_command)
+		commands = str.split(the_command)
+		if (len(commands) == 2):
 			Alt = commands[1]
 			temp = list(Alt)
 			if len(temp) == 6:
@@ -390,8 +392,8 @@ class MeademountServer:
 	def cmd_setObjectAz(self,the_command):
 		'''Sets object azimuth (for MA command). Please input in
 		form: DDD*MM ie 258*09'''
-		if (len(the_command) == 2):
-			commands = str.split(the_command)
+		commands = str.split(the_command)
+		if (len(commands) == 2):
 			Az = commands[1]
 			temp = list(Az)
 			if len(temp) == 6:
@@ -430,8 +432,8 @@ class MeademountServer:
 		selected while a lower case indicates it is not. G - galaxies,
 		P - planetary nebulas, D - diffuse nebulas, C - Globular clusters,
 		O - Open clusters.'''
-		if len(the_command) == 2:G
-			commands = str.split(the_command)
+		commands = str.split(the_command)
+		if len(commands) == 2:
 			findtype = commands[1]
 			temp = list(findtype)
 			if len(temp) == 5:
@@ -475,8 +477,8 @@ class MeademountServer:
 	def cmd_setHigherLim(self,the_command):
 		'''Sets the current 'higher' limit. Please input in
 		form: DD.'''
-		if len(the_command) == 2:
-			commands = str.split(the_command)
+		commands = str.split(the_command)
+		if len(commands) == 2:
 			lim = commands[1]
 			temp = list(lim)
 			if len(temp) == 2:
@@ -495,8 +497,8 @@ class MeademountServer:
 	def cmd_setLowerLim(self,the_command):
 		'''Sets the current 'lower limit. Please use
 		form" DD'''
-		if len(the_command) == 2:
-			commands = str.split(the_command)
+		commands = str.split(the_command)
+		if len(commands) == 2:
 			lim = commands[1]
 			temp = list(lim)
 			if len(temp) == 2:
@@ -520,8 +522,8 @@ class MeademountServer:
 	def cmd_setBrightMagLim(self,the_command):
 		'''Sets the brighter magnitude limit for the FIND operation.
 		Please input in format: sMM.M Range 05.5 to 20.0. ie: 02.5'''
-		if len(the_command) == 2:
-			commands = str.split(the_command)
+		commands = str.split(the_command)
+		if len(commands) == 2:
 			lim = command[1]
 			temp = list(lim)
 			if len(temp) == 4:
@@ -535,8 +537,8 @@ class MeademountServer:
 	def cmd_setFaintMagLim(self,the_command):
 		'''Sets the fainter magnitude limit for the FIND operation.
 		Please input in format: sMM.M Range 05.5 to 20.0. ie 02.5'''
-		if len(the_command) == 2:
-			commands = str.split(the_command)
+		commands = str.split(the_command)
+		if len(commands) == 2:
 			lim = command[1]
 			temp = list(lim)
 			if len(temp) == 4:
@@ -560,8 +562,8 @@ GC
 	def cmd_setLargeSizeLim(self,the_command):
 		'''Sets the larger size limit for the FIND operation. Please
 		use form: NNN, range 000 to 200'''
-		if len(the_command) == 2:
-			commands = str.split(the_command)
+		commands = str.split(the_command)
+		if len(commands) == 2:
 			lim = commands[1]
 			temp = list(lim)
 			if len(temp) == 3:
@@ -575,8 +577,8 @@ GC
 	def cmd_setSmallSizeLim(self,the_command):
 		'''Sets the smaller size limit for the FIND operation. Please
 		use form: NNN, range 000 to 200'''
-		if len(the_command) == 2:
-			commands = str.split(the_command)GC
+		commands = str.split(the_command)
+		if len(commands) == 2:
 			lim = commands[1]
 			temp = list(lim)
 			if len(temp) == 3:
@@ -595,8 +597,8 @@ GC
 	def cmd_setFieldRadius(self,the_command):
 		'''Sets the field radius of the FIELD operation. Please use
 		form: NNN'''
-		if len(the_command) == 2:
-			commands = str.split(the_command)
+		commands = str.split(the_command)
+		if len(commands) == 2:
 			radius = command[1]
 			temp = list(radius)
 			if len(temp) == 3:
@@ -633,8 +635,8 @@ GC
 		'''Sets the object to the NGC specified by the number. Object
 		type returned depends ob which object type is selected with
 		the setNGCType command. Please input in form: NNNN ie 1234'''
-		if len(the_command) == 2:
-			commands = str.split(the_command)
+		commands = str.split(the_command)
+		if len(commands) == 2:
 			NGC = commands[1]
 			temp = list(NGC)
 			if len(temp) == 4:
@@ -648,8 +650,8 @@ GC
 	def cmd_setObjMessier(self,the_command):
 		'''Sets the object to the Messier specified by the number.
 		Please input in form: NNNN ie 1234'''
-		if len(the_command) == 2:
-			commands = str.split(the_command)
+		commands = str.split(the_command)
+		if len(commands) == 2:
 			Messier = commands[1]
 			temp = list(Messier)
 			if len(temp) == 4:
@@ -665,8 +667,8 @@ GC
 		are 'stars' 901-909. Object type returned depends on which
 		object type has been selected with the setStarType command. Please input
 		in form: NNNN ie 1234'''
-		if len(the_command) == 2:
-			commands = str.split(the_command)
+		commands = str.split(the_command)
+		if len(commands) == 2:
 			star = commands[1]
 			temp = list(star)
 			if len(temp) == 4:
@@ -687,8 +689,8 @@ GC
 		1 is the IC library, and 2 is the UGC library. This operation
 		is successful only if the user has a version of the software
 		that includes the desired library.'''
-		if len(the_command) == 2:
-			commands = str.split(the_command)
+		commands = str.split(the_command)
+		if len(commands) == 2:
 			libtype = commands[1]
 			temp = list(libtype)
 			if len(temp) == 1 and temp[0].isdigit():
@@ -704,8 +706,8 @@ GC
 		1 is the SAO library, and 2 is the GCVS library. This operation
 		is successful only if the user has a version of the software that
 		includes the desired library.'''
-		if len(the_command) == 2:
-			commands = str.split(the_command)
+		commands = str.split(the_command)
+		if len(commands) == 2:
 			libtype = commands[1]
 			temp = list(libtype)
 			if len(temp) == 1 and temp[0].isdigit():
@@ -721,8 +723,8 @@ GC
 	def cmd_reticleBrightness(self,the_command):
 		'''Control reticle brightness. + increases, - decreases, or 
 		0, 1, 2, 3 sets to one of the corresponding flashing modes.'''
-		if len(the_command) == 2:
-			commands = str.split(the_command)
+		commands = str.split(the_command)
+		if len(commands) == 2:
 			if commands[1] == '+':
 				ser.write(':B+#')
 				return 'reticle brightness increased'
@@ -748,8 +750,8 @@ GC
 	def cmd_focus(self,the_command):
 		''''out' starts focus out, 'in' starts focus in, 'stop' stops focus
 		'fast' sets focus fast and 'slow' sets focus slow.'''
-		if len(the_command) == 2:
-			commands = str.split(the_command)
+		commands = str.split(the_command)
+		if len(commands) == 2:
 			if commands[1] == 'out':
 				ser.write(':F+#')
 				return 'started focusing out'
@@ -781,8 +783,8 @@ GC
 		''''on' to turn the GPS on, 'off' for off, 'NMEA' for the NMEA
 		data stream to be turned on, 'power' to power up the GPS and
 		update the system time from the GPS stream.'''
-		if len(the_command) == 2:
-			commands = str.split(the_command)
+		commands = str.split(the_command)
+		if len(commands) == 2:
 			temp = commands[1]
 			if temp == 'on':
 				ser.write(':g+#')
@@ -800,8 +802,8 @@ GC
 
 	def cmd_getSiteName(self,the_command):
 		'''Get SITE name. Put 1, 2, 3 or 4 for corresponding site name.'''
-		if len(the_command) == 2:
-			commands = str.split(the_command)
+		commands = str.split(the_command)
+		if len(commands) == 2:
 			if commands[1] == '1':
 				ser.write(':GM#')
 				return ser.readline()
@@ -821,8 +823,8 @@ GC
 	def cmd_setSiteName(self,the_command):
 		'''Sets SITE name. Please input form: N XYZ where N is 
 		site number and XYZ is site name.'''
-		if len(the_command) == 3:
-			commands = str.split(the_command)
+		commands = str.split(the_command)
+		if len(commands) == 3:
 			name = commands[2]
 			temp = list(name)
 			if len(temp) == 3:
@@ -853,8 +855,8 @@ GC
 	def cmd_setTrackFreq(self,the_command):
 		'''Sets the current track 'frequency'. Please input in
 		form: TT.T ie 59.2, range 56.4 to 60.1'''
-		if len(the_command) == 2:
-			commands = str.split(the_command)
+		commands = str.split(the_command)
+		if len(commands) == 2:
 			freq = commands[1]
 			temp = list(freq)
 			if len(temp) == 4:
@@ -878,8 +880,8 @@ GC
 	def cmd_changeManFreq(self,the_command):
 		'''+ increments manual rate by 0.1 Hz. - decrements
 		manual rate by 0.1 Hz.'''
-		if len(the_command) == 2:
-			commands = str.split(the_command)
+		commands = str.split(the_command)
+		if len(commands) == 2:
 			if commands[1] == '+':
 				ser.write(':T+#')
 				return 'incremented manual frequency by one tenth'
@@ -897,8 +899,8 @@ GC
 
 	def cmd_setTelescopeAlignment(self,the_command):
 		'''Sets the telescopes alignment type to LAND, POLAR or ALTAZ.'''
-		if len(the_command) == 2:
-			commands = str.split(the_commands)
+		commands = str.split(the_commands)
+		if len(commands) == 2:
 			if commands[1] == 'LAND':
 				ser.write(':AL#')
 				return 'set telescope alignment type to LAND.'
@@ -923,8 +925,8 @@ GC
 	def cmd_fieldDerotator(self,the_command):
 		'''Turns the field de-rotator on and off ('on' for on and
 		'off' for off.. obviously.)'''
-		if len(the_command) == 2:
-			commands = str.split(the_command)
+		commands = str.split(the_command)
+		if len(commands) == 2:
 			if commands[1] == 'on':
 				ser.write(':r+#')
 				return 'field de-rotator on'
@@ -938,8 +940,8 @@ GC
 	def cmd_fan(self,the_command):
 		'''Turns the fan on ('on') and off ('off') or returns the
 		optical tube assembly temerature ('temp').'''
-		if len(the_command) == 2:
-			commands = str.split(the_command)
+		commands = str.split(the_command)
+		if len(commands) == 2:
 			if commands[1] == 'on':
 				ser.write(':f+#')
 				return 'fan is on'
@@ -955,11 +957,11 @@ GC
 	def cmd_?(self,the_command): #NEW
 		'''Set help text cursor to the start of the first line. '+' for
 		next line of help text and '-' for previous line of help text.'''
-		if len(the_command) == 1:
+		commands = str.split(the_command)
+		if len(commands) == 1:
 			ser.write(':??#')
 			return ser.read(1024)
-		elif len(the_command) == 2:
-			commands = str.split(the_command)
+		elif len(commands) == 2:
 			if commands[1] == '+':
 				ser.write(':?+#')
 				return ser.read(1024)

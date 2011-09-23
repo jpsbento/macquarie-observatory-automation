@@ -28,13 +28,13 @@ def execute_command(the_command, m):
     '''Find the_command amongst the list of commands like cmd_one in module m
     
     This returns a string containing the response, or a -1 if a quit is commanded.'''
-    the_functions = dict(LookNorth=m.cmd_LookNorth,LookSouth=m.cmd_LookSouth,LookEast=m.cmd_LookEast,LookWest=m.cmd_LookWest,LookUp=m.cmd_LookUp,MoveLeft=m.cmd_MoveLeft,MoveRight=m.cmd_MoveRight,MoveUp=m.cmd_MoveUp,MoveDown=m.cmd_MoveDown,ZoomIn=m.cmd_ZoomIn,ZoomOut=m.cmd_ZoomOut,GrabScreen=m.cmd_GrabScreen,GetTargetRADec=m.cmd_GetTargetRADec,MountGoTo=m.cmd_MountGoTo,MountGetRADec=m.cmd_MountGetRADec,Find=m.cmd_Find)
+    the_functions = dict(look=m.cmd_look,move=m.cmd_move,zoom=m.cmd_zoom,grabScreen=m.cmd_grabScreen,getTargetRADec=m.cmd_getTargetRADec,mountGoTo=m.cmd_mountGoTo,mountGetRADec=m.cmd_mountGetRADec,find=m.cmd_find)
     commands = string.split(the_command)
     if len(commands) == 0:
         return ""
     if commands[0] == "help":
         if (len(commands) == 1):
-            return 'LookNorth\nLookSouth\nLookEast\nLookWest\nLookUp\nMoveLeft\nMoveRight\nMoveUp\nMoveDown\nZoomIn\nZoomOut\nGrabScreen\nGetTargetRADec\nMountGoTo\nMountGetRADec\nFind'
+            return 'look\nmove\nzoom\ngrabScreen\ngetTargetRADec\nmountGoTo\nmountGetRADec\nfind'
         elif commands[1] in the_functions:
             td=pydoc.TextDoc()
             return td.docroutine(the_functions[commands[1]])
