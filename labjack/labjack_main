@@ -6,6 +6,6 @@ sys.path.append('..')
 import server_socket
 lj=labjack_server.LabjackServer()
 ss=server_socket.ServerSocket(23456, 'labjack', lj)	
-ss.add_job(lj.wheel_move)
+ss.add_job(lj.dome_location)
 ss.run()
 ss.close()
