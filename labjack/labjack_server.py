@@ -61,10 +61,10 @@ class LabjackServer:
     def cmd_dome(self,the_command):
         '''Move the dome. Put a + or - before the number you input to move a certain distance
 	from the current position, or just input the postion number where you want the dome to
-	be positioned. Eg '+20' means 'move 20 degrees clockwise from current position'.
-	'-20' means 'move 20 degrees anticlockwise from current positon'. '20' means, move to
-	20 degrees from North (North being at the defined 0 degrees point). Please only input
-	integers. A decimal will not be read.'''
+	be positioned. Eg '+20' means 'move 20 degrees clockwise from current position'. '-20' 
+	means 'move 20 degrees anticlockwise from current positon'. '20' means, move to 20 degrees 
+	from North (North being at the defined 0 degrees point). Note if you want to move'-20 with 
+	resects to north' please input '340'. Please only input integers. A decimal will not be read.'''
         commands=str.split(the_command)
         if self.dome_moving == True:
             return "Dome moving, input only available when the dome is stationary."
