@@ -247,7 +247,7 @@ class MeademountServer:
 			radius = command[1]
 			temp = list(radius)
 			if len(temp) == 3:
-				if temp[0].isdigit() and temp[1].isdigit() and temp[2].isdigit():
+				if radius.isdigit():
 					ser.write(':SF '+radius+'#')
 					return ser.readline()
 				else: return 'ERROR, invalid input'
@@ -446,11 +446,7 @@ class MeademountServer:
 			if commands[1] == 'bright' or commands[1] == 'faint':
 				lim = commands[2]
 				temp = list(commands[2])
-				if len(temp) < 5:
-					if temp[len(temp)-2] == '.': del temp[len(temp)-2]
-					for i in len(temp):
-						if temp[i].isdigit():
-						else: return 'ERROR, invalid input
+				if self.is_float_try(lim):
 					if commands[1] == 'bright':
 						ser.write(':Sb '+lim+'#')
 						return ser.readline()
@@ -460,23 +456,13 @@ class MeademountServer:
 			else:
 				temp1 = list(commands[1])
 				temp2 = list(commands[2])
-				if len(temp2) < 5:
-					if temp[len(temp2)-2] == '.': del temp[len(temp2)-2]
-					for i in len(temp2):
-						if temp2[i].isdigit():
-						else: return 'ERROR, invalid input
-				else: return 'ERROR invalid input'
-				if len(temp1) < 5:
-					if temp[len(temp1)-2] == '.': del temp[len(temp1)-2]
-					for i in len(temp1):
-						if temp1[i].isdigit():
-						else: return 'ERROR, invalid input
-				else: return 'ERROR, invalid input'
-				ser.write(':Sb '+str(commands[1])+'#')
-				buf = ser.readline()
-				ser.write.(':Sf '+str(commands[2])+'#')
-				buf = buf+' '+ser.readline()
-				return buf
+				if self.is_float_try(temp1) and self.is_float_try(temp2):
+					ser.write(':Sb '+str(commands[1])+'#')
+					buf = ser.readline()
+					ser.write.(':Sf '+str(commands[2])+'#')
+					buf = buf+' '+ser.readline()
+					return buf
+				else: return 'Invalid input'
 		else: return 'ERROR, invalid input'
 
 	def cmd_setMaxSlewRate(self,the_command):
@@ -615,7 +601,7 @@ class MeademountServer:
 			Messier = commands[1]
 			temp = list(Messier)
 			if len(temp) == 4:
-				if temp[0].isdigit() and temp[1].isdigit() and temp[2].isdigit() and temp[3].isdigit():
+				if Messier.isdigit():
 					ser.write(':LM '+Messier+'#')
 					return 'object set to Messier '+Messier
 				else: return 'ERROR, invalid input'
@@ -631,7 +617,7 @@ class MeademountServer:
 			NGC = commands[1]
 			temp = list(NGC)
 			if len(temp) == 4:
-				if temp[0].isdigit() and temp[1].isdigit() and temp[2].isdigit() and temp[3].isdigit():
+				if NGC.isdigit():
 					ser.write(':LC '+NGC+'#')
 					return 'object set to NGC '+NGC
 				else: return 'ERROR, invalid input'
@@ -648,7 +634,7 @@ class MeademountServer:
 			star = commands[1]
 			temp = list(star)
 			if len(temp) == 4:
-				if temp[0].isdigit() and temp[1].isdigit() and temp[2].isdigit() and temp[3].isdigit():
+				if star.isdigit():
 					ser.write(':LS '+star+'#')
 					return 'object set to star '+star
 				else: return 'ERROR, invalid input'
@@ -736,6 +722,7 @@ class MeademountServer:
 		if len(commands) == 2:
 			lat = commands[1]
 			temp = list(lat)
+			sign = '+'
 			if (len(temp) == 6):
 				if temp[0] == '-' or temp[0] == '+':
 					if temp[1].isdigit() and temp[2].isdigit and temp[3] == '.' and temp[4].isdigit and temp[5].isdigit():
@@ -821,12 +808,10 @@ class MeademountServer:
 		if len(commands) == 2:
 			freq = commands[1]
 			temp = list(freq)
-			if len(temp) == 4:
-				if temp[0].isdigit() and temp[1].isdigit() and temp[2] == '.' and temp[3].isdigit():
-					ser.write('ST '+freq+'#')
-					return ser.readline()
-				else: return 'ERROR, invalid input'
-			else: return 'ERROR, invalid input'
+			if self.is_float_try(freq):
+				ser.write('ST '+freq+'#')
+				return ser.readline()
+			else: return 'Invalid input'
 		else: return 'ERROR, invalid input length'
 
 
@@ -1047,6 +1032,15 @@ class MeademountServer:
 	
 
 #************************* End of user commands ********************************#
+
+	def is_float_try(self,stringtry):
+		try:
+			float(stringtry)
+			return True
+		except ValueError:
+			return False
+
+
 
 	#definition to write to the serial port
 	#this is where we give the telescope mount a command
