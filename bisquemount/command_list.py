@@ -28,13 +28,13 @@ def execute_command(the_command, m):
     '''Find the_command amongst the list of commands like cmd_one in module m
     
     This returns a string containing the response, or a -1 if a quit is commanded.'''
-    the_functions = dict(find=m.cmd_find,getTargetRADec=m.cmd_getTargetRADec,grabScreen=m.cmd_grabScreen,look=m.cmd_look,mountGoTo=m.cmd_mountGoTo,mountGetRADec=m.cmd_mountGetRADec,moveTheSky=m.cmd_moveTheSky,moveTelescope=m.cmd_moveTelescope,slewToRaDec=m.cmd_slewToRaDec,slewToAzAlt=m.cmd_slewToAzAlt,tracking=m.cmd_tracking,zoom=m.cmd_zoom,sendSomething=m.cmd_sendSomething,telescopeConnect=m.cmd_telescopeConnect)
+    the_functions = dict(find=m.cmd_find,getTargetRaDec=m.cmd_getTargetRaDec,mountGetRaDec=m.cmd_mountGetRaDec,moveTelescope=m.cmd_moveTelescope,findHome=m.cmd_findHome,park=m.cmd_park,s=m.cmd_s,slewToRaDec=m.cmd_slewToRaDec,slewToAzAlt=m.cmd_slewToAzAlt,tracking=m.cmd_tracking,sendSomething=m.cmd_sendSomething,telescopeConnect=m.cmd_telescopeConnect)
     commands = string.split(the_command)
     if len(commands) == 0:
         return ""
     if commands[0] == "help":
         if (len(commands) == 1):
-            return 'find\ngetTargetRADec\ngrabScreen\nlook\nmountGoTo\nmountGetRADec\nmoveTheSky\nmoveTelescope\nslewToRaDec\nslewToAzAlt\ntracking\nzoom\nsendSomething\ntelescopeConnect'
+            return 'find\ngetTargetRaDec\nmountGetRaDec\nmoveTelescope\nfindHome\npark\ns\nslewToRaDec\nslewToAzAlt\ntracking\nsendSomething\ntelescopeConnect'
         elif commands[1] in the_functions:
             td=pydoc.TextDoc()
             return td.docroutine(the_functions[commands[1]])
