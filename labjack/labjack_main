@@ -7,5 +7,9 @@ import server_socket
 lj=labjack_server.LabjackServer()
 ss=server_socket.ServerSocket(23456, 'labjack', lj)	
 ss.add_job(lj.dome_location)
+#Put the 'Home' command here to automatically home the dome? Don't want it to constantly home.
+#ss.add_job(lj.home_dome)
 ss.run()
+#If I add the 'Park' command here, will the dome automatically park when everyone logs out?
+#ss.add_job(lj.dome_park)
 ss.close()

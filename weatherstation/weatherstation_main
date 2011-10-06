@@ -7,5 +7,6 @@ import server_socket
 ws=weatherstation_server.WeatherstationServer()
 ss=server_socket.ServerSocket(23450, 'weatherstation', ws)	
 ss.add_job(ws.serialread)
+ss.add_job(ws.socket_funct)
 ss.run()
 ss.close()
