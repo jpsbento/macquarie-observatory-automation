@@ -28,13 +28,13 @@ def execute_command(the_command, m):
     '''Find the_command amongst the list of commands like cmd_one in module m
     
     This returns a string containing the response, or a -1 if a quit is commanded.'''
-    the_functions = dict(find=m.cmd_find,getTargetRaDec=m.cmd_getTargetRaDec,mountGetRaDec=m.cmd_mountGetRaDec,moveTelescope=m.cmd_moveTelescope,findHome=m.cmd_findHome,park=m.cmd_park,s=m.cmd_s,slewToRaDec=m.cmd_slewToRaDec,slewToAzAlt=m.cmd_slewToAzAlt,tracking=m.cmd_tracking,sendSomething=m.cmd_sendSomething,telescopeConnect=m.cmd_telescopeConnect)
+    the_functions = dict(automaticDomeSlewing=m.cmd_automaticDomeSlewing,focusGoToPositon=m.cmd_focusGoToPositon,focusReinitialise=m.cmd_focusReinitialise,focusReadPosition=m.cmd_focusReadPosition,focusReadStateRegister=m.cmd_focusReadStateRegister,focusReadIdentityRegister=m.cmd_focusReadIdentityRegister,focusWriteMaxTravelRegister=m.cmd_focusWriteMaxTravelRegister,focusWritePositionSpeedRegister=m.cmd_focusWritePositionSpeedRegister,focusWriteMoveSpeedRegister=m.cmd_focusWriteMoveSpeedRegister,focusWriteShuttleSpeedRegister=m.cmd_focusWriteShuttleSpeedRegister,focusSetZeroPosition=m.cmd_focusSetZeroPosition,focusMove=m.cmd_focusMove,fs=m.cmd_fs,find=m.cmd_find,getTargetRaDec=m.cmd_getTargetRaDec,mountGetRaDec=m.cmd_mountGetRaDec,mountGetAzAlt=m.cmd_mountGetAzAlt,moveTelescope=m.cmd_moveTelescope,findHome=m.cmd_findHome,park=m.cmd_park,runQuery=m.cmd_runQuery,setParkPosition=m.cmd_setParkPosition,setWhenWhere=m.cmd_setWhenWhere,s=m.cmd_s,slewToRaDec=m.cmd_slewToRaDec,slewToAzAlt=m.cmd_slewToAzAlt,tracking=m.cmd_tracking,sendSomething=m.cmd_sendSomething,telescopeConnect=m.cmd_telescopeConnect)
     commands = string.split(the_command)
     if len(commands) == 0:
         return ""
     if commands[0] == "help":
         if (len(commands) == 1):
-            return 'find\ngetTargetRaDec\nmountGetRaDec\nmoveTelescope\nfindHome\npark\ns\nslewToRaDec\nslewToAzAlt\ntracking\nsendSomething\ntelescopeConnect'
+            return 'automaticDomeSlewing\nfocusGoToPositon\nfocusReinitialise\nfocusReadPosition\nfocusReadStateRegister\nfocusReadIdentityRegister\nfocusWriteMaxTravelRegister\nfocusWritePositionSpeedRegister\nfocusWriteMoveSpeedRegister\nfocusWriteShuttleSpeedRegister\nfocusSetZeroPosition\nfocusMove\nfs\nfind\ngetTargetRaDec\nmountGetRaDec\nmountGetAzAlt\nmoveTelescope\nfindHome\npark\nrunQuery\nsetParkPosition\nsetWhenWhere\ns\nslewToRaDec\nslewToAzAlt\ntracking\nsendSomething\ntelescopeConnect'
         elif commands[1] in the_functions:
             td=pydoc.TextDoc()
             return td.docroutine(the_functions[commands[1]])

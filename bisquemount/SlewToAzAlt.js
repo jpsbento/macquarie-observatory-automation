@@ -1,10 +1,14 @@
 /* Java Script */
 
-var TargetAz = "10";
-var TargetAlt = "10";
+var TargetAz = "20";
+var TargetAlt = "20";
 var Out;
 
+
+
 sky6RASCOMTele.Connect();
+
+
 
 if (sky6RASCOMTele.IsConnected==0)//Connect failed for some reason
 {
@@ -16,3 +20,5 @@ else
 	sky6RASCOMTele.SlewToAzAlt(TargetAz, TargetAlt,"");
 	Out  = "OK";
 }
+
+

@@ -1,3 +1,4 @@
+# coding: utf-8
 #*************************************************************************#
 #                    Code to control the Bisque mount                     #
 #*************************************************************************#
@@ -9,6 +10,7 @@ import socket
 from datetime import datetime
 import time
 import serial
+
 
 #import binascii
 
@@ -36,7 +38,7 @@ class BisqueMountServer:
 			if commands[1] == 'on':
 				self.dome_slewing_enabled = 1
 				return 'Automatic dome slewing now enabled.'
-			elif: commands[1] == 'off:
+			elif commands[1] == 'off':
 				self.dome_slewing_enabled = 0
 				return 'Automatic dome slewing now disabled.'
 			else: return 'ERROR invalid input'
@@ -70,7 +72,7 @@ class BisqueMountServer:
 		response = ser.read()
 		response = ser.read()
 		return response
-
+# coding: utf-8
 	def cmd_focusReadStateRegister(self,the_command):
 		'''After the focus controller receives the command byte, it will echo
 		the command character back to the host, followed by the eight bit 
@@ -262,6 +264,12 @@ class BisqueMountServer:
 		client_socket.send(script)
 		return self.messages()
 
+	def cmd_runQuery(self,the_command):
+		'''Runs whatever 'Current query' is loaded in TheSkyX and returns a list of the object names.'''
+		script = self.readscript('RunQuery.js')
+		client_socket.send(script)
+		return self.messages()
+
 	def cmd_setParkPosition(self,the_command):
 		'''This will set the telescopes current position as the park position. Please don't use
 		this unless there is an error given of the nature 'no park position set'.'''
@@ -301,7 +309,7 @@ class BisqueMountServer:
 			else: return 'ERROR invalid input'
 			if commands[3].isdigit():
 				IUseSystemClock = commands[3]
-			else: return 'ERROR, invalid input
+			else: return 'ERROR, invalid input'
 			if self.is_float_try(commands[5]):
 				dLongitude = commands[5]
 			else: return 'ERROR invalid input'
@@ -315,7 +323,7 @@ class BisqueMountServer:
 				dElevation = commands[8]
 			else: return 'ERROR invalid input'
 			newlines = ['var dJulianDate = '+dJulianDay+';\n','var IDSTOption = '+IDSTOption+';\n','var IUseSystemClock = '+IUseSystemClock+';\n','var IpszDescription = '+IpszDescription+';\n','var dLongitude = '+dLongitude+';\n','var dLatitude = '+dLatitude+';\n','var dTimeZone = '+dTimeZone+';\n','var dElevation = '+dElevation+';\n']
-			if self.editscript('SetWhenWhere.template','SetWhenWhere.js',linestoreplace,newlines:
+			if self.editscript('SetWhenWhere.template','SetWhenWhere.js',linestoreplace,newlines):
 				script = self.readscript('SetWhenWhere.js')
 				client_socket.send(script)
 				return self.messages()
