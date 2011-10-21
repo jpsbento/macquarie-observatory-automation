@@ -37,22 +37,32 @@ server.listen(1) #will allow 1 client to connect with server, can only have one 
 class LabjackServer:
 
 #Some properties relating to the relative encoder.
-	dome_command = 0 #this is the distance the user wants the dome to move to be in position
-	dome_moving = False #a variable to keep track of whether the dome is moving due to a remote user command
-	current_pos = 0 #The position that the dome is at right now
-	counts_per_degree = 11.82 #how many counts from the wheel encoder there is to a degree
-	slitoffset=53.83*counts_per_degree #position, in counts, of the slits when home switch is activated
-	counts_at_start = 0.0 #This will record the counts from the labjack before the dome starts to move to a new position
-			  #We need this to keep track of how far we have traveled.
+	dome_command = 0 		      #this is the distance the user wants the dome to move to be in position
+	dome_moving = False     	      #a variable to keep track of whether the dome is moving due to a remote user command
+	current_pos = 0 		      #The position that the dome is at right now
+	counts_per_degree = 11.82 	      #how many counts from the wheel encoder there is to a degree
+	slitoffset=53.83*counts_per_degree    #position, in counts, of the slits when home switch is activated
+	counts_at_start = 0.0		      #This will record the counts from the labjack before the dome starts to move to a new position
+				  	      #We need this to keep track of how far we have traveled.
 
 	CLIENTS = []
 	input = [server]
 
+	dome_correction_enabled = 0   #This sets whether we want to correct the azimuth for the dome so '20' actually
+				      #points to '20' in the reference frame of the telescope and NOT the dome
+	domeoffset = 90  #This is the angle between the line joining the center of the telescope and the center of the dome,
+			 #and the line joining the telescope to the point on the dome the telescopes is pointing, when the dome
+			 #is pointing North. Not actually 90, it needs to be measured.
+			 #Potential problem where we enable dome correction, but how do we know if the current position was already
+			 #corrected or not?
+
+	domeRadius = 1
+	domeTelescopeDistance = 0 #The distance between the center of the dome an the telescope
 #*************************************************************************#
 #All the definitions used are listed here
 
 #definition for weather checking
-		def cmd_humidity(self,the_command):
+	def cmd_humidity(self,the_command):
 		''' Get the humidity from the E1050 probe '''
 		humidity = LJPROBE.getHumidity()
 		return str(humidity)
@@ -70,6 +80,18 @@ class LabjackServer:
 	def cmd_status(self,the_command):
 		'''Return the status of the entire system.'''
  		return(str(self.current_pos/self.counts_per_degree)+" degrees.")
+
+	def cmd_domeCorrection(self,the_command):
+		'''Can turn the dome correction on or off (automatically set to on). When dome correction is on,
+		the dome will move to the azimuth given to it, but that azimuith in the reference frame of the dome.
+		This way if the telescope is at 20, a command to the dome will move to 20 with dome correction enabled
+		will ensure the telescope and dome line up.'''
+		commands = str.split(the_command):
+		if len(commands) == 2:
+			if commands[1] == 'on': dome_correction_enabled = 1
+			elif commands[1] == 'off': dome_correction_enabled = 0
+			else: return 'ERROR invalid input'
+		else: return 'Invalid input'
         
 	def cmd_dome(self,the_command):
                 '''Move the dome. Put a + or - before the number you input to move a certain distance
@@ -84,7 +106,7 @@ class LabjackServer:
 		if self.dome_moving == True:
 			return "Dome moving, input only available when the dome is stationary."
 		elif len(commands) == 1:
-			return "Dome's current position: "+str(self.current_pos/self.counts_per_degree)+" degrees. Dome NOT moving."
+			return "Dome's current position: "+str(self.current_pos/self.counts_per_degree)+" degrees from the domes frame of reference. Dome NOT moving."
 		elif len(commands) == 2:
 			self.counts_at_start=self.current_pos
 			self.dome_command = commands[1] #Grabs the number the user input
@@ -92,9 +114,10 @@ class LabjackServer:
 			degree_move = 0.0
 			newdegree_move = 0.0
 			distance = 0
+			correction = 0
 			if temp[0] == '+' or temp[0] == '-': #user has asked to move a certain amount from where we are now
 				if temp[0] == '+': sign = 1 #Keep track of the direction the user input
-				else: sign = -1     #must have input a negative number
+				else: sign = -1     #must have input a nedomeTelescopeDistancegative number
 				del temp[0]
 				temp2 = ''
 				for i in len(temp): #put back together to get a number back out
@@ -107,6 +130,13 @@ class LabjackServer:
 				#put in some from of thing to stop billions of rotations.	
 			#if above statement is false, user has asked to go to a specific degree location
 			elif self.dome_command.isdigit():
+				if dome_correction_enabled:
+					correction = asin((self.domeTelescopeDistance/self.domeRadius)*math.sin(math.radians(self.dome_command + domeoffset)))		
+					#Above we have also changed coordinate systems.
+					correctionDegrees = math.degrees(correction)
+					#whether you add or minus the correction depends on the telescopeAzimuth size
+					if self.dome_command <= (180- self.domeoffset) and self.dome_command >= (360-self.domeoffset): self.dome_command = correctionDegrees + self.dome_comand
+					if self.dome_command > (180 - self.domeoffset) and self.dome_command < (360-self.domeoffset): self.dome_command = self.dome_command - correctionDegrees
 				degree_move = float(self.dome_command) - float(self.dome_pos) #where you want to go - where you are now to convert into
 			else: return "ERROR, invalid input"
 
