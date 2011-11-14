@@ -118,10 +118,11 @@ class WeatherstationServer:
 		del alert[0]
 		del alert[0]
 #		print alert
+		#alert.reverse()
 		while len(alert) < 8:
 			alert.insert(0, '0')
 		#alert.reverse()
-#		print alert
+		print alert
 		#alert = [0,0,0,0,0,0,0,0]
 		#temp = list(self.alertstate)
 		#first = int(temp[0], 16)

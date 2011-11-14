@@ -5,8 +5,8 @@ import time
 import sys
 
 #Store the default camera settings here
-frameRateDefault = 20.0
-exposureAutoDefault = 1
+frameRateDefault = 30.0
+exposureAutoDefault = 3
 exposureAbsoluteDefault = 333
 gainDefault = 1023
 brightnessDefault = 0
@@ -64,7 +64,9 @@ gammaValue = get_user_input('Gamma', gammaDefault, gammaAllowedValues)*100
 
 
 dev = unicap.Device( unicap.enumerate_devices()[0] )
+
 fmts = dev.enumerate_formats()
+
 
 props = dev.enumerate_properties()
 
@@ -90,18 +92,18 @@ prop['value'] = int(brightnessValue) #default should be 0
 dev.set_property( prop )
 
 prop = dev.get_property( 'Gamma' )
-prop['value'] = int(gammaValue) #default should be 1000 ie linear
+prop['value'] = int(gammaValue) #default should be 100 ie linear
 dev.set_property( prop )
 
 
 #start capturing video
 dev.start_capture()
 
-dev.set_property( prop )
+#dev.set_property( prop )
 imgbuf = dev.wait_buffer( 10 )
 
 for i in range( 0, 4 ):
-	dev.set_property( prop )
+	#dev.set_property( prop )
 	t1 = time.time()
 	imgbuf = dev.wait_buffer( 11 )
 	dt = time.time() - t1

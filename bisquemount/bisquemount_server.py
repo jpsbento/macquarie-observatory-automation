@@ -11,7 +11,6 @@ from datetime import datetime
 import time
 import serial
 
-
 #import binascii
 
 #Open port 0 at "9600,8,N,1", timeout of 5 seconds
@@ -26,6 +25,29 @@ client_socket.connect(("10.72.26.145",3040))
 class BisqueMountServer:
 
 	dome_slewing_enabled = 0 #can enable disable automatic dome slewing
+
+
+	def bytebinaryformat(userinput):
+		#We need to send data in the form of two bytes. I've taken the user input, coverted it to binary
+		#added the extra zeros on the front to bring us up to 16 characters, split the binary string into
+		#two 8 character binary strings, and then coded to send these separately. Will it work? Who knows.
+		binarypos = bin(userinput) #change the number into a binary
+		postemp = list(binarypos) #make a list of this binary so I can edit it
+		del postemp[0] #get rid of the weird headers at the front
+		del postemp[0]
+		while len(postemp) < 16: #we need to send 16 bits, so add 0's to make up to that amount
+			postemp.insert(0,'0')
+		#we need to create our two bytes of data to send to the focuser
+		#create a second list that will store half the previous list
+		postempmostsig = [postemp[0],postemp[1],postemp[2],postemp[3],postemp[4],postemp[5],postemp[6],postemp[7]]
+		#now delete the list items in the original list now stored in the new list
+		for i in range(0,8):
+			del postemp[0]
+		#join each element in both our lists to get two strings
+		mostsigpostion = ''.join(postempmostsig)
+		leastsigposition = ''.join(postemp)
+		#return this as a list of our two strings
+		return [mostsigposition,leastsigposition]
 
 	def cmd_automaticDomeSlewing(self,the_command):
 		'''Turn this on or off to determine whether the dome automatically updates
@@ -45,34 +67,50 @@ class BisqueMountServer:
 		else: return 'ERROR invalid input'
 
 #**** SERIAL COMMANDS FOR THE FOCUSER *****#
+#The focuser echos the command back to the user.
 
 	def cmd_focusGoToPositon(self,the_command):
 		'''Tell the focuser to go to a position. User input currently unknown.
-		16 bit position value sent as two bytes, most significant byte first.'''
-		ser.write('g')
-		response = ser.read()
-		response = ser.read()
-		if response == 'c': return 'Command complete'
-		elif response == 'r': return 'Motor or encoder not working, operation terminated.'
-		else: return 'ERROR, not sure what.'
+		16 bit position value sent as two bytes, most significant byte first.
+		Input position in inches ie 0.234" but without non number characters, so
+		0.234" becomes 0234'''
+		commands = str.split(the_command)
+		if len(commands) == 2 and commands[1].isdigit():
+			temp = bytebinaryformat(commands[1])
+			mostsigbyte = temp[0]
+			leastsigbyte = temp[1]
+			ser.write('g')
+			ser.write(mostsigbyte)
+			ser.write(leastsigbyte)
+			echo = ser.read() #echos the command back to us, then tries to complete command
+			response = ser.read() #then communates again when command is either completed or terminated
+			if response == 'c': return 'Command complete'
+			elif response == 'r': return 'Motor or encoder not working, operation terminated.'
+			else: return 'ERROR, not sure what.'
+		else: return 'ERROR, invalid input'
 
-	def cmd_focusReinitialise(self,the_command):
-		'''Reinitialise the focuser. Will determine speed settings, store all data to
-		the EEPROM, and move the focuser to the zero position.'''
-		ser.write('h')
-		response = ser.read()
-		response = ser.read()
-		if response == 'c': return 'Command complete'
-		elif response == 'r': return 'Motor or encoder not working, operation terminated.'
-		else: return 'ERROR, not sure what.'
+# Don't think it's a good idea to have remote access to this command
+#	def cmd_focusReinitialise(self,the_command):
+#		'''Reinitialise the focuser. Will determine speed settings, store all data to
+#		the EEPROM, and move the focuser to the zero position. DON'T DO THIS. Warning: Repeated 
+#		reinitialization (without user intervention) will damage the focuser drawtube flat because 
+#		the initialization process continues to run the motor after the end of drawtube travel has 
+#		been reached. The Reinitialize function should be used only when necessary, such as when
+#		focuser properties change.'''
+#		ser.write('h')
+#		echo = ser.read()
+#		response = ser.read()
+#		if response == 'c': return 'Command complete'
+#		elif response == 'r': return 'Motor or encoder not working, operation terminated.'
+#		else: return 'ERROR, not sure what.'
 
 	def cmd_focusReadPosition(self,the_command):
 		'''This will read the position of the focuser.'''
 		ser.write('p')
-		response = ser.read()
+		echo = ser.read()
 		response = ser.read()
 		return response
-# coding: utf-8
+
 	def cmd_focusReadStateRegister(self,the_command):
 		'''After the focus controller receives the command byte, it will echo
 		the command character back to the host, followed by the eight bit 
@@ -80,7 +118,7 @@ class BisqueMountServer:
 		is true, a 0 indicates it is false. Reading the device status resets
 		the error conditions (bits 1 through 3 only).'''
 		ser.write('t')
-		response = ser.read()
+		echo = ser.read()
 		response = ser.read()
 		message = ''
 		if len(response) == 8:
@@ -106,11 +144,20 @@ class BisqueMountServer:
 		'''This command will allow the host to write the focus controller maximum 
 		travel register. This command is used by the host PC to configure the focuser
 		controller, based on the focuser characteristics defined by the user. When this
-		command is received, all stored data in the EEPROM is updated.This is a three 
+		command is received, all stored data in the EEPROM is updated. This is a three 
 		byte command. The command character is ‘w’. This is followed by the desired 
 		sixteen bit maximum count value, sent as two bytes, most significant byte first.'''
-		ser.write('w')
-		return ser.read()
+		commands = str.split(the_command)
+		if len(commands) == 2 and commands[1].isdigit():
+			temp = bytebinaryformat(commands[1])
+			mostsigbyte = temp[0]
+			leastsigbyte = temp[1]
+			ser.write('w')
+			ser.write(mostsigbyte)
+			ser.write(leastsigbyte)
+			echo = ser.read() #echos the command back to us
+			return echo
+		else: return 'ERROR, invalid input'
 
 	def cmd_focusWritePositionSpeedRegister(self,the_command): #NEED INPUT
 		'''This command will allow the host to write the focus controller position speed
@@ -119,8 +166,17 @@ class BisqueMountServer:
 		to move the focuser slowly when it is close to the desired Go To position. This is
 		a three byte command. The command character is ‘d’. This is followed by the
 		desired sixteen bit speed value, sent as two bytes, most significant byte first.'''
-		ser.write('d')
-		return ser.read()
+		commands = str.split(the_command)
+		if len(commands) == 2 and commands[1].isdigit():
+			temp = bytebinaryformat(commands[1])
+			mostsigbyte = temp[0]
+			leastsigbyte = temp[1]
+			ser.write('d')
+			ser.write(mostsigbyte)
+			ser.write(leastsigbyte)
+			echo = ser.read() #echos the command back to us
+			return 'echo'
+		else: return 'ERROR, invalid input'
 
 	def cmd_focusWriteMoveSpeedRegister(self,the_command): #NEED INPUT
 		'''This command will allow the host to write the focus controller move speed
@@ -130,19 +186,35 @@ class BisqueMountServer:
 		the speed the focuser moves when a pushbutton is pressed. This is a three byte
 		command. The command character is ‘e’. This is followed by the desired sixteen bit
 		speed value, sent as two bytes, most significant byte first.'''
-		ser.write('e')
-		return ser.write()
-
+		commands = str.split(the_command)
+		if len(commands) == 2 and commands[1].isdigit():
+			temp = bytebinaryformat(commands[1])
+			mostsigbyte = temp[0]
+			leastsigbyte = temp[1]
+			ser.write('e')
+			ser.write(mostsigbyte)
+			ser.write(leastsigbyte)
+			echo = ser.read() #the focuser echos the command back to us
+			return echo
 	def cmd_focusWriteShuttleSpeedRegister(self,the_command): #NEED INPUT
-		'''This command will allow the host to write the focus controller shuttle speed 		register. This command is used by the host PC to configure the focuser controller,
+		'''This command will allow the host to write the focus controller shuttle speed
+ 		register. This command is used by the host PC to configure the focuser controller,
 		based on the focuser characteristics defined by the user. Shuttle speed is used to
 		move the focuser rapidly during a Go To Position command, when far from the desired
 		position. It is also the speed the focuser moves when a pushbutton is pressed for
 		more than three seconds, and the motor speeds up. This is a three byte command. The
 		command character is ‘f’. This is followed by the desired sixteen bit speed value,
 		sent as two bytes, most significant byte first.'''
-		ser.write('f')
-		return ser.write()
+		commands = str.split(the_command)
+		if len(commands) == 2 and commands[1].isdigit():
+			temp = bytebinaryformat(commands[1])
+			mostsigbyte = temp[0]
+			leastsigbyte = temp[1]
+			ser.write('f')
+			ser.write(mostsigbyte)
+			ser.write(leastsigbyte)
+			echo = ser.read() #echos the command back to us
+			return echo
 
 	def cmd_focusSetZeroPosition(self,the_command):
 		'''This command will set the Position register value to zero, regardless of the
@@ -152,7 +224,9 @@ class BisqueMountServer:
 		return ser.read()
 
 	def cmd_focusMove(self,the_command):
-		'''Tell the focuser to move in or out.'''
+		'''Tell the focuser to move in or out. Increments by 0.01". Note that if the push
+		buttons on the manual control pad for the focuser are pushed while this command is in
+		operation, motion will be terminated.'''
 		commands = str.split(the_command)
 		if len(commands) == 2:
 			if commands[1] == 'in' or commands[1] == 'In':

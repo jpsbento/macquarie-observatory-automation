@@ -48,13 +48,13 @@ class LabjackServer:
 	CLIENTS = []
 	input = [server]
 
-	dome_correction_enabled = 0   #This sets whether we want to correct the azimuth for the dome so '20' actually
+	dome_correction_enabled = 1   #This sets whether we want to correct the azimuth for the dome so '20' actually
 				      #points to '20' in the reference frame of the telescope and NOT the dome
+				      #Initially set as enabled.
 	domeoffset = 90  #This is the angle between the line joining the center of the telescope and the center of the dome,
 			 #and the line joining the telescope to the point on the dome the telescopes is pointing, when the dome
 			 #is pointing North. Not actually 90, it needs to be measured.
-			 #Potential problem where we enable dome correction, but how do we know if the current position was already
-			 #corrected or not?
+
 
 	domeRadius = 1
 	domeTelescopeDistance = 0 #The distance between the center of the dome an the telescope
@@ -82,7 +82,7 @@ class LabjackServer:
  		return(str(self.current_pos/self.counts_per_degree)+" degrees.")
 
 	def cmd_domeCorrection(self,the_command):
-		'''Can turn the dome correction on or off (automatically set to on). When dome correction is on,
+		'''Used to turn the dome correction on or off (automatically set to on). When dome correction is on,
 		the dome will move to the azimuth given to it, but that azimuith in the reference frame of the dome.
 		This way if the telescope is at 20, a command to the dome will move to 20 with dome correction enabled
 		will ensure the telescope and dome line up.'''
@@ -125,6 +125,7 @@ class LabjackServer:
 						temp2 += temp[i]
 					else: 
 						return 'ERROR invalid input'
+					if int(temp2) > 180 or int(temp2) < -180: return "
 						#break
 				degree_move = float(temp2)*sign
 				#put in some from of thing to stop billions of rotations.	
@@ -136,7 +137,8 @@ class LabjackServer:
 					correctionDegrees = math.degrees(correction)
 					#whether you add or minus the correction depends on the telescopeAzimuth size
 					if self.dome_command <= (180- self.domeoffset) and self.dome_command >= (360-self.domeoffset): self.dome_command = correctionDegrees + self.dome_comand
-					if self.dome_command > (180 - self.domeoffset) and self.dome_command < (360-self.domeoffset): self.dome_command = self.dome_command - correctionDegrees
+					elif self.dome_command > (180 - self.domeoffset) and self.dome_command < (360-self.domeoffset): self.dome_command = self.dome_command - correctionDegrees
+					else: return 'ERROR invalid number input.'
 				degree_move = float(self.dome_command) - float(self.dome_pos) #where you want to go - where you are now to convert into
 			else: return "ERROR, invalid input"
 
