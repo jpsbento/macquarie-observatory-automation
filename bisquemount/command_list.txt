@@ -1,6 +1,5 @@
 automaticDomeSlewing
-focusGoToPositon
-focusReinitialise
+focusGoToPosition
 focusReadPosition
 focusReadStateRegister
 focusReadIdentityRegister

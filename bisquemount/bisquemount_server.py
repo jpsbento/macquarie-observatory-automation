@@ -10,16 +10,19 @@ import socket
 from datetime import datetime
 import time
 import serial
+import binascii
 
 #import binascii
 
 #Open port 0 at "9600,8,N,1", timeout of 5 seconds
-ser = serial.Serial(0)  #open first serial port. Need to change this when I find the address
+#Open port connected to the mount
+ser = serial.Serial('/dev/ttyUSB0',9600, timeout = 1) #non blocking serial port, will wait
+						      #for one second find the address
 print ser.portstr       #check which port was really used
                         #we open a serial port to talk to the focuser
 
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #Make a client to communicate with the labjack and dome position
-client_socket.connect(("10.72.26.145",3040))
+#client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #Make a client to communicate with the labjack and dome position
+#client_socket.connect(("10.238.16.10",3040))
 #client_socket.settimeout(10)
 
 class BisqueMountServer:
@@ -27,11 +30,11 @@ class BisqueMountServer:
 	dome_slewing_enabled = 0 #can enable disable automatic dome slewing
 
 
-	def bytebinaryformat(userinput):
+	def bytebinaryformat(self, userinput):
 		#We need to send data in the form of two bytes. I've taken the user input, coverted it to binary
 		#added the extra zeros on the front to bring us up to 16 characters, split the binary string into
 		#two 8 character binary strings, and then coded to send these separately. Will it work? Who knows.
-		binarypos = bin(userinput) #change the number into a binary
+		binarypos = bin(int(userinput)) #change the number into a binary
 		postemp = list(binarypos) #make a list of this binary so I can edit it
 		del postemp[0] #get rid of the weird headers at the front
 		del postemp[0]
@@ -44,7 +47,7 @@ class BisqueMountServer:
 		for i in range(0,8):
 			del postemp[0]
 		#join each element in both our lists to get two strings
-		mostsigpostion = ''.join(postempmostsig)
+		mostsigposition = ''.join(postempmostsig)
 		leastsigposition = ''.join(postemp)
 		#return this as a list of our two strings
 		return [mostsigposition,leastsigposition]
@@ -69,14 +72,14 @@ class BisqueMountServer:
 #**** SERIAL COMMANDS FOR THE FOCUSER *****#
 #The focuser echos the command back to the user.
 
-	def cmd_focusGoToPositon(self,the_command):
+	def cmd_focusGoToPosition(self,the_command):
 		'''Tell the focuser to go to a position. User input currently unknown.
 		16 bit position value sent as two bytes, most significant byte first.
 		Input position in inches ie 0.234" but without non number characters, so
 		0.234" becomes 0234'''
 		commands = str.split(the_command)
 		if len(commands) == 2 and commands[1].isdigit():
-			temp = bytebinaryformat(commands[1])
+			temp = self.bytebinaryformat(commands[1])
 			mostsigbyte = temp[0]
 			leastsigbyte = temp[1]
 			ser.write('g')
@@ -84,13 +87,16 @@ class BisqueMountServer:
 			ser.write(leastsigbyte)
 			echo = ser.read() #echos the command back to us, then tries to complete command
 			response = ser.read() #then communates again when command is either completed or terminated
+			response += ser.read()
+			time.sleep(10)
+			response += ser.read()
 			if response == 'c': return 'Command complete'
 			elif response == 'r': return 'Motor or encoder not working, operation terminated.'
-			else: return 'ERROR, not sure what.'
+			else: return response+' ERROR, not sure what.'
 		else: return 'ERROR, invalid input'
 
 # Don't think it's a good idea to have remote access to this command
-#	def cmd_focusReinitialise(self,the_command):
+#	def focusReinitialise(self,the_command):
 #		'''Reinitialise the focuser. Will determine speed settings, store all data to
 #		the EEPROM, and move the focuser to the zero position. DON'T DO THIS. Warning: Repeated 
 #		reinitialization (without user intervention) will damage the focuser drawtube flat because 
@@ -109,7 +115,9 @@ class BisqueMountServer:
 		ser.write('p')
 		echo = ser.read()
 		response = ser.read()
-		return response
+		time.sleep(5)
+		response  += ser.read()
+		return str(binascii.a2b_uu(response))
 
 	def cmd_focusReadStateRegister(self,the_command):
 		'''After the focus controller receives the command byte, it will echo
@@ -129,7 +137,7 @@ class BisqueMountServer:
 			if temp[6] == '1': message += 'Focuser at zero position. '
 			if temp[7] == '1': message += 'Focuser at maximum travel position. '
 			return message
-		else: return 'ERROR reading response from focuser.'
+		else: return 'ERROR reading response from focuser.'+response
 
 	def cmd_focusReadIdentityRegister(self,the_command): #What does this actually do?
 		'''This command will allow the host to read the focus controller identify byte.
@@ -138,6 +146,7 @@ class BisqueMountServer:
 		the host, followed by the eight bit identify byte. This identify byte is a lower
 		case ‘j’ (6Ah).'''
 		ser.write('b')
+		echo = ser.read()
 		return ser.read()
 
 	def cmd_focusWriteMaxTravelRegister(self,the_command): #NEED INPUT
@@ -196,6 +205,7 @@ class BisqueMountServer:
 			ser.write(leastsigbyte)
 			echo = ser.read() #the focuser echos the command back to us
 			return echo
+
 	def cmd_focusWriteShuttleSpeedRegister(self,the_command): #NEED INPUT
 		'''This command will allow the host to write the focus controller shuttle speed
  		register. This command is used by the host PC to configure the focuser controller,
@@ -220,7 +230,7 @@ class BisqueMountServer:
 		'''This command will set the Position register value to zero, regardless of the
 		actual drawtube position. The position value stored in the EEPROM is also
 		updated.'''
-		ser.send('z')
+		ser.write('z')
 		return ser.read()
 
 	def cmd_focusMove(self,the_command):
@@ -230,12 +240,12 @@ class BisqueMountServer:
 		commands = str.split(the_command)
 		if len(commands) == 2:
 			if commands[1] == 'in' or commands[1] == 'In':
-				ser.send('i')
+				ser.write('i')
 				message = ser.read()
 				if message == 'r': return 'Motor or encoder not working'
 				else: return message
 			elif commands[1] == 'out' or commands[1] == 'Out':
-				ser.send('o')
+				ser.write('o')
 				message = ser.read()
 				if message == 'r': return 'Motor or encoder not working'
 				else: return message

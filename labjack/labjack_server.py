@@ -44,7 +44,9 @@ class LabjackServer:
 	slitoffset=53.83*counts_per_degree    #position, in counts, of the slits when home switch is activated
 	counts_at_start = 0.0		      #This will record the counts from the labjack before the dome starts to move to a new position
 				  	      #We need this to keep track of how far we have traveled.
-
+    countsperdegree = 11.82 #at the moment is set to counts per turns, we need to measure counts per degree
+    slitoffse=53.83*countsperdegree #position of the slits when home switch is activated in counts
+    countsatstart = 0.0
 	CLIENTS = []
 	input = [server]
 
@@ -155,26 +157,27 @@ class LabjackServer:
 #****** End of user commands *******
                 
 #This is the background job that defines if the dome is moving.
-	def dome_rotate(self,command):
-		distance_to_travel = float(command) #distance in degrees
-		counts_to_travel = distance_to_travel*self.counts_per_degree #covert degrees to counts
-		print "current_pos "+str(self.current_pos)
-		if counts_to_travel >= 0:  #clockwise motion
-			if self.counts_at_start+counts_to_travel > self.current_pos: #Check if we are in position yet
-                                self.dome_moving = True
-                #print self.current_pos
-			else: self.dome_moving = False
-		elif counts_to_travel < 0: #counterclockwise motion
-			if self.counts_at_start+counts_to_travel < self.current_pos:
-				self.dome_moving = True
-			else: self.dome_moving = False
-		else:
-			return "ERROR"
-		if self.dome_moving == False:
-        	        #print "Dome in position: "+str(self.current_pos/self.counts_per_degree)+" degrees."
-			return "Dome in position: "+str(self.current_pos/self.counts_per_degree)+" degrees."
-		else: return
-           
+    def dome_rotate(self,command):
+        distance_to_travel = float(command) #distance in degrees
+        counts_to_travel = distance_to_travel*self.counts_per_degree #covert degrees to counts
+    	print "current_pos "+str(self.current_pos)
+        if counts_to_travel >= 0:  #clockwise motion
+            if self.counts_at_start+counts_to_travel > self.current_pos: #Check if we are in position yet
+                self.dome_moving = True
+        #print self.current_pos
+            else: self.dome_moving = False
+        elif counts_to_travel < 0: #counterclockwise motion
+            if self.counts_at_start+counts_to_travel < self.current_pos:
+                self.dome_moving = True
+            else: self.dome_moving = False
+        else:
+            return "ERROR"
+        if self.dome_moving == False:
+    	    #print "Dome in position: "+str(self.current_pos/self.counts_per_degree)+" degrees."
+	    return "Dome in position: "+str(self.current_pos/self.counts_per_degree)+" degrees."
+	    print "wheel done working "+turns
+        else: return
+       
 #This will 'move' the dome if there has been a command which has not yet completed
 #obviously at the moment the dome is moved manually
         def dome_location(self):
