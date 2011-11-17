@@ -99,11 +99,11 @@ dev.set_property( prop )
 #start capturing video
 dev.start_capture()
 
-#dev.set_property( prop )
+dev.set_property( prop )
 imgbuf = dev.wait_buffer( 10 )
 
 for i in range( 0, 4 ):
-	#dev.set_property( prop )
+	dev.set_property( prop )
 	t1 = time.time()
 	imgbuf = dev.wait_buffer( 11 )
 	dt = time.time() - t1
