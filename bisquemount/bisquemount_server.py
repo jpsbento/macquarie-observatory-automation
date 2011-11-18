@@ -336,7 +336,7 @@ class BisqueMountServer:
 		client_socket.send(script)
 		return self.messages()
 
-	def cmd_setWhenWhere(self,the_command):
+	def cmd_setWhenWhere(self,the_command): #THIS ISN'T DONE PROPERLY YET.
 		'''This can be used to specify the location, date and time to be used by the sky.
 		Input should look like: double(JulianDay) int(IDSTOption) int(IUseSystemClock)
 		String(IpszDescripton) double(longitude) double(latitude) double(TimeZone)
