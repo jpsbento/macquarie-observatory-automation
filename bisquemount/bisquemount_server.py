@@ -29,6 +29,28 @@ class BisqueMountServer:
 
 	dome_slewing_enabled = 0 #can enable disable automatic dome slewing
 
+	def convertnumberforfocuser(self, inputnumber):
+		'''This will take a user input number and convert it for sending to the focuser in the correct format'''
+		numbertoprocess = int(inputnumber)
+		temphigher = int(numbertoprocess/256)   #here we have split the number so as to get the two byte form
+		templower = numbertoprocess - temphigher*256
+		bigend = chr(temphigher)
+		littleend = chr(templower)
+		return [bigend, littleend]
+
+
+	def convertfocusoutput(self, output):
+		'''This will take the output from the focuser and convert it to a user friendly format'''
+		templist = list(output) #I'm going to assume the length of the string is 2
+		bigint = ord(output[0]) #The focuser sends the bigend first
+		littleint = ord(output[1])
+		tophalf = bigint*256
+		bottomhalf = littleint
+		totalnumber = tophalf+bottomhalf #by now we should have converted the two bytes into one number for easy reading
+		return totalnumber
+			
+
+
 	def translation(self, userinput):
 		if int(userinput) and int(userinput) < 256: 
 			return chr(int(userinput))
