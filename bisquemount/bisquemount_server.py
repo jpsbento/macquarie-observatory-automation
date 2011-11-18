@@ -29,10 +29,9 @@ class BisqueMountServer:
 
 	dome_slewing_enabled = 0 #can enable disable automatic dome slewing
 
-
 	def translation(self, userinput):
 		if int(userinput) and int(userinput) < 256: 
-			return ord(int(userinput)
+			return chr(int(userinput))
 		else: return 0
 
 	def cmd_automaticDomeSlewing(self,the_command):
@@ -73,7 +72,7 @@ class BisqueMountServer:
 	def recvamount(self, size):
 		data = ''
 		while len(data) < size:
-			data += ser.recv(size - len(data))
+			data += ser.read(size - len(data))
 		return data
 
 
@@ -87,13 +86,15 @@ class BisqueMountServer:
 		0.234" becomes 0234 (this might well be a lie)'''
 		commands = str.split(the_command)
 		if len(commands) == 2 and commands[1].isdigit():
-			positioncommand = translation(commands[1])
-			ser.write(positioncommand)
+			positioncommand = self.translation(commands[1])
+			ser.write(str(positioncommand))
+			ser.write(str(positioncommand))
 			echo = ser.read() #then communicates again when command is either completed or terminated
-			response = ser.read()
-			if response[-1] == 'c': return 'Command complete'
-			elif response[-1] == 'r': return 'Motor or encoder not working, operation terminated.'
-			else: return response+' ERROR, not sure what.'
+			response = str(ser.read())
+			while response == '': response = str(ser.read())
+			if response == 'c': return 'Command complete'
+			elif response == 'r': return 'Motor or encoder not working, operation terminated.'
+			else: return response+' ERROR, not sure what.'+str(ord(response))
 		else: return 'ERROR, invalid input'
 
 
@@ -101,12 +102,16 @@ class BisqueMountServer:
 		'''This will read the position of the focuser.'''
 		ser.write('p')
 		echo = ser.read(1)
-		responsetemp = self.recvamount(2)
-		responselist = list(responsetemp)
+		#responsetemp = self.recvamount(2)
+		#responselist = list(responsetemp)
 		response = ''
-		for something in responselist:       #hopefully taking the number values of all the characters
-			response += ord(something)   #the focuser gives as and adding them gives us the position
-		return str(response)		     #although I'm not sure it'll be that simples
+		response2 = ''
+		#for something in responselist:       #hopefully taking the number values of all the characters
+			#response += ord(something)   #the focuser gives as and adding them gives us the position
+		#return str(response)		     #although I'm not sure it'll be that simples
+		while response == '': response = ser.read()
+		while response2 == '': response2 = ser.read()
+		return str(ord(response)+ord(response2))+str(response)+' '+str(ord(response))+' '+str(response2)+' '+str(ord(response2))
 
 	def cmd_focusReadStateRegister(self,the_command):
 		'''After the focus controller receives the command byte, it will echo
@@ -116,19 +121,18 @@ class BisqueMountServer:
 		the error conditions (bits 1 through 3 only).'''
 		ser.write('t')
 		echo = ser.read() #should set size=len(echo), where you figure out len(echo) from a trial attempt
-		response = ser.read()
-		import code; code.interact(local=locals())
+		response = ''
+		while response == '': response = ser.read()
+		#import code; code.interact(local=locals())
 		message = ''
 		r0 = ord(response[0])
 		# Lets assume that bit 7 is bit 0, and bit 0 is bit 7.
-		if ((r0 >> 0) & 1): message += 'Focuser at maximum travel position. '
-		if ((r0 >> 1) & 1): message += 'Focuser at zero position. '
+		if ((r0 >> 1) & 1): message += 'Focuser at maximum travel position. '
+		if ((r0 >> 6) & 1): message += 'Focuser at zero position. '
 		if ((r0 >> 4) & 1): message += 'Motor/encoder error. '
-		if ((r0 >> 5) & 1): message += 'Serial reciver overrun error. '
-		if ((r0 >> 6) & 1): message += 'Serial reciver framing error. '
+		if ((r0 >> 3) & 1): message += 'Serial reciver overrun error. '
+		if ((r0 >> 2) & 1): message += 'Serial reciver framing error. '
 		return message
-
-		else: return 'ERROR reading response from focuser.'+response
 
 	def cmd_focusReadIdentityRegister(self,the_command): #What does this actually do?
 		'''This command will allow the host to read the focus controller identify byte.
