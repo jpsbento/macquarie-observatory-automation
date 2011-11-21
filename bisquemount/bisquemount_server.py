@@ -103,10 +103,13 @@ class BisqueMountServer:
 		commands = str.split(the_command)
 		if len(commands) == 2 and commands[1].isdigit():
 			positioncommand = self.convertnumberforfocuser(commands[1])
+			ser.write('g')
 			ser.write(str(positioncommand[0]))
 			ser.write(str(positioncommand[1]))
 			echo = ser.read(1) #then communicates again when command is either completed or terminated
-			focusresponse = str(ser.read(1))
+			print echo
+			focusresponse = ''
+			while focusresponse == '':focusresponse = str(ser.read(1))
 			if focusresponse == 'c': return 'Command complete'
 			elif focusresponse == 'r': return 'Motor or encoder not working, operation terminated.'
 			else: return focusresponse+' ERROR, not sure what.'+str(ord(focusresponse))
