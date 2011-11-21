@@ -16,7 +16,7 @@ import binascii
 
 #Open port 0 at "9600,8,N,1", timeout of 5 seconds
 #Open port connected to the mount
-ser = serial.Serial('/dev/ttyUSB0',9600, timeout = 1) #non blocking serial port, will wait
+ser = serial.Serial('/dev/ttyUSB0',9600, timeout = 10) #non blocking serial port, will wait
 						      #for one second find the address
 print ser.portstr       #check which port was really used
                         #we open a serial port to talk to the focuser
@@ -39,22 +39,16 @@ class BisqueMountServer:
 		return [bigend, littleend]
 
 
-	def convertfocusoutput(self, output):
+	def convertfocusoutput(self, outputbig, outputlittle):
 		'''This will take the output from the focuser and convert it to a user friendly format'''
-		templist = list(output) #I'm going to assume the length of the string is 2
-		bigint = ord(output[0]) #The focuser sends the bigend first
-		littleint = ord(output[1])
+		#templist = list(output) #I'm going to assume the length of the string is 2
+		bigint = ord(outputbig) #The focuser sends the bigend first
+		littleint = ord(outputlittle)
 		tophalf = bigint*256
 		bottomhalf = littleint
 		totalnumber = tophalf+bottomhalf #by now we should have converted the two bytes into one number for easy reading
-		return totalnumber
-			
+		return totalnumber		 #This will be the counts, we need to measure how many counts to a cm (or inch, whatever).
 
-
-	def translation(self, userinput):
-		if int(userinput) and int(userinput) < 256: 
-			return chr(int(userinput))
-		else: return 0
 
 	def cmd_automaticDomeSlewing(self,the_command):
 		'''Turn this on or off to determine whether the dome automatically updates
@@ -91,11 +85,11 @@ class BisqueMountServer:
 #			total_len=sum([len(i) for i in total_data ])
 #		return ''.join(total_data)
 
-	def recvamount(self, size):
-		data = ''
-		while len(data) < size:
-			data += ser.read(size - len(data))
-		return data
+#	def recvamount(self, size):
+#		data = ''
+#		while len(data) < size:
+#			data += ser.read(size - len(data))
+#		return data
 
 
 #**** SERIAL COMMANDS FOR THE FOCUSER *****#
@@ -108,15 +102,14 @@ class BisqueMountServer:
 		0.234" becomes 0234 (this might well be a lie)'''
 		commands = str.split(the_command)
 		if len(commands) == 2 and commands[1].isdigit():
-			positioncommand = self.translation(commands[1])
-			ser.write(str(positioncommand))
-			ser.write(str(positioncommand))
-			echo = ser.read() #then communicates again when command is either completed or terminated
-			response = str(ser.read())
-			while response == '': response = str(ser.read())
-			if response == 'c': return 'Command complete'
-			elif response == 'r': return 'Motor or encoder not working, operation terminated.'
-			else: return response+' ERROR, not sure what.'+str(ord(response))
+			positioncommand = self.convertnumberforfocuser(commands[1])
+			ser.write(str(positioncommand[0]))
+			ser.write(str(positioncommand[1]))
+			echo = ser.read(1) #then communicates again when command is either completed or terminated
+			focusresponse = str(ser.read(1))
+			if focusresponse == 'c': return 'Command complete'
+			elif focusresponse == 'r': return 'Motor or encoder not working, operation terminated.'
+			else: return focusresponse+' ERROR, not sure what.'+str(ord(focusresponse))
 		else: return 'ERROR, invalid input'
 
 
@@ -126,14 +119,11 @@ class BisqueMountServer:
 		echo = ser.read(1)
 		#responsetemp = self.recvamount(2)
 		#responselist = list(responsetemp)
-		response = ''
-		response2 = ''
+		focusresponse = ser.read(2) #should block till we get our two bytes
 		#for something in responselist:       #hopefully taking the number values of all the characters
 			#response += ord(something)   #the focuser gives as and adding them gives us the position
 		#return str(response)		     #although I'm not sure it'll be that simples
-		while response == '': response = ser.read()
-		while response2 == '': response2 = ser.read()
-		return str(ord(response)+ord(response2))+str(response)+' '+str(ord(response))+' '+str(response2)+' '+str(ord(response2))
+		return str(self.convertfocusoutput(focusresponse[0], focusresponse[1]))
 
 	def cmd_focusReadStateRegister(self,the_command):
 		'''After the focus controller receives the command byte, it will echo
@@ -142,7 +132,7 @@ class BisqueMountServer:
 		is true, a 0 indicates it is false. Reading the device status resets
 		the error conditions (bits 1 through 3 only).'''
 		ser.write('t')
-		echo = ser.read() #should set size=len(echo), where you figure out len(echo) from a trial attempt
+		echo = ser.read(1) #should set size=len(echo), where you figure out len(echo) from a trial attempt
 		response = ''
 		while response == '': response = ser.read()
 		#import code; code.interact(local=locals())
@@ -163,8 +153,8 @@ class BisqueMountServer:
 		the host, followed by the eight bit identify byte. This identify byte is a lower
 		case ‘j’ (6Ah).'''
 		ser.write('b')
-		echo = self.recvamount(1)
-		return self.recvamount(1) #should be the 8-bit identity byte: 'j'
+		echo = ser.read(1)
+		return ser.read(1) #should be the 8-bit identity byte: 'j'
 
 	def cmd_focusWriteMaxTravelRegister(self,the_command): #NEED INPUT
 		'''This command will allow the host to write the focus controller maximum 
@@ -176,8 +166,10 @@ class BisqueMountServer:
 		commands = str.split(the_command)
 		if len(commands) == 2 and commands[1].isdigit(): #**********************************
 			ser.write('w')
-			ser.write(self.translation(commands[1]))
-			echo = self.recvamount(1) #echos the command back to us
+			focusercommand = self.convertnumberforfocuser(commands[1])
+			ser.write(focusercommand[0])
+			ser.write(focusercommand[1])
+			echo = ser.read(1) #echos the command back to us
 			return echo
 		else: return 'ERROR, invalid input'
 
@@ -191,8 +183,10 @@ class BisqueMountServer:
 		commands = str.split(the_command)
 		if len(commands) == 2 and commands[1].isdigit():
 			ser.write('d')
-			ser.write(self.translation(commands[1])) #BYTES STILL CONFUSED
-			echo = self.recvamount(1) #echos the command back to us
+			focusercommand = self.convertnumberforfocuser(commands[1]) #BYTES STILL CONFUSED
+			ser.write(focusercommand[0])
+			ser.write(focusercommand[1])
+			echo = ser.read(1) #echos the command back to us
 			return 'echo'
 		else: return 'ERROR, invalid input'
 
@@ -207,8 +201,10 @@ class BisqueMountServer:
 		commands = str.split(the_command)
 		if len(commands) == 2 and commands[1].isdigit():
 			ser.write('e')
-			ser.write(self.translation(commands[1])) #
-			echo = self.recvamount(1) #the focuser echos the command back to us
+			focusercommand = self.convertnumberforfocuser(commands[1]) #
+			ser.write(focusercommand[0])
+			ser.write(focusercommand[1])
+			echo = ser.read(1) #the focuser echos the command back to us
 			return echo
 
 	def cmd_focusWriteShuttleSpeedRegister(self,the_command): #NEED INPUT
@@ -223,8 +219,10 @@ class BisqueMountServer:
 		commands = str.split(the_command)
 		if len(commands) == 2 and commands[1].isdigit():
 			ser.write('f')
-			ser.write(self.translation(commands[1]))
-			echo = self.recvamount(1) #echos the command back to us
+			focuscommand = self.convertnumberforfocuser(commands[1])
+			ser.write(focuscommand[0])
+			ser.write(focuscommand[1])
+			echo = ser.read(1) #echos the command back to us
 			return echo
 
 	def cmd_focusSetZeroPosition(self,the_command):
@@ -232,7 +230,7 @@ class BisqueMountServer:
 		actual drawtube position. The position value stored in the EEPROM is also
 		updated.'''
 		ser.write('z')
-		return self.recvamount(1) #echo echo echo
+		return ser.read(1) #echo echo echo
 
 	def cmd_focusMove(self,the_command):
 		'''Tell the focuser to move in or out. Increments by 0.01". Note that if the push
@@ -242,12 +240,12 @@ class BisqueMountServer:
 		if len(commands) == 2:
 			if commands[1] == 'in' or commands[1] == 'In':
 				ser.write('i')
-				message = ser.read()
+				message = ser.read(1)
 				if message[-1] == 'r': return 'Motor or encoder not working'
 				else: return message
 			elif commands[1] == 'out' or commands[1] == 'Out':
 				ser.write('o')
-				message = ser.read()
+				message = ser.read(1)
 				if message[-1] == 'r': return 'Motor or encoder not working'
 				else: return message
 			else: return 'ERROR invalid input'
@@ -256,7 +254,7 @@ class BisqueMountServer:
 	def cmd_fs(self,the_command):
 		'''Stops focuser motion.'''
 		ser.write('s')
-		return ser.read()
+		return ser.read(1)
 
 
 		

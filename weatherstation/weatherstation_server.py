@@ -102,7 +102,6 @@ class WeatherstationServer:
 		self.clarity = float(self.data[5])/100
 		self.light = self.data[6]
 		self.rain = self.data[7]
-
 		self.rainsensortemp = self.data[8]  #hexadecimal, maybe..
 		self.rainsensortemp = int(self.rainsensortemp, 16)
 		self.heaterPWM = self.data[9]       #hexadecimal, maybe..
@@ -110,79 +109,33 @@ class WeatherstationServer:
 		self.alertstate = self.data[10]
 		#print self.alertstate	
 		#print self.rain
-		temp = int(self.alertstate, 16)
-#		print temp
-		temp = bin(temp)
-#		print temp
-		alert = list(temp)
-		del alert[0]
-		del alert[0]
-#		print alert
-		#alert.reverse()
-		while len(alert) < 8:
-			alert.insert(0, '0')
-		#alert.reverse()
-		print alert
-		#alert = [0,0,0,0,0,0,0,0]
-		#temp = list(self.alertstate)
-		#first = int(temp[0], 16)
-		#second = int(temp[1], 16)
-		#first = bin(first)
-		#second = bin(second)
-		#first = list(first)
-		#del first[0]
-		#del first[0]
-		#print first
-		#while len(first) < 4:
-		#	first.insert(0, '0')
-		#print first
-		#second = list(second)
-		#del second[0]
-		#del second[0]
-		#print second
-		#while len(second) < 4:
-		#	second.insert(0, '0')
-		#print second
-		#alert = first + second
-
-		#print alert
+		alertdigit = int(self.alertstate, 16)
+		print self.alertstate
+		print alertdigit
 		if float(self.rain) > 5: self.slitvariable = 0	
 		else: self.slitvariable = 1
 
-#		if int(alert[7]) == 0 and int(alert[6]) == 0:
-#			print 'clear, ',
-#		if int(alert[7]) == 1 and int(alert[6]) == 0:
-#			print 'unused, ',
-#		if int(alert[7]) == 0 and int(alert[6]) == 1:
-#			print 'cloudy, ',
-#		if int(alert[7]) == 1 and int(alert[6]) == 1:
-#			print 'very cloudy, ',
-#		if int(alert[5]) == 0 and int(alert[4]) == 0:
-#			print 'dry, ',
-#		if int(alert[5]) == 1 and int(alert[4]) == 0:
-#			print 'unused, ',
-#		if int(alert[5]) == 0 and int(alert[4]) == 1:
-#			print 'wet, ',
-#		if int(alert[5]) == 1 and int(alert[4]) == 1:
-#			print 'very wet, ',
-#		if int(alert[3]) == 0 and int(alert[2]) == 0:
-#			print 'dark, ',
-#		if int(alert[3]) == 1 and int(alert[2]) == 0:
-#			print 'unused, ',
-#		if int(alert[3]) == 0 and int(alert[2]) == 1:
-#			print 'light, ',
-#		if int(alert[3]) == 1 and int(alert[2]) == 1:
-#			print 'very light, ',
-#		if int(alert[0]) == 0:
-#			print 'relay safe'
-#		if int(alert[0]) == 1:
-#			print 'relay unsafe'
+		message = ''
+		if ((alertdigit >> 0) & 1) and ((alertdigit >> 1) & 1): message += 'Clear,'
+		elif ((alertdigit >> 1) & 1): message += 'Unused,'
+		elif ((alertdigit >> 0) & 1): message += 'Cloudy,'
+		else: message += 'Very cloudy,'
 
+		if ((alertdigit >> 2) & 1) and ((alertdigit >> 3) & 1): message += ' dry,'
+		elif ((alertdigit >> 3) & 1): message += ' unused,'
+		elif ((alertdigit >> 2) & 1): message += ' wet,'
+		else: message += ' very wet,'
 
-			
-		#print alert
-		#self.alertstate = binascii.a2b_hex(self.alertstate)
-		message = str(self.sequence)+" "+str(self.tempair)+" "+str(self.tempsky)+" "+str(self.clarity)+" "+str(self.light)+" "+str(self.rain)+" "+str(self.rainsensortemp)+" "+str(self.heaterPWM)+" "+str(self.alertstate)
+		if ((alertdigit >> 4) & 1) and ((alertdigit >> 5) & 1): message += ' dark,'
+		elif ((alertdigit >> 5) & 1): message += ' unused,'
+		elif ((alertdigit >> 4) & 1): message += ' light,'
+		else: message += ' very light,'
+
+		if ((alertdigit >> 7) & 1): message += ' relay unsafe.' #I think this relay unsafe business
+		else: message += ' relay safe.'				#is whether it is safe to observer
+									#it's triggered by certain factors
+		print message
+		#message = str(self.sequence)+" "+str(self.tempair)+" "+str(self.tempsky)+" "+str(self.clarity)+" "+str(self.light)+" "+str(self.rain)+" "+str(self.rainsensortemp)+" "+str(self.heaterPWM)+" "+str(self.alertstate)
 		self.log(message)
 		#print self.alertstate
 #		print message
