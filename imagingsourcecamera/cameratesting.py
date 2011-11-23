@@ -3,6 +3,10 @@
 import unicap
 import time
 import sys
+import Image
+import pyfits
+import numpy
+import os
 
 #Store the default camera settings here
 frameRateDefault = 30.0
@@ -53,6 +57,8 @@ def get_user_input(name_of_input, default_value, allowed_range):
 	return value
 			
 
+def converttoFITS(inputfilename, outputfilename):
+	image = Image.open(inputfilename)
 
 
 frameRateValue = get_user_input('Frame Rate', frameRateDefault, frameRateAllowedValues)
@@ -109,14 +115,28 @@ for i in range( 0, 4 ):
 	dt = time.time() - t1
 	print 'dt: %f  ===> %f' % ( dt, 1.0/dt )
 	filename="i"+str(i)+".raw"
+	filename2 = "i"+str(i)+".jpg"
+	filename3 = "i"+str(i)+".fits"
 	print filename
-	dummy = imgbuf.save( filename )
+	#dummy = imgbuf.save( filename )
+	rgbbuf = imgbuf.convert( 'RGB3' )
+	dummy = rgbbuf.save( filename ) #saves it in RGB3 raw image format
+	Image.open( filename ).save( filename2 ) #saves as a jpeg
+	os.system("convert -depth 8 -size 640x480+17 "+ filename +" "+ filename3) #saves as a fits file
+	#Image.open( filename ).save( filename3 )
+
 	print dummy
 print 'Captured an image. Colourspace: ' + str( imgbuf.format['fourcc'] ) + ', Size: ' + str( imgbuf.format['size'] )
 	
 
 print imgbuf.get_pixel((0,0))
 print imgbuf.get_pixel((1,1))
+
+#rgbbuf = imgbuf.convert( 'RGB3' )
+#dummy = rgbbuf.save( 'test.raw' )
+#print dummy
+
+#Image.open( 'test.raw').save( 'test.jpg' )
 
 dev.stop_capture()
 

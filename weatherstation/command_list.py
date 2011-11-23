@@ -28,13 +28,13 @@ def execute_command(the_command, m):
     '''Find the_command amongst the list of commands like cmd_one in module m
     
     This returns a string containing the response, or a -1 if a quit is commanded.'''
-    the_functions = dict(clarity=m.cmd_clarity,light=m.cmd_light,rain=m.cmd_rain,tempair=m.cmd_tempair,tempsky=m.cmd_tempsky,rainsensor=m.cmd_rainsensor,heaterPWM=m.cmd_heaterPWM,status=m.cmd_status)
+    the_functions = dict(clarity=m.cmd_clarity,light=m.cmd_light,rain=m.cmd_rain,tempair=m.cmd_tempair,tempsky=m.cmd_tempsky,status=m.cmd_status)
     commands = string.split(the_command)
     if len(commands) == 0:
         return ""
     if commands[0] == "help":
         if (len(commands) == 1):
-            return 'clarity\nlight\nrain\ntempair\ntempsky\nrainsensor\nheaterPWM\nstatus'
+            return 'clarity\nlight\nrain\ntempair\ntempsky\nstatus'
         elif commands[1] in the_functions:
             td=pydoc.TextDoc()
             return td.docroutine(the_functions[commands[1]])

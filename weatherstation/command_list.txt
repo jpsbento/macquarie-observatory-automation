@@ -3,6 +3,4 @@ light
 rain
 tempair
 tempsky
-rainsensor
-heaterPWM
 status

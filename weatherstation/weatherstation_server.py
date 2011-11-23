@@ -42,8 +42,6 @@ class WeatherstationServer:
 	clarity = 0
 	light = 0
 	rain = 0
-	rainsensortemp = 0
-	heaterPWM = 0
 	alertstate = 0
 	slitvariable = 0 #This is the variable to send to the slits to tell them whether
 			 #it's okay to be open or not. 0 to close, 1 to open.
@@ -51,36 +49,29 @@ class WeatherstationServer:
 #A list of user commands:
 
 	def cmd_clarity(self,the_command):
-		'''Returns the clarity reading from the weather station.'''
+		'''Returns the clarity reading from the weather station. This is the difference between 
+		the air temperature and the sky temperature.'''
 		return str(self.clarity)
 
 	def cmd_light(self,the_command):
-		'''Returns the light reading from the weather station.'''
+		'''Returns the light reading from the weather station. Uncalibrated value, normal range: 0 to 30.'''
 		return str(self.light)
 
 	def cmd_rain(self,the_command):
-		'''Returns the rain reading from the weather station.'''
+		'''Returns the rain reading from the weather station. Uncalibrated value, normal range: 0 to 30.'''
 		return str(self.rain)
 
 	def cmd_tempair(self,the_command):
-		'''Returns the air temperature reading from the weather station.'''
+		'''Returns the air temperature reading from the weather station. Units are in degrees C.'''
 		return str(self.tempair)
 
 	def cmd_tempsky(self,the_command):
-		'''Returns the sky temperature reading from the weather station.'''
+		'''Returns the sky temperature reading from the weather station. Units are in degrees C.'''
 		return str(self.tempsky)
-
-	def cmd_rainsensor(self,the_command):
-		'''Returns the rain sensor temperature reading from the weather station.'''
-		return str(self,rainsensortemp)
-
-	def cmd_heaterPWM(self,the_command):
-		'''Returns the heater PWM reading from the weather station.'''
-		return str(self,heaterPWM)
 
 	def cmd_status(self,the_command):
 		'''Returns all the latest data output from the weather station.'''
-		return "Clarity: "+str(self.clarity)+"\nLight: "+str(self.light)+"\nRain: "+str(self.rain)+"\nAir temperature: "+str(self.tempair)+"\nSky temperature: "+str(self.tempsky)+"\nRain sensor temperature: "+str(self.rainsensortemp)+"\nHeaterPWM: "+str(self.heaterPWM)
+		return "Clarity: "+str(self.clarity)+"\nLight: "+str(self.light)+"\nRain: "+str(self.rain)+"\nAir temperature: "+str(self.tempair)+"\nSky temperature: "+str(self.tempsky)
 
 
 
@@ -92,53 +83,53 @@ class WeatherstationServer:
 	#I am assuming that only the rainsensortemp and heaterPWM are in hexadecimal
 	#I'll know for sure when the aurora guys email me back
 	def serialread(self):
-		#print 'yo'
-		alert = [1,1,1,1,1,1,1,1]
 		self.data = str.split(ser.readline(),',')
-		#print 'got data'
 		self.sequence = self.data[2]
-		self.tempair = float(self.data[3])/100
-		self.tempsky = float(self.data[4])/100
-		self.clarity = float(self.data[5])/100
-		self.light = self.data[6]
-		self.rain = self.data[7]
-		self.rainsensortemp = self.data[8]  #hexadecimal, maybe..
-		self.rainsensortemp = int(self.rainsensortemp, 16)
-		self.heaterPWM = self.data[9]       #hexadecimal, maybe..
-		self.heaterPWM = int(self.heaterPWM, 16)
+		self.tempair = float(self.data[3])/100.0 #sensor temperature
+		self.tempsky = float(self.data[4])/100.0 #sky temperature
+		self.clarity = float(self.data[5])/100.0 #is the difference between the air temperature and the sky temperature
+		self.light = float(self.data[6])/10.0 #Non calibrated value, normal range of about 0 to 30
+		self.rain = float(self.data[7])/10.0  #Non calibrated value, normal range of about 0 to 30
 		self.alertstate = self.data[10]
-		#print self.alertstate	
-		#print self.rain
 		alertdigit = int(self.alertstate, 16)
-		print self.alertstate
-		print alertdigit
-		if float(self.rain) > 5: self.slitvariable = 0	
-		else: self.slitvariable = 1
+		#print self.alertstate
+		#print alertdigit
 
+		#Initally set the alert variable to 0 (= Unsafe)
+		cloudvariable = 0 #this will be set to 1 if it is clear
+		rainvariable = 0  #this will be set to 1 if it is dry
+		lightvariable = 0 #this will be set to 1 if it is dark
 		message = ''
-		if ((alertdigit >> 0) & 1) and ((alertdigit >> 1) & 1): message += 'Clear,'
-		elif ((alertdigit >> 1) & 1): message += 'Unused,'
+		if ((alertdigit >> 0) & 1) and ((alertdigit >> 1) & 1): message += 'Clear,'; cloudvariable = 1
+		elif ((alertdigit >> 1) & 1): message += 'Unused,' #will never be printed
 		elif ((alertdigit >> 0) & 1): message += 'Cloudy,'
 		else: message += 'Very cloudy,'
 
-		if ((alertdigit >> 2) & 1) and ((alertdigit >> 3) & 1): message += ' dry,'
-		elif ((alertdigit >> 3) & 1): message += ' unused,'
-		elif ((alertdigit >> 2) & 1): message += ' wet,'
-		else: message += ' very wet,'
+		if ((alertdigit >> 2) & 1) and ((alertdigit >> 3) & 1): message += ' unused,' #will never be printed
+		elif ((alertdigit >> 3) & 1): message += ' dry,'; rainvariable = 1
+		elif ((alertdigit >> 2) & 1): message += ' very wet,'
+		else: message += ' wet,'
 
-		if ((alertdigit >> 4) & 1) and ((alertdigit >> 5) & 1): message += ' dark,'
-		elif ((alertdigit >> 5) & 1): message += ' unused,'
+		if ((alertdigit >> 4) & 1) and ((alertdigit >> 5) & 1): message += ' dark,'; lightvariable = 1
+		elif ((alertdigit >> 5) & 1): message += ' unused,' #will never be printed
 		elif ((alertdigit >> 4) & 1): message += ' light,'
 		else: message += ' very light,'
 
-		if ((alertdigit >> 7) & 1): message += ' relay unsafe.' #I think this relay unsafe business
-		else: message += ' relay safe.'				#is whether it is safe to observer
+		if ((alertdigit >> 7) & 1): message += ' energised, safe for dome to open.' #I think this relay unsafe business
+		else: message += ' not energised.'				#is whether it is safe to observe
 									#it's triggered by certain factors
+
+
+		#When the electronics for the slits is actually in place we can send the slits this value at a regular interval
+		#to tell it whether it is safe to stay open or not. If at any point the slits lose contact with the weather-station
+		#they should be configured to automatically close.
+		self.slitvariable = cloudvariable*rainvariable*lightvariable #if = 1, it's safe for slits to be open! Unsafe otherwise.
+
 		print message
-		#message = str(self.sequence)+" "+str(self.tempair)+" "+str(self.tempsky)+" "+str(self.clarity)+" "+str(self.light)+" "+str(self.rain)+" "+str(self.rainsensortemp)+" "+str(self.heaterPWM)+" "+str(self.alertstate)
+		print str(cloudvariable)+' '+str(rainvariable)+' '+str(lightvariable)+' '+str(self.slitvariable)
+		print str(self.sequence)+" "+str(self.tempair)+" "+str(self.tempsky)+" "+str(self.clarity)+" "+str(self.light)+" "+str(self.rain)+" "+str(self.alertstate)
 		self.log(message)
-		#print self.alertstate
-#		print message
+
 		return
 
 	#definition to log the output, stores all data in a file
