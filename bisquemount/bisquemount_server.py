@@ -12,18 +12,20 @@ import time
 import serial
 import binascii
 
-#import binascii
-
 #Open port 0 at "9600,8,N,1", timeout of 5 seconds
 #Open port connected to the mount
-ser = serial.Serial('/dev/ttyUSB0',9600, timeout = 10) #non blocking serial port, will wait
-						      #for one second find the address
-print ser.portstr       #check which port was really used
-                        #we open a serial port to talk to the focuser
+ser = serial.Serial('/dev/ttyUSB0',9600, timeout = 10) # non blocking serial port, will wait
+						       # for ten seconds find the address
+print ser.portstr       # check which port was really used
+                        # we open a serial port to talk to the focuser
 
-#client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #Make a client to communicate with the labjack and dome position
-#client_socket.connect(("10.238.16.10",3040))
-#client_socket.settimeout(10)
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # This client_socket is to communicate with the windows machine
+client_socket.connect(("10.238.16.10",3040))			  # running 'TheSkyX'
+client_socket.settimeout(10)
+
+dome_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)   # This client_socket is to communicate with the labjack
+dome_socket.connect(("10.238.16.10",3040))			  # so we can autoslew the dome !!!! IP address WRONG!
+dome_socket.settimeout(10)
 
 class BisqueMountServer:
 
@@ -32,7 +34,7 @@ class BisqueMountServer:
 	def convertnumberforfocuser(self, inputnumber):
 		'''This will take a user input number and convert it for sending to the focuser in the correct format'''
 		numbertoprocess = int(inputnumber)
-		temphigher = int(numbertoprocess/256)   #here we have split the number so as to get the two byte form
+		temphigher = int(numbertoprocess/256)   # here we have split the number so as to get the two byte form
 		templower = numbertoprocess - temphigher*256
 		bigend = chr(temphigher)
 		littleend = chr(templower)
@@ -562,7 +564,7 @@ class BisqueMountServer:
 			if success: break
 		return data
 
-	def auto_dome_slew(self): #!!!!!!!!! WORK BEING DONE HERE
+	def auto_dome_slew(self): #!!!!!!!!! WORK BEING DONE HERE !!!!!!!!!!!!!!!!!
 		'''Can set up a situation where the dome automatically slews to the
 		same azimuth as the telescope.'''
 		if self.dome_slewing_enabled:
@@ -570,8 +572,8 @@ class BisqueMountServer:
 			#Gotta split it up so we just get the
 			temp = str.split(data)
 			Azimuth = data[0]
-			client_socket.send(Azimuth)
-			return client_socket.recv(1024)
+			dome_socket.send(Azimuth) # !!! DON'T send to client_socket, this socket is for TheSkyX communications
+			return dome_socket.recv(1024)
 
 			
 
