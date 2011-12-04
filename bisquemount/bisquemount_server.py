@@ -21,7 +21,7 @@ print ser.portstr       # check which port was really used
 
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # This client_socket is to communicate with the windows machine
 client_socket.connect(("10.238.16.10",3040))			  # running 'TheSkyX'
-client_socket.settimeout(10)
+client_socket.settimeout(100)
 
 dome_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)   # This client_socket is to communicate with the labjack
 dome_socket.connect(("10.238.16.10",3040))			  # so we can autoslew the dome !!!! IP address WRONG!

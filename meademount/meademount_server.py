@@ -71,7 +71,7 @@ class MeademountServer:
 		return ser.readline()
 
 
-	def cmd_move(self,the_command):
+	def cmd_move(self,the_command):  # This might actually be move up down left right. Need to test it and see.
 		'''Starts motion 'north', 'south', 'east', or 'west' at the current rate.'''
 		commands = str.split(the_command)
 		if (len(commands) == 2):
@@ -858,8 +858,7 @@ class MeademountServer:
 		else: return 'ERROR, invalid input length'
 
 	def cmd_changeManualFreq(self,the_command):
-		'''+ increments manual rate by 0.1 Hz. - decrements
-		manual rate by 0.1 Hz.'''
+		'''+ increments manual rate by 0.1 Hz. - decrements manual rate by 0.1 Hz.'''
 		commands = str.split(the_command)
 		if len(commands) == 2:
 			if commands[1] == '+':
@@ -915,7 +914,7 @@ class MeademountServer:
 	def cmd_sleep(self,the_command):
 		'''Puts telescope to sleep. Powers off motors, encoders, displays and lights.'''
 		ser.write(':hN#')
-		return 'Telescope gone to sleep. *Zzzzzzz...*'
+		return 'Telescope has gone to sleep. *Zzzzzzz...*'
 
 	def cmd_wakeUp(self,the_command):
 		'''Wakes up sleeping telescope.'''
