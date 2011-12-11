@@ -22,9 +22,9 @@ LJPROBE=ei1050.EI1050(LJ, enablePinNum=0, dataPinNum=1, clockPinNum=2) #Sets up 
 LJ.configIO(NumberOfTimersEnabled = 2, EnableCounter0 = 1)
 LJ.getFeedback(u3.Timer0Config(8), u3.Timer1Config(8)) #Sets up the dome tracking wheel
 
-IP = '' #set up a server so the telescope can talk to the labjack to update dome position.
-PORT = 23469
-ADS = (IP, PORT)
+#IP = '' #set up a server so the telescope can talk to the labjack to update dome position.
+#PORT = 23469
+#ADS = (IP, PORT)
 
 #!!! Think about this !!!
 #server = socket(AF_INET, SOCK_STREAM)

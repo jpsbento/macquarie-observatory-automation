@@ -15,17 +15,17 @@ import binascii
 #Open port 0 at "9600,8,N,1", timeout of 5 seconds
 #Open port connected to the mount
 ser = serial.Serial('/dev/ttyUSB0',9600, timeout = 10) # non blocking serial port, will wait
-						       # for ten seconds find the address
+						        # for ten seconds find the address
 print ser.portstr       # check which port was really used
                         # we open a serial port to talk to the focuser
 
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # This client_socket is to communicate with the windows machine
-client_socket.connect(("10.238.16.10",3040))			  # running 'TheSkyX'
-client_socket.settimeout(100)
+client_socket.connect(("10.238.16.10",3040))			  # running 'TheSkyX'. If it doesn't receive a response after 50 mins
+client_socket.settimeout(3000)					  # I need to make it do something
 
-dome_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)   # This client_socket is to communicate with the labjack
-dome_socket.connect(("10.238.16.10",3040))			  # so we can autoslew the dome !!!! IP address WRONG!
-dome_socket.settimeout(10)
+#dome_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)   # This client_socket is to communicate with the labjack software
+#dome_socket.connect(("10.238.16.10",3040))			  # so we can autoslew the dome !!!! IP address WRONG!
+#dome_socket.settimeout(3000)
 
 class BisqueMountServer:
 
@@ -159,7 +159,7 @@ class BisqueMountServer:
 		case ‘j’ (6Ah).'''
 		ser.write('b')
 		echo = ser.read(1)
-		return ser.read(1) #should be the 8-bit identity byte: 'j'
+		return ser.read(1) # should be the 8-bit identity byte: 'j', which testing shows it is
 
 	def cmd_focusWriteMaxTravelRegister(self,the_command): #NEED INPUT
 		'''This command will allow the host to write the focus controller maximum 
@@ -188,7 +188,7 @@ class BisqueMountServer:
 		commands = str.split(the_command)
 		if len(commands) == 2 and commands[1].isdigit():
 			ser.write('d')
-			focusercommand = self.convertnumberforfocuser(commands[1]) #BYTES STILL CONFUSED
+			focusercommand = self.convertnumberforfocuser(commands[1]) 
 			ser.write(focusercommand[0])
 			ser.write(focusercommand[1])
 			echo = ser.read(1) #echos the command back to us
@@ -344,6 +344,28 @@ class BisqueMountServer:
 		script = self.readscript('FindHome.js')
 		client_socket.send(script)
 		return self.messages()
+
+	def cmd_jog(self,the_command):
+		'''Jogs the telescope by a given amount (specified in arcminutes) in a given direction.
+		Please input jog amount first and direction second. The directions that can be used are: 
+		North, South, East, West, Up, Down, Left, Right. Please input direction using first letter 
+		only ie: N, S, E, W, U, D, L, R.'''
+		commands = str.split(the_command)
+		allowed_directions = ['N','S','E','W','U','D','L','R']
+		if len(commands) == 3:
+			dJog = commands[1]
+			dDirection = commands[2]
+			linestoreplace = ['var dJog = "amountJog";\n','var dDirection = "direction";\n']
+			newlines = ['var dJog = "'+dJog+'";\r\n','var dDirection = "'+dDirection+'";\r\n']
+			if self.is_float_try(dJog) and dDirection in allowed_directions:
+				if self.editscript('Jog.template', 'Jog.js', linestoreplace,newlines):
+					script = self.readscript('Jog.js')
+					client_socket.send(script)
+					return self.messages()
+				else: return "ERROR with files"
+			else: return 'ERROR invalid input'
+		else: return 'ERROR invalid input'
+		
 
 	def cmd_park(self,the_command):
 		'''This will put the telescope in it's parked position, this is the position the
@@ -530,10 +552,11 @@ class BisqueMountServer:
 		'''This will make a script based on the template script to send to TheSky.'''
 		try:
 			f = open(script,'r') #open the template file
-			newf = open(newscript,'w') #write the actual file we want to send to TheSkyX
+			newf = open(newscript,'w') # write the actual file we want to send to TheSkyX
 			temp = []
 			temp = f.readlines()
 			j = 0
+			if len(linestoreplace) != len(newlines): return 0 # catch error
 			for s in linestoreplace:
 				for i in range(len(temp)):
 					if temp[i] == s:
@@ -549,32 +572,32 @@ class BisqueMountServer:
 
 
 	def messages(self):
-		'''I'm trying to make this so if you don't get a response within 10 seconds instead
+		'''I'm trying to make this so if you don't get a response within 5 minutes instead
 		of hanging indefinitely or completely quitting, the user is simply told, and can 
 		try again.'''
 		data = ''
 		success = 0
-		for i in range(10):
+		for i in range(300):
+			time.sleep(1)
 			try:
-				time.sleep(1)
 				data = str(client_socket.recv(50000))
 				success = 1
 			except ValueError:
-				data = 'ERROR, TheSkyX not responding'
+				data = 'ERROR, TheSkyX is not responding. Try the command again or quit program.'
 			if success: break
 		return data
 
-	def auto_dome_slew(self): #!!!!!!!!! WORK BEING DONE HERE !!!!!!!!!!!!!!!!!
-		'''Can set up a situation where the dome automatically slews to the
-		same azimuth as the telescope.'''
-		if self.dome_slewing_enabled:
-			data = self.cmd_mountGetAzAlt()
-			#Gotta split it up so we just get the
-			temp = str.split(data)
-			Azimuth = data[0]
-			dome_socket.send(Azimuth) # !!! DON'T send to client_socket, this socket is for TheSkyX communications
-			return dome_socket.recv(1024)
-
+#	def auto_dome_slew(self): #!!!!!!!!! WORK BEING DONE HERE !!!!!!!!!!!!!!!!!
+#		'''Can set up a situation where the dome automatically slews to the
+#		same azimuth as the telescope.'''
+#		if self.dome_slewing_enabled:
+#			data = self.cmd_mountGetAzAlt()
+#			#Gotta split it up so we just get the
+#			temp = str.split(data)
+#			Azimuth = data[0]
+#			dome_socket.send(Azimuth) # !!! DON'T send to client_socket, this socket is for TheSkyX communications
+#			return dome_socket.recv(1024)
+#
 			
 
 	

@@ -16,8 +16,8 @@ ser = serial.Serial('/dev/ttyUSB0',9600, timeout = 1) #non blocking serial port,
 print ser.portstr       #check which port was really used
 #print ser.isOpen() #Bug test to check that the port is actually open
 
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #Make a client to communicate with the labjack and dome position
-client_socket.connect(("10.72.26.145",3040))
+#client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #Make a client to communicate with the labjack and dome position
+#client_socket.connect(("10.72.26.145",3040))
 
 class MeademountServer:
 
@@ -91,6 +91,37 @@ class MeademountServer:
 				return 'ERROR, invalid input see help'
 		else: return 'ERROR, incorrect input length.'
 
+
+	#Here have a jog command perhaps
+
+	def cmd_jog(self,the_command):
+		'''Will jog the telescope in a given direction: north/n/N, south/s/S, east/e/E, west/w/W'''
+		commands = str.split(the_command)
+		if len(commands) == 2:
+			if commands[1] == north or commands[1] == 'N' or commands[1] == 'n':
+				ser.write(':Mn#')
+				time.sleep(1)
+				ser.write(':Qn#')
+				return 'Telescope jogged North.'
+			if commands[1] == 'south' or commands[1] == 'S' or commands[1] == 's':
+				ser.write(':Ms#')
+				time.sleep(1)
+				ser.write(':Qs#')
+				return 'Telescope jogged South.'
+			if commands[1] == 'west' or commands[1] == 'W' or commands[1] == 'w':
+				ser.write(':Mw#')
+				time.sleep(1)
+				ser.write(':Qw#')
+				return 'Telescope jogged West.'
+			if commands[1] == 'east' or commands[1] == 'E' or commands[1] == 'e':
+				ser.write(':Me#')
+				time.sleep(1)
+				ser.write(':Qe#')
+				return 'Telescope jogged East.'
+			else: return 'ERROR. Incorrect input.'
+		else: return 'ERROR. Incorrect input.'
+
+
 	def cmd_s(self,the_command):
 		'''Stops all motion of the telescope.'''
 		ser.write(':Q#')
@@ -98,7 +129,7 @@ class MeademountServer:
 		ser.write(':Qs#')
 		ser.write(':Qe#')
 		ser.write(':Q#')
-		return 'telescope movement stopped'
+		return 'Telescope movement stopped.'
 
 	def cmd_getAlignmentMenuEntry(self,the_command): #NEW PROCESS VALUE
 		'''Gets the Aligment Menu Entry, 0 1 or 2.'''
@@ -919,7 +950,7 @@ class MeademountServer:
 	def cmd_wakeUp(self,the_command):
 		'''Wakes up sleeping telescope.'''
 		ser.write(':hW#')
-		return 'Telescope woken up. *Coffeeeeee...*'
+		return 'Telescope has woken up. *Coffeeeeee...*'
 
 	def cmd_slewAltAz(self,the_command):
 		'''Slews telescope to objct atl-az coordinates(set with the
@@ -970,7 +1001,7 @@ class MeademountServer:
 
 
 
-	def cmd_meadmountHelp(self,the_command): #NEW
+	def cmd_meademountHelp(self,the_command): #NEW
 		'''Set help text cursor to the start of the first line. '+' for
 		next line of help text and '-' for previous line of help text.'''
 		commands = str.split(the_command)
@@ -1038,51 +1069,51 @@ class MeademountServer:
 		else: return 'ERROR reading Altitude'
 
 
-	def auto_dome_slew(self): #!!!!!!!!! WORK BEING DONE HERE
-		if self.dome_slewing_enabled:
-			data = self.cmd_getAz()
-			#edit data so it's in degrees
-			temp = list(data)
-			degrees = 0
-			minutes = 0
-			tenthsofmin = 0
-			seconds = 0
-			telescopeAzimuth = 0
-			correctedAzimuth = 0
-			del temp[-1]
-			if temp[1] == '*': 
-				degrees = temp[0]
-				minutes = temp[2]+temp[3]
-			elif temp[2] == '*': 
-				degrees = temp[0]+temp[1]
-				minutes = temp[3]+temp[4]
-			elif temp[3] == '*': 
-				degrees = temp[0]+temp[1]+temp[2]
-				minutes = temp[4]+temp[5]
-			else: return 'ERROR WITH INPUT FROM TELESCOPE'
-			if temp[len(temp)-2] == '#':
-				tenthsofmin == temp[-1]
-			elif temp[len(temp)-3] == "'":
-				seconds =temp[len(temp)-2]+temp[-1]
-			else: return 'ERROR WITH INPUT FROM TELESCOPE'
-			
-			if degrees: telescopeAzimuth += float(degrees)
-			if minutes: telescopeAzimuth += (float(minutes)/60)
-			if tenthsofmin: telescopeAzimuth += (float(tenthsofmin)/600)
-			if seconds: telescopeAzimuth += (float(seconds)/3600)
-			#Hopefully we have converted the azimuth into a number in degrees
-			#Now we need to work out the correction for the telescope being off center
-			correction = asin((self.domeTelescopeDistance/self.domeRadius)*math.sin(math.radians(telescopeAzimuth + self.domeoffset)))
-			#Above we have also changed coordinate systems.
-			correctionDegrees = math.degrees(correction)
-			#whether you add or minus the correction depends on the telescopeAzimuth size
-			if telescopeAzimuth <= (180- self.domeoffset) and telescopeAzimuth >= (360-self.domeoffset): correctedAzimuth = correctionDegrees + telescopeAzimuth
-			if telescopeAzimuth > (180 - self.domeoffset) and telescopeAzimuth < (360-self.domeoffset): correctedAzimuth = telescopeAzimuth - correctionDegrees
-			#tell the dome to go to this corrected Azimuth
-			client_socket.send(correctedAzimuth)
-			response = client_socket.recv(1024)
-			return
-			
+#	def auto_dome_slew(self): #!!!!!!!!! WORK BEING DONE HERE
+#		if self.dome_slewing_enabled:
+#			data = self.cmd_getAz()
+#			#edit data so it's in degrees
+#			temp = list(data)
+#			degrees = 0
+#			minutes = 0
+#			tenthsofmin = 0
+#			seconds = 0
+#			telescopeAzimuth = 0
+#			correctedAzimuth = 0
+#			del temp[-1]
+#			if temp[1] == '*': 
+#				degrees = temp[0]
+#				minutes = temp[2]+temp[3]
+#			elif temp[2] == '*': 
+#				degrees = temp[0]+temp[1]
+#				minutes = temp[3]+temp[4]
+#			elif temp[3] == '*': 
+#				degrees = temp[0]+temp[1]+temp[2]
+#				minutes = temp[4]+temp[5]
+#			else: return 'ERROR WITH INPUT FROM TELESCOPE'
+#			if temp[len(temp)-2] == '#':
+#				tenthsofmin == temp[-1]
+#			elif temp[len(temp)-3] == "'":
+#				seconds =temp[len(temp)-2]+temp[-1]
+#			else: return 'ERROR WITH INPUT FROM TELESCOPE'
+#			
+#			if degrees: telescopeAzimuth += float(degrees)
+#			if minutes: telescopeAzimuth += (float(minutes)/60)
+#			if tenthsofmin: telescopeAzimuth += (float(tenthsofmin)/600)
+#			if seconds: telescopeAzimuth += (float(seconds)/3600)
+#			#Hopefully we have converted the azimuth into a number in degrees
+#			#Now we need to work out the correction for the telescope being off center
+#			correction = asin((self.domeTelescopeDistance/self.domeRadius)*math.sin(math.radians(telescopeAzimuth + self.domeoffset)))
+#			#Above we have also changed coordinate systems.
+#			correctionDegrees = math.degrees(correction)
+#			#whether you add or minus the correction depends on the telescopeAzimuth size
+#			if telescopeAzimuth <= (180- self.domeoffset) and telescopeAzimuth >= (360-self.domeoffset): correctedAzimuth = correctionDegrees + telescopeAzimuth
+#			if telescopeAzimuth > (180 - self.domeoffset) and telescopeAzimuth < (360-self.domeoffset): correctedAzimuth = telescopeAzimuth - correctionDegrees
+#			#tell the dome to go to this corrected Azimuth
+#			client_socket.send(correctedAzimuth)
+#			response = client_socket.recv(1024)
+#			return
+#			
 
 
 

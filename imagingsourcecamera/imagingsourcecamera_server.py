@@ -25,16 +25,18 @@ import socket
 
 class ImagingSourceCameraServer:
 
-	dev = unicap.Device( unicap.enumerate_devices()[0] )
+	dev = unicap.Device( unicap.enumerate_devices()[0] ) # I am assuming this will be the first camera the program comes across
+#	de2 = unicap.Device( unicap.enumerate_devices()[1] ) # and this will be the second camera it comes across.
+							     # Dunno yet how to tell which is which.
 	
 	# The central pixel coordinates
 	central_xpixel = 320.0   # 640 x pixel width
 	central_ypixel = 240.0   # 480 y pixel height
-	xaxis_flip = 1.0
-	north_vector = [0,0]
-	east_vector = [0.0]
-	theta = 1 
-	transformation_matrix = [math.cos(theta), math.sin(theta), -1*math.sin(theta), math.cos(theta)]	
+	#xaxis_flip = 1.0
+	#north_vector = [0,0]
+	#east_vector = [0.0]
+	#theta = 1 
+	#transformation_matrix = [math.cos(theta), math.sin(theta), -1*math.sin(theta), math.cos(theta)]	
 	
 	# Transformation matrix to be visualised as follows:
 	#
@@ -111,10 +113,11 @@ class ImagingSourceCameraServer:
 			if lines[0][0] != '#': #don't want the comments
 				linetemp = str.split(lines)
 				if float(linetemp[2]) < brighteststar:
-					brighteststar = float(linetemp[2])
+					starmag = float(linetemp[2])
 					xpixel = float(linetemp[0])
 					ypixel = float(linetemp[1])
-		return [brighteststar, xpixel, ypixel]
+					starsharp = float(linetemp[3])
+		return [starmag, xpixel, ypixel, starsharp]
 	
 	
 	def check_if_file_exists(self, filename):
@@ -238,7 +241,6 @@ class ImagingSourceCameraServer:
 		#command_to_send_telescope = [flip_axis_command[0]*self.some_x_conversion , flip_axis_command[1]*self.some_y_conversion]
 		#command_to_send_telescope = [ Left move, Up move ]  <--- written in this format
 		
-		#client_socket.send(commands) # !!!!!!!!!!!!!!!!!!!!!!!! FIX 
 		return 1
 		
 		
@@ -246,7 +248,7 @@ class ImagingSourceCameraServer:
 	def set_camera_values(self):
 		'''This sets up the camera with the exposure settings etc. wanted by the user.'''
 		
-		# Alternative way of doing this. Makes the code more compact
+		# Alternative way of doing this. Makes the code more compact, Arwen doesn't like this idea anymore
 		#
 		#get_settings = []
 		#for jib in self.default_settings:
@@ -334,43 +336,52 @@ class ImagingSourceCameraServer:
 		
 		
 		
-	def star_centering(self): #sort some global variables
-		'''This checks the position of the brighest star in shot with reference to the center of the frame.
-		If the star is too far from the center it will send a command to the telescope to move, and the
-		process will repeat untill we have a centered star.'''
-		centering = 1
-		while centering:
-			self.single_image_capture()
-			#infile = raw_input('Please enter an input file: ')
-			infile = 'single_image.fits' #for automation just call centering photos this for simplicity
-			#outfile = raw_input('Please enter an output file: ')
-			outfile = 'single_image_output.txt'
-			outfile = self.check_if_file_exists(outfile) # the doafind function wont overwrite existing files so
-								     # if we want to do this, we have to first delete the file
-			iraf.noao(_doprint=0)     # load noao
-			iraf.digiphot(_doprint=0) # load digiphot
-			iraf.apphot(_doprint=0)   # load apphot
-			
-			iraf.daofind(image=infile, output=outfile) # this will take a fits file
-								   # find all the stars and return
-								   # a list of them in a text file
-			brightest_star_info = self.find_brightest_star(outfile)
-			star_mag = float(brightest_star_info[0])
-			xpixel_pos = float(brightest_star_info[1])
-			ypixel_pos = float(brightest_star_info[2])
-			# Find distance from the center of the image
-			x_distance = float(self.central_xpixel) - xpixel_pos
-			y_distance = float(self.central_ypixel) - ypixel_pos
-			vector_to_move = [x_distance, y_distance]
-			if math.hypot(x_distance, y_distance) > somelimit:  # !!! <-- Need to decide a limit
-				translated_x = (self.transformation_matrix[0]*x_distance + self.transformation_matrix[1]*y_distance)*self.xaxis_flip
-				translated_y =  self.transformation_matrix[2]*x_distance + self.transformation_matrix[3]*y_distance
+	def star_centering_and_focusing(self): #sort some global variables
+		'''This checks the position of the brighest star in shot with reference to the center of the frame and
+		the sharpness of the same star. A call to this function will return a vector distance between the centeral
+		pixel and the brightest star, and the sharpness output got from the iraf function daofind().'''
+		#focusing = 1    # set this parameter to 0 when the star is in focus
+		#centering = 1   # set this parameter to 0 when the star is centered
+				# When both these parameters are 0, the loop will end
+		#while centering + focusing:
+		self.single_image_capture()
+		#infile = raw_input('Please enter an input file: ')
+		infile = 'single_image.fits' #for automation just call centering photos this for simplicity
+		#outfile = raw_input('Please enter an output file: ')
+		outfile = 'single_image_output.txt'
+		outfile = self.check_if_file_exists(outfile) # the doafind function wont overwrite existing files so
+							     # if we want to do this, we have to first delete the file
+		dDec = 0
+		dAz = 0
+		iraf.noao(_doprint=0)     # load noao
+		iraf.digiphot(_doprint=0) # load digiphot
+		iraf.apphot(_doprint=0)   # load apphot
+		
+		iraf.daofind(image=infile, output=outfile) # this will take a fits file
+							   # find all the stars and return
+							   # a list of them in a text file
+		brightest_star_info = self.find_brightest_star(outfile)
+		star_sharp = float(brightest_star_info[3])  # We will use this to check the focus of the star
+		star_mag = float(brightest_star_info[2])    # We use this to identify the brightest star
+		xpixel_pos = float(brightest_star_info[0])  # x pixel position of the brightest star
+		ypixel_pos = float(brightest_star_info[1])  # y pixel position of the brightest star
+		# Find distance from the center of the image
+		x_distance = float(self.central_xpixel) - xpixel_pos # The position of the star relative to the central pixel
+		y_distance = float(self.central_ypixel) - ypixel_pos
+		vector_to_move = [x_distance, y_distance]
+			# I think Mike said we need to get the star within 4 pixels.. but can't quite remember.
+			#if math.hypot(x_distance, y_distance) > 1:  # !!! <-- Need to decide a limit
+				#translated_x = (self.transformation_matrix[0]*x_distance + self.transformation_matrix[1]*y_distance)*self.xaxis_flip
+				#translated_y =  self.transformation_matrix[2]*x_distance + self.transformation_matrix[3]*y_distance
 				#Need to convert distance into coordinates for the telescope orientation
 				#
 				#Tell telescope to move
 				#client_socket.send(COMMAND)
 				# we should have it in RA Dec
-			else: centering = 0 # Star is centered so we can stop the loop
+				#dDec = translated_x # with some voodoo here
+				#dAz = translated_y # more voodoo
+			#else: centering = 0 # Star is centered so we can stop the loop
+		return [vector_to_move, star_sharp]
 		
 		
 		
