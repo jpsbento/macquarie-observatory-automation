@@ -1,5 +1,5 @@
-labjack 10.238.16.12 4567
-meademount 10.238.16.12 4568
-bisquemount 10.238.16.12 4569
-weatherstation 10.238.16.12 4570
-imagingsourcecamera 10.238.16.12 4571
+labjack 10.238.16.12 45671
+meademount 10.238.16.12 45681
+bisquemount 10.238.16.12 45691
+weatherstation 10.238.16.12 45701
+imagingsourcecamera 10.238.16.12 45711

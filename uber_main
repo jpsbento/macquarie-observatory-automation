@@ -5,7 +5,7 @@ import sys
 #sys.path.append('..')
 import server_socket
 ub=uber_server.UberServer()
-ss=server_socket.ServerSocket(23456, 'Super User', ub)	
+ss=server_socket.ServerSocket(23556, 'Super User', ub)	
 ss.add_job(ub.dome_tracking)
 ss.run()
 ss.close()

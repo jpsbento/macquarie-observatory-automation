@@ -165,8 +165,7 @@ class LabjackServer:
 		commands = str.split(the_command)
 		dome_command = commands[1]
 
-		client_list[0].send('dome position') # we get where we currently are
-		dome_current_position = client_list.recv(1024)
+		# Need current position.
 
 		client_list[0].send(dome_command)
 		if is_float_try(dome_command):
@@ -226,54 +225,21 @@ class LabjackServer:
 
 
 
-
-
-#	def telescope_position(self): #listens for position updates from the telescope
-#		'''Will wait for connections from a telescope and move position accordingly.'''
-#		#connect with telescope, and get position.
-#		#Update self.dome_command
-#		#set self.dome_moving = True
-#		for s in self.input:
-#			if s == self.server:
-#				#handle server socket
-#				try:
-#					client, address = self.server.accept()
-#					client.setblocking(0)
-#					self.input.append(client)
-#					self.CLIENTS.append(client)
-#					self.input[-1].send(str(self.slitvariable))
-#					return 1
-#				except IOError:
-#					#print 'broken'
-#					return 0
-#			#elif s == sys.stdin:
-#			#	#handle standard input
-#			#	junk = string.split(sys.stdin.readline())
-#			#	if junk[0] == "quit" or junk[0] == "exit" or junk[0] == "bye":
-#			#		log("Manually shut down. Goodbye.")
-#			#		running = 0 #so if we type anything into the server it will quit.
-#			#		return 0
-#			#	else:
-#			#		log('Error, command not expected, type "exit" or "quit" to exit server.')
-#			#		return 0
-#			else:
-#				#handle all other sockets
-#				data = str(s.recv(1024))
-#				if data:
-#					self.cmd_dome(data)  #I really hope this works.
-#					return
-#				else:
-#					s.close()
-#					input.remove(s)
-#					return
-#
-#				#try:
-#				#	data = str(s.recv(1024))
-#				#	return data
-#				#except IOError:
-#				#	return 0
-#                          
-#
-#
-
+	def azimuth_telescope_to_dome(self,command):
+		# maybe put most of this information within the telescope class so it knows its orientation
+		# however we have information for both the telescope and the dome here...
+		'''This will convert the azimuth given from the telescope to a standard format so we can use the same
+		process to deal with the bisquemount and meademount autoslewing.'''
+		domeoffset = 0 #this is an ANGLE which accounts for the angle when we are pointing north
+		domeTelescopeDistance = 0
+		commands = str.split(command)
+		if len(commands) != 1: return 'Error'
+		telescopeAzimuth = commands[0]
+		correction = asin((self.domeTelescopeDistance/self.domeRadius)*math.sin(math.radians(telescopeAzimuth + domeoffset)))
+		#Above we have also changed coordinate systems.
+		correctionDegrees = math.degrees(correction)
+		#whether you add or minus the correction depends on the telescopeAzimuth size
+		if telescopeAzimuth <= (180-domeoffset) and telescopeAzimuth >= (360-domeoffset): correctedAzimuth = correctionDegrees + telescopeAzimuth
+		if telescopeAzimuth > (180-domeoffset) and telescopeAzimuth < (360-domeoffset): correctedAzimuth = telescopeAzimuth - correctionDegrees
+		return str(correctedAzimuth)
 

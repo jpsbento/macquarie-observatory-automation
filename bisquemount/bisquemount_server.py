@@ -243,12 +243,12 @@ class BisqueMountServer:
 		operation, motion will be terminated.'''
 		commands = str.split(the_command)
 		if len(commands) == 2:
-			if commands[1] == 'in' or commands[1] == 'In':
+			if commands[1] == 'in' or 'In':
 				ser.write('i')
 				message = ser.read(1)
 				if message[-1] == 'r': return 'Motor or encoder not working'
 				else: return message
-			elif commands[1] == 'out' or commands[1] == 'Out':
+			elif commands[1] == 'out' or 'Out':
 				ser.write('o')
 				message = ser.read(1)
 				if message[-1] == 'r': return 'Motor or encoder not working'
@@ -506,7 +506,7 @@ class BisqueMountServer:
 				script = self.readscript('MountTracking.js')
 				client_socket.send(script)
 				return self.messages()
-			else: return 'ERROR writing script'
+			else: return 'ERROR in writing script'
 		else: return 'ERROR, invalid input'
 				
 
@@ -583,7 +583,7 @@ class BisqueMountServer:
 				data = str(client_socket.recv(50000))
 				success = 1
 			except ValueError:
-				data = 'ERROR, TheSkyX is not responding. Try the command again or quit program.'
+				data = 'ERROR, TheSkyX is not responding.'
 			if success: break
 		return data
 

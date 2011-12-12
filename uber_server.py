@@ -27,7 +27,12 @@ class UberServer:
 	weatherstation_client = client_socket.ClientSocket("weatherstation")
 	imagingsourcecamera_client = client_socket.ClientSocket("imagingsourcecamera")
 
-	
+
+	def cmd_finishSession(self,the_command):
+		'''Close the slits, home the dome, home the telescope, put telescope in sleep mode.'''
+		# actual stuffs for this to come
+
+	# This whole thing is rather dodgy at the moment.
 	def cmd_rebootServer(self,the_command):
 		'''Can reboot any of the low level servers if they crash using this command, simply input the name of the server
 		you wish to reboot: ie labjack.'''
@@ -37,7 +42,10 @@ class UberServer:
 		if len(commands) = 2:
 			device_name = commands[1]
 			if device_name in tempread:
-				os.system("/"+device_name+"/./"+device_name+"_main")
+				# ssh into relevant machine maybe: os.system("ssh phy-admin@"+meade_IP)
+				# result = os.system("/"+device_name+"/./"+device_name+"_main")
+				# we actually have to ssh into the correct machine first
+				# if result == 0: it's worked, if not it hasn't
 
 	def cmd_home(self,the_command):
 		'''Home the telescope and the dome.'''
@@ -59,7 +67,7 @@ class UberServer:
 
 	def cmd_meademount(self,the_command):
 		'''A user can still access the low level commands from the meademount using this command. ie
-		tpye 'meademount help' to get all the available commands for the meademount server.'''
+		type 'meademount help' to get all the available commands for the meademount server.'''
 		commands = str.split(the_command)
 		if len(commands) > 1:
 			del commands[0]
@@ -70,7 +78,7 @@ class UberServer:
 
 	def cmd_weatherstation(self,the_command):
 		'''A user can still access the low level commands from the weatherstation using this command. ie
-		tpye 'weatherstation help' to get all the available commands for the weatherstation server.'''
+		type 'weatherstation help' to get all the available commands for the weatherstation server.'''
 		commands = str.split(the_command)
 		if len(commands) > 1:
 			del commands[0]
@@ -81,7 +89,7 @@ class UberServer:
 
 	def cmd_imagingsourcecamera(self, the_command):
 		'''A user can still access the low level commands from the imaging source camera using this command. ie
-		tpye 'imagingsourcecamera help' to get all the available commands for the imaging source camera server.'''
+		type 'imagingsourcecamera help' to get all the available commands for the imaging source camera server.'''
 		commands = str.split(the_command)
 		if len(commands) > 1:
 			del commands[0]
@@ -90,50 +98,74 @@ class UberServer:
 			return str(response)
 		else: return 'To get a list of commands for the imaging source camera type "imagingsourcecamera help".'
 
-	def cmd_slits(self, the_command):
-		'''A user can still access the low level commands from the slits using this command. ie
-		tpye 'slits help' to get all the available commands for the slits server.'''
-		commands = str.split(the_command)
-		if len(commands) > 1:
-			del commands[0]
-			command_for_slits = ' '.join(commands)
-			response = self.slits_client.send_command(command_for_slits)
-			return str(response)
-		else: return 'To get a list of commands for the slits type "slits help".'
-
 
 	def cmd_setDomeTracking(self,the_command):
 		'''Can set the dome tracking to be on or off'''
 		commands = str.split(the_command)
-		if len(commands) != 2: return 'Invalid input'
+		if len(command) == 1:
+			if self.dome_tracking: return 'Dome tracking enabled.'
+			else: return 'Dome tracking disabled.'
+		elif len(commands) != 2: return 'Invalid input'
 		if commands[1] == 'on': self.dome_tracking = True
 		elif commands[1] == 'off': self.dome_tracking = False
 		else: return 'Invalid input, on/off expected.'
 
 
-	def dome_tracking(self):
-		'''This will slew the dome to the azimuth of the telescope automatically if dome
-		tracking is turned on.'''
-		#set this as a background task when setting up uber_main
-		if self.dome_tracking:
-			meademount_client.send('getAzimuth')
-			telescopeAzimuth = meademount_client.recv(1024)
-			labjack_response = labjack_client.send_command('dome')
-			ljr = str.split(labjack_response)
-			dome_current_azimuth = ljr[3]
-			try: float(telescopeAzimuth)
-			except Exception: 
-				self.dome_tracking = False
-				return 'Error with Azimuth output from telescope, dome tracking switched off'
-			domeAzimuth = self.azimuth_telescope_to_dome(str(telescopeAzimuth))
-			if abs(float(domeAzimuth) - float(dome_current_azimuth)) > 4:
-				dome_response = dome_client.send_command('moveDome '+str(domeAzimuth))
 
+	def cmd_focusStarInfo(self, the_command):
+		'''Jib jib jib.'''
+
+
+
+	def cmd_centerStarInfo(self, the_command):
+		'''This pulls together commands from the camera server and the telescope server so we can
+		center and focus a bright star with just one call to this command.'''
+		centering = True # We start by assuming the star is neither centered nor focused so both these are set to true
+		focusing = True
+		#while centering + focusing: # While we are focusing and/or centering
+			data = imagingsource.star_centering_and_focusing(self) # we need to change this to give out an array of data
+			# then eg: focusing with iraf
+			if data[0] == 1: centering = False
+			if data[1] == 1: focusing = False
+			# so have, are we focused? are we centered? direction and amount to move telescope, direction to move focuser
+			dDec = data[2]
+			dAz = data[3]
+			focus_direction = data[4]
+			some_amount = 8000
+			if centering: 
+				if dDec > 0: bisquemount_client.send('jog amount_N N')
+				else: bisquemount_client.send('jog amount_s S')
+				if aAz > 0: bisquemount_client.send('jog amount_E E')
+				else: bisquemount_client.send('jog amount_W W')
+			if focusing: 
+				bisquemount_client.send('focusGoTo '+str(some_amount))  
+				#time.sleep(1) 
+				#bisquemount_client.send('fs') #something like this
+				# I think this should be done by getting the current position and adding/taking away
+				# an amount of counts and then telling the focuser to go to this new position
+
+		# I think Mike said we need to get the star within 4 pixels.. but can't quite remember.
+		#if math.hypot(x_distance, y_distance) > 1:  # !!! <-- Need to decide a limit
+			#translated_x = (self.transformation_matrix[0]*x_distance + self.transformation_matrix[1]*y_distance)*self.xaxis_flip
+			#translated_y =  self.transformation_matrix[2]*x_distance + self.transformation_matrix[3]*y_distance
+			#Need to convert distance into coordinates for the telescope orientation
+			#
+			#Tell telescope to move
+			#client_socket.send(COMMAND)
+			# we should have it in RA Dec
+			#dDec = translated_x # with some voodoo here
+			#dAz = translated_y # more voodoo
+		#else: centering = 0 # Star is centered so we can stop the loop
+		return 'Bright star focused and centered.'
+
+
+#*************** End of User Commands ***************#
 
 
 
 	def azimuth_telescope_to_dome(self,command):
 		# maybe put most of this information within the telescope class so it knows its orientation
+		# however we have information for both the telescope and the dome here...
 		'''This will convert the azimuth given from the telescope to a standard format so we can use the same
 		process to deal with the bisquemount and meademount autoslewing.'''
 		domeoffset = 0 #this is an ANGLE which accounts for the angle when we are pointing north
@@ -151,47 +183,25 @@ class UberServer:
 
 
 
-	def cmd_centerStarInfo(self, the_command):
-		'''This pulls together commands from the camera server and the telescope server so we can
-		center and focus a bright star with just one call to this command.'''
-		centering = True # We start by assuming the star is neither centered nor focused so both these are set to true
-		focusing = True
-		#while centering + focusing: # While we are focusing and/or centering
-			data = imagingsource.star_centering_and_focusing(self) # we need to change this to give out an array of data
-			# then eg:
-			if data[0] == 1: centering = False
-			if data[1] == 1: focusing = False
-			# so have, are we focused? are we centered? direction and amount to move telescope, direction to move focuser
-			dDec = data[2]
-			dAz = data[3]
-			focus_direction = data[4]
-			if centering: 
-				if dDec > 0: bisquemount_client.send('jog amount_N N')
-				else: bisquemount_client.send('jog amount_s S')
-				if aAz > 0: bisquemount_client.send('jog amount_E E')
-				else: bisquemount_client.send('jog amount_W W')
-			if focusing: 
-				bisquemount_client.send('focusMove '+data[4]) 
-				time.sleep(1) 
-				bisquemount_client.send('fs') #something like this
-
-		# I think Mike said we need to get the star within 4 pixels.. but can't quite remember.
-		#if math.hypot(x_distance, y_distance) > 1:  # !!! <-- Need to decide a limit
-			#translated_x = (self.transformation_matrix[0]*x_distance + self.transformation_matrix[1]*y_distance)*self.xaxis_flip
-			#translated_y =  self.transformation_matrix[2]*x_distance + self.transformation_matrix[3]*y_distance
-			#Need to convert distance into coordinates for the telescope orientation
-			#
-			#Tell telescope to move
-			#client_socket.send(COMMAND)
-			# we should have it in RA Dec
-			#dDec = translated_x # with some voodoo here
-			#dAz = translated_y # more voodoo
-		#else: centering = 0 # Star is centered so we can stop the loop
-		return 'Bright star focused and centered.'
 
 
-
-
+	def dome_tracking(self,command):
+		'''This will slew the dome to the azimuth of the telescope automatically if dome
+		tracking is turned on.'''
+		#set this as a background task when setting up uber_main
+		if self.dome_tracking:
+			meademount_client.send('getAzimuth')
+			telescopeAzimuth = meademount_client.recv(1024)
+			labjack_response = labjack_client.send_command('dome')
+			ljr = str.split(labjack_response)
+			dome_current_azimuth = ljr[3]
+			try: float(telescopeAzimuth)
+			except Exception: 
+				self.dome_tracking = False
+				return 'Error with Azimuth output from telescope, dome tracking switched off'
+			domeAzimuth = self.azimuth_telescope_to_dome(str(telescopeAzimuth))
+			if abs(float(domeAzimuth) - float(dome_current_azimuth)) > 4:
+				dome_response = dome_client.send_command('moveDome '+str(domeAzimuth))
 
 
 
