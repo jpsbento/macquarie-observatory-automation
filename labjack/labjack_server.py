@@ -159,6 +159,35 @@ class LabjackServer:
 			self.dome_moving = True #This will tell background task 'dome_location' to call task 'dome_moving'
 			return "Dome's current position: "+str(self.current_pos/self.counts_per_degree)+" degrees. Dome moving."
 		else: return 'ERROR invalid input'
+
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
+	def cmd_moveDome(self,the_command):
+		commands = str.split(the_command)
+		dome_command = commands[1]
+
+		client_list[0].send('dome position') # we get where we currently are
+		dome_current_position = client_list.recv(1024)
+
+		client_list[0].send(dome_command)
+		if is_float_try(dome_command):
+
+			if (dome_command - dome_current_position) > 0 and abs(dome_command - dome_current_position) <= 180: send command to dome to move clockwise
+			elif (dome_command - dome_current_position) > 0: send command to dome to move anticlockwise
+			elif (dome_command - dome_current_position) < 0 and abs(dome_command - dome_current_position) <= 180: send command to dome to move anticlockwise
+			elif (dome_command - dome_current_position) < 0: send command to dome to move clockwise
+			elif dome_command == dome_current_position: dome_moving = False # no command to be sent
+			else: return 'Some form of error.'
+
+		elif dome_command[0] == '+': send command to dome to move clockwise
+		elif dome_command[1] == '-': send command to dome to move anticlockwise
+		else: return 'ERROR invalid input'
+
+		while dome_moving = 1
+			labjack_output = client_list.recv(1024) #change this to just calling as a background task
+			if labjack_output == 'dome at destination' # or whatever the output is when it gets to it's destination
+				dome_moving == 0
+				send command to the dome to stop moving
+		return 'Dome in position'
                 
 #****** End of user commands *******
                 

@@ -68,8 +68,9 @@ class MeademountServer:
 	def cmd_getAz(self,the_command):
 		'''Returns the current Azimuth of the telescope'''
 		ser.write(':GZ#')
-		return ser.readline()
-
+		raw_azimuth = ser.readline()
+		reduced_azimuth = self.convert_azimuth_meademount(raw_azimuth) 
+		return str(reduced_azimuth)
 
 	def cmd_move(self,the_command):  # This might actually be move up down left right. Need to test it and see.
 		'''Starts motion 'north', 'south', 'east', or 'west' at the current rate.'''
@@ -1017,6 +1018,61 @@ class MeademountServer:
 				return ser.read(1024)
 			else: return 'ERROR, invalid input'
 		else: return 'ERROR, invalid input'
+
+
+	def convert_azimuth_meademount(self,command):
+		'''This will convert the azimuth given from the telescope to a standard format so we can use the same
+		process to deal with the bisquemount and meademount autoslewing.'''
+		#bisquemount_offset = 0
+		#meademount_offset = 0
+		domeoffset = 0 #this is an ANGLE which accounts for the angle when we are pointing north
+		#bisquemountDomeDistance = 0
+		meademountDomeDistance = 0
+		domeTelescopeDistance = 0
+		commands = str.split(command)
+		if len(commands) != 1: return 0
+		telescope = ''
+		azimuth_raw = commands[1]
+		telescopeAzimuth = 0
+		#if commands[0] == 'bisquemount': 
+		#	telescope = 'bisquemount'
+		#	domeoffset = bisquemount_offset
+		#	domeTelescopeDistance = bisquemountDomeDistance
+		#elif commands[0] == 'meademount': 
+		#	telescope = 'meademount'
+		#	domeoffset = meademount_offset
+		#	domeTelescopeDistance = meademountDomeDistance
+		#else: return 0
+		#if telescope == 'meademount':
+		temp = list(azimuth_raw)
+		degrees = 0
+		minutes = 0
+		tenthsofmin = 0
+		seconds = 0
+		telescopeAzimuth = 0
+		correctedAzimuth = 0
+		del temp[-1]
+		if temp[1] == '*': 
+			degrees = temp[0]
+			minutes = temp[2]+temp[3]
+		elif temp[2] == '*': 
+			degrees = temp[0]+temp[1]
+			minutes = temp[3]+temp[4]
+		elif temp[3] == '*': 
+			degrees = temp[0]+temp[1]+temp[2]
+			minutes = temp[4]+temp[5]
+		else: return 'ERROR WITH INPUT FROM TELESCOPE'
+		if temp[len(temp)-2] == '#':
+			tenthsofmin == temp[-1]
+		elif temp[len(temp)-3] == "'":
+			seconds =temp[len(temp)-2]+temp[-1]
+		else: return 'ERROR WITH INPUT FROM TELESCOPE'
+	
+		if degrees: telescopeAzimuth += float(degrees)
+		if minutes: telescopeAzimuth += (float(minutes)/60)
+		if tenthsofmin: telescopeAzimuth += (float(tenthsofmin)/600)
+		if seconds: telescopeAzimuth += (float(seconds)/3600)
+		return str(telescopeAzimuth)
 
 
 	
