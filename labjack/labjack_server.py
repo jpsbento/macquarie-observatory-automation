@@ -123,8 +123,7 @@ class LabjackServer:
 	def cmd_numHomes(self,the_command):
 		'''Return the number of times the dome home sensor has been pressed.'''
  		home_output = str( (LJ.getFeedback( u3.Counter0() ))[0] )
-		if home_output != self.home_sensor_count:  # We've hit home!
-		self.current_position = 0 # This number wont be 0 but I don't know the correct value yet
+		return home_output
 	
 	def cmd_domeCorrection(self,the_command): # I don't think we need this as we will always want to correct
 		'''Used to turn the dome correction on or off (automatically set to on). When dome correction is on,
@@ -175,8 +174,10 @@ class LabjackServer:
 				#Above we have also changed coordinate systems.
 				correctionDegrees = math.degrees(correction)
 				#whether you add or minus the correction depends on the telescopeAzimuth size
-				if dome_command_temp <= (180- self.domeAngleOffset) and dome_command_temp >= (360-self.domeAngleOffset): dome_command_temp = correctionDegrees + self.dome_comand
-				elif dome_command_temp > (180 - self.domeAngleOffset) and dome_command_temp < (360-self.domeAngleOffset): dome_command_temp = dome_command_temp - correctionDegrees
+				if dome_command_temp <= (180- self.domeAngleOffset) and dome_command_temp >= (360-self.domeAngleOffset): 
+					dome_command_temp = correctionDegrees + self.dome_comand
+				elif dome_command_temp > (180 - self.domeAngleOffset) and dome_command_temp < (360-self.domeAngleOffset): 
+					dome_command_temp = dome_command_temp - correctionDegrees
 				else: return 'ERROR invalid number input.'
 
 			# we only record our dome position between 0 and 360 degrees
