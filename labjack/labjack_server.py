@@ -195,7 +195,7 @@ class LabjackServer:
 			self.counts_at_start = self.current_position
 			self.dome_command = dome_command_temp
 			self.dome_moving = True #This will tell background task 'dome_location' to call task 'dome_moving'
-			degree_distance = self.dome_command - self.dome_position
+			degree_distance = self.dome_command - self.current_position
 			if degree_distance > 180: 
 				self.dome_relays("anticlockwise")
 				self.direction_dome_moving = "anticlockwise"
