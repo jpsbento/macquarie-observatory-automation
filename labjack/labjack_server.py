@@ -131,9 +131,15 @@ class LabjackServer:
 		This way if the telescope is at 20, a command to the dome will move to 20 with dome correction enabled
 		will ensure the telescope and dome line up.'''
 		commands = str.split(the_command)
-		if len(commands) == 2:
-			if commands[1] == 'on': dome_correction_enabled = 1
-			elif commands[1] == 'off': dome_correction_enabled = 0
+		if len(commands) == 1 and self.dome_correction_enabled: return 'Dome correction enabled'
+		elif len(commands) == 1 and not self.dome_correction_enabled: return 'Dome correction disabled'
+		elif len(commands) == 2:
+			if commands[1] == 'on': 
+				self.dome_correction_enabled = 1
+				return 'Dome correction now enabled'
+			elif commands[1] == 'off': 
+				self.dome_correction_enabled = 0
+				return 'Dome correction now disabled'
 			else: return 'ERROR invalid input'
 		else: return 'Invalid input'
 		
