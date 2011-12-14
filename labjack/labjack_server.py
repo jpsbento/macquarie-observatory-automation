@@ -9,6 +9,7 @@
 import string
 import u3
 import ei1050
+import math
 
 #***********************************************************************#
 #2) Set up the labjack. As the LJ and LJPROBE are declared in the global
@@ -176,7 +177,7 @@ class LabjackServer:
 				except Exception: return 'ERROR invalid input'
 
 			if self.dome_correction_enabled:
-				correction = asin((self.domeTelescopeDistance/self.domeRadius)*math.sin(math.radians(dome_command_temp + domeAngleOffset)))		
+				correction = math.asin((self.domeTelescopeDistance/self.domeRadius)*math.sin(math.radians(dome_command_temp + domeAngleOffset)))		
 				#Above we have also changed coordinate systems.
 				correctionDegrees = math.degrees(correction)
 				#whether you add or minus the correction depends on the telescopeAzimuth size
