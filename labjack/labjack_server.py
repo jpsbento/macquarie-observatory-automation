@@ -208,7 +208,7 @@ class LabjackServer:
 			elif degree_distance < 0 and degree_distance > -180: 
 				self.dome_relays("anticlockwise")
 				self.direction_dome_moving = "anticlockwise"
-			else: return 'ERROR '+str(self.dome_command)+' '+degree_distance
+			else: return 'ERROR '+str(self.dome_command)+' '+str(degree_distance)
 			
 			return "Dome's current position: "+str(self.current_position)+" degrees. Dome moving."
 		else: return 'ERROR invalid input not a number'
