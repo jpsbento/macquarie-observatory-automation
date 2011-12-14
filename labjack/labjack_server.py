@@ -268,7 +268,7 @@ class LabjackServer:
 
 
 
-	def home_tracker(self,the_command):
+	def home_tracker(self):
 		'''Return the number of times the dome home sensor has been pressed.'''
  		home_output = int(str( (LJ.getFeedback( u3.Counter0() ))[0] ))
 		if home_output != self.home_sensor_count:  # We've hit home!
