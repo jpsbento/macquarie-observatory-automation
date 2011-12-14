@@ -157,10 +157,11 @@ class LabjackServer:
 		commands=str.split(the_command)
 		dome_command_temp = 0 # We use this to keep track of our dome command and only change
 				      # global self.dome_command when we have finished processing our value
-		if self.dome_moving == True:
-			return "Dome moving, input only available when the dome is stationary."
-		elif len(commands) == 2 and commands[1] == 'location':
+		if len(commands) == 2 and commands[1] == 'location':
 			return str(self.current_position)
+		elif self.dome_moving == True:
+			return "Dome moving, input only available when the dome is stationary."
+
 		elif len(commands) == 2:
 			self.counts_at_start=self.current_position
 			user_command = commands[1]
@@ -184,8 +185,8 @@ class LabjackServer:
 				correctionDegrees = math.degrees(correction)
 				#whether you add or minus the correction depends on the telescopeAzimuth size
 				if dome_command_temp <= (180- self.domeAngleOffset) and dome_command_temp >= (0-self.domeAngleOffset): 
-					dome_command_temp = correctionDegrees + self.dome_command
-				elif dome_command_temp > (180 - self.domeAngleOffset) and dome_command_temp < (360-self.domeAngleOffset): 
+					dome_command_temp = correctionDegrees + dome_command_temp
+				elif dome_command_temp => (180 - self.domeAngleOffset) and dome_command_temp <= (360-self.domeAngleOffset): 
 					dome_command_temp = dome_command_temp - correctionDegrees
 				else: return 'ERROR invalid number input.'
 
