@@ -273,7 +273,7 @@ class LabjackServer:
 		if home_output != self.home_sensor_count:  # We've hit home!
 			self.home_sensor_count = home_output
 			if self.dome_slewing_enabled:
-				self.current_position = azimuth_telescope_to_dome(0) # This number wont be 0 but I don't know the correct value yet
+				self.current_position = self.azimuth_telescope_to_dome(0) # Correct value not known yet
 			else: self.current_position = 0
 			return 1
 		return 0
