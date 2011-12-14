@@ -161,6 +161,7 @@ class LabjackServer:
 			return str(self.current_position)
 		elif len(commands) == 2 and commands[1] == 'stop':
 			self.dome_relays("stop")
+			self.dome_moving = False
 			return 'Dome motion stopped'
 		elif self.dome_moving == True:
 			return "Dome moving, input only available when the dome is stationary."
@@ -168,6 +169,7 @@ class LabjackServer:
 		elif len(commands) == 2:
 			self.counts_at_start=self.current_position
 			user_command = commands[1]
+			dome_command_temp = 0
 			if user_command[0] == '+' or '-': #user has asked to move a certain amount from where we are now
 				try: float(user_command)
 				except Exception: return 'ERROR invalid input'
