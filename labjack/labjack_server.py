@@ -177,7 +177,7 @@ class LabjackServer:
 				except Exception: return 'ERROR invalid input'
 
 			if self.dome_correction_enabled:
-				correction = math.asin((self.domeTelescopeDistance/self.domeRadius)*math.sin(math.radians(dome_command_temp + domeAngleOffset)))		
+				correction = math.asin((self.domeTelescopeDistance/self.domeRadius)*math.sin(math.radians(dome_command_temp + self.domeAngleOffset)))		
 				#Above we have also changed coordinate systems.
 				correctionDegrees = math.degrees(correction)
 				#whether you add or minus the correction depends on the telescopeAzimuth size
