@@ -260,11 +260,11 @@ class LabjackServer:
 	def dome_relays(self, command):
 		'''Move the dome clockwise, anticlockwise or stop dome motion'''
 		commands = str.split(command)
-		if len(commands) != 1: return 'ERROR'
-		if commands[0] == 'clockwise': # command to move dome clockwise
-		elif commands[0] == 'anticlockwise': # command to move dome anticlockwise
-		elif commands[0] == 'stop': # command to stop dome motion
-		else: return 'ERROR'
+		#if len(commands) != 1: return 'ERROR'
+		#if commands[0] == 'clockwise': # command to move dome clockwise
+		#elif commands[0] == 'anticlockwise': # command to move dome anticlockwise
+		#elif commands[0] == 'stop': # command to stop dome motion
+		#else: return 'ERROR'
 
 
 
