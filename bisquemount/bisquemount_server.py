@@ -23,78 +23,11 @@ client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # This client_
 client_socket.connect(("10.238.16.10",3040))			  # running 'TheSkyX'. If it doesn't receive a response after 50 mins
 client_socket.settimeout(3000)					  # I need to make it do something
 
-#dome_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)   # This client_socket is to communicate with the labjack software
-#dome_socket.connect(("10.238.16.10",3040))			  # so we can autoslew the dome !!!! IP address WRONG!
-#dome_socket.settimeout(3000)
-
 class BisqueMountServer:
 
 	dome_slewing_enabled = 0 #can enable disable automatic dome slewing
 
-	def convertnumberforfocuser(self, inputnumber):
-		'''This will take a user input number and convert it for sending to the focuser in the correct format'''
-		numbertoprocess = int(inputnumber)
-		temphigher = int(numbertoprocess/256)   # here we have split the number so as to get the two byte form
-		templower = numbertoprocess - temphigher*256
-		bigend = chr(temphigher)
-		littleend = chr(templower)
-		return [bigend, littleend]
-
-
-	def convertfocusoutput(self, outputbig, outputlittle):
-		'''This will take the output from the focuser and convert it to a user friendly format'''
-		#templist = list(output) #I'm going to assume the length of the string is 2
-		bigint = ord(outputbig) #The focuser sends the bigend first
-		littleint = ord(outputlittle)
-		tophalf = bigint*256
-		bottomhalf = littleint
-		totalnumber = tophalf+bottomhalf #by now we should have converted the two bytes into one number for easy reading
-		return totalnumber		 #This will be the counts, we need to measure how many counts to a cm (or inch, whatever).
-
-
-	def cmd_automaticDomeSlewing(self,the_command):
-		'''Turn this on or off to determine whether the dome automatically updates
-		it's position to the telescopes position.'''
-		commands = str.split(the_command)
-		if len(commands) == 1:
-			if dome_slewing_enabled: return 'Automatic dome slewing is on.'
-			else: return 'Automatic dome slewing is off.'
-		elif len(commands) == 2:
-			if commands[1] == 'on':
-				self.dome_slewing_enabled = 1
-				return 'Automatic dome slewing now enabled.'
-			elif commands[1] == 'off':
-				self.dome_slewing_enabled = 0
-				return 'Automatic dome slewing now disabled.'
-			else: return 'ERROR invalid input'
-		else: return 'ERROR invalid input'
-
-#	def recv_size(self, the_socket, message_size):
-#		#data length is packed into 4 bytes
-#		total_len=0;total_data=[];size= int(message_size)
-#		size_data=sock_data='';recv_size=8192
-#		while total_len<size:
-#			sock_data=the_socket.recv(recv_size)
-#			if not total_data:
-#				if len(sock_data)>4:
-#					size_data+=sock_data
-#					size=struct.unpack('>i', size_data[:4])[0]
-#					recv_size=size
-#					if recv_size>524288:recv_size=524288
-#					total_data.append(size_data[4:])
-#				else:size_data+=sock_data
-#			else: total_data.append(sock_data)
-#			total_len=sum([len(i) for i in total_data ])
-#		return ''.join(total_data)
-
-#	def recvamount(self, size):
-#		data = ''
-#		while len(data) < size:
-#			data += ser.read(size - len(data))
-#		return data
-
-
-#**** SERIAL COMMANDS FOR THE FOCUSER *****#
+#**************************************SERIAL COMMANDS FOR THE FOCUSER **************************************#
 #The focuser echos the command back to the user.
 
 	def cmd_focusGoToPosition(self,the_command):
@@ -266,7 +199,7 @@ class BisqueMountServer:
 
 
 
-#**** COMMANDS TO TALK TO MOUNT ****#
+#************************************** COMMANDS TO TALK TO MOUNT **************************************#
 		
 
 	def cmd_find(self,the_command):
@@ -380,65 +313,65 @@ class BisqueMountServer:
 		client_socket.send(script)
 		return self.messages()
 
-	def cmd_setParkPosition(self,the_command):
+	def cmd_setParkPosition(self,the_command): # Not sure it's a good idea to be able to remotely set this
 		'''This will set the telescopes current position as the park position. Please don't use
 		this unless there is an error given of the nature 'no park position set'.'''
 		script = self.readscript('setParkPosition.js')
 		client_socket.send(script)
 		return self.messages()
 
-	def cmd_setWhenWhere(self,the_command): #THIS ISN'T DONE PROPERLY YET.
-		'''This can be used to specify the location, date and time to be used by the sky.
-		Input should look like: double(JulianDay) int(IDSTOption) int(IUseSystemClock)
-		String(IpszDescripton) double(longitude) double(latitude) double(TimeZone)
-		double(Elevation). double means a number alowing decimal points, int means an
-		integer and string means a string of words. JulianDay = a double that specifies
-		the Julian Day at which to view the sky, IDSTOption = a long value that specifies
-		the daylight saving time option to use. IUSe System Clock = a long value that informs
-		TheSky to use the computers internal time for TheSky's time, longitude = a double
-		value that specifies TheSky's longitude setting, latitude = a double value to specify
-		TheSky's latitude setting. TimeZone = a double that specifies TheSky's time zone,
-		elevation = a double value that specifies the elevation used by TheSky.'''
-		commands = str.split(the_command)
-		dJulianDay = 0.0
-		IDSTOption = 0
-		IUseSystemClock = 0
-		IpszDescription = ''
-		dLongitude = 0.0
-		dLatitude = 0.0
-		dTimeZone = 0.0
-		dElevation = 0.0
-		linestoreplace = ['var dJulianDate = 0.0;\n','var IDSTOption = 0;\n','var IUseSystemClock = 0;\n',"var IpszDescription = '';\n",'var dLongitude = 0.0;\n','var dLatitude = 0.0;\n','var dTimeZone = 0.0;\n','var dElevation = 0.0;\n']
-		if len(commands) == 9:
-			IpszDescription = commands[4]
-			if self.is_float_try(commands[1]):
-				dJulianDay = commands[1]
-			else: return 'ERROR, invalid input'
-			if commands[2].isdigit():
-				IDSTOption = commands[2]
-			else: return 'ERROR invalid input'
-			if commands[3].isdigit():
-				IUseSystemClock = commands[3]
-			else: return 'ERROR, invalid input'
-			if self.is_float_try(commands[5]):
-				dLongitude = commands[5]
-			else: return 'ERROR invalid input'
-			if self.is_float_try(commands[6]):
-				dLatitide = commands[6]
-			else: return 'ERROR invalid input'
-			if self.is_float_try(commands[7]):
-				dTimeZone = commands[7]
-			else: return 'ERROR, invalid input'
-			if self.is_float_try(commands[8]):
-				dElevation = commands[8]
-			else: return 'ERROR invalid input'
-			newlines = ['var dJulianDate = '+dJulianDay+';\n','var IDSTOption = '+IDSTOption+';\n','var IUseSystemClock = '+IUseSystemClock+';\n','var IpszDescription = '+IpszDescription+';\n','var dLongitude = '+dLongitude+';\n','var dLatitude = '+dLatitude+';\n','var dTimeZone = '+dTimeZone+';\n','var dElevation = '+dElevation+';\n']
-			if self.editscript('SetWhenWhere.template','SetWhenWhere.js',linestoreplace,newlines):
-				script = self.readscript('SetWhenWhere.js')
-				client_socket.send(script)
-				return self.messages()
-			else: return 'ERROR, could not read/make file.'
-		else: return 'ERROR, invalid input'
+#	def cmd_setWhenWhere(self,the_command): #THIS ISN'T DONE PROPERLY YET.
+#		'''This can be used to specify the location, date and time to be used by the sky.
+#		Input should look like: double(JulianDay) int(IDSTOption) int(IUseSystemClock)
+#		String(IpszDescripton) double(longitude) double(latitude) double(TimeZone)
+#		double(Elevation). double means a number allowing decimal points, int means an
+#		integer and string means a string of words. JulianDay = a double that specifies
+#		the Julian Day at which to view the sky, IDSTOption = a long value that specifies
+#		the daylight saving time option to use. IUSe System Clock = a long value that informs
+#		TheSky to use the computers internal time for TheSky's time, longitude = a double
+#		value that specifies TheSky's longitude setting, latitude = a double value to specify
+#		TheSky's latitude setting. TimeZone = a double that specifies TheSky's time zone,
+#		elevation = a double value that specifies the elevation used by TheSky.'''
+#		commands = str.split(the_command)
+#		dJulianDay = 0.0
+#		IDSTOption = 0
+#		IUseSystemClock = 0
+#		IpszDescription = ''
+#		dLongitude = 0.0
+#		dLatitude = 0.0
+#		dTimeZone = 0.0
+#		dElevation = 0.0
+#		linestoreplace = ['var dJulianDate = 0.0;\n','var IDSTOption = 0;\n','var IUseSystemClock = 0;\n',"var IpszDescription = '';\n",'var dLongitude = 0.0;\n','var dLatitude = 0.0;\n','var dTimeZone = 0.0;\n','var dElevation = 0.0;\n']
+#		if len(commands) == 9:
+#			IpszDescription = commands[4]
+#			if self.is_float_try(commands[1]):
+#				dJulianDay = commands[1]
+#			else: return 'ERROR, invalid input'
+#			if commands[2].isdigit():
+#				IDSTOption = commands[2]
+#			else: return 'ERROR invalid input'
+#			if commands[3].isdigit():
+#				IUseSystemClock = commands[3]
+#			else: return 'ERROR, invalid input'
+#			if self.is_float_try(commands[5]):
+#				dLongitude = commands[5]
+#			else: return 'ERROR invalid input'
+#			if self.is_float_try(commands[6]):
+#				dLatitide = commands[6]
+#			else: return 'ERROR invalid input'
+#			if self.is_float_try(commands[7]):
+#				dTimeZone = commands[7]
+#			else: return 'ERROR, invalid input'
+#			if self.is_float_try(commands[8]):
+#				dElevation = commands[8]
+#			else: return 'ERROR invalid input'
+#			newlines = ['var dJulianDate = '+dJulianDay+';\n','var IDSTOption = '+IDSTOption+';\n','var IUseSystemClock = '+IUseSystemClock+';\n','var IpszDescription = '+IpszDescription+';\n','var dLongitude = '+dLongitude+';\n','var dLatitude = '+dLatitude+';\n','var dTimeZone = '+dTimeZone+';\n','var dElevation = '+dElevation+';\n']
+#			if self.editscript('SetWhenWhere.template','SetWhenWhere.js',linestoreplace,newlines):
+#				script = self.readscript('SetWhenWhere.js')
+#				client_socket.send(script)
+#				return self.messages()
+#			else: return 'ERROR, could not read/make file.'
+#		else: return 'ERROR, invalid input'
 			
 
 	def cmd_s(self,the_command):
@@ -530,6 +463,10 @@ class BisqueMountServer:
 		return self.messages()
 
 
+
+#************************************** END OF USER COMMANDS **************************************#
+
+
 	def is_float_try(self,stringtry):
 		'''Check to see if input is a float.'''
 		try:
@@ -570,6 +507,28 @@ class BisqueMountServer:
 		except ValueError:
 			return 0
 
+	def convertnumberforfocuser(self, inputnumber):
+		'''This will take a user input number and convert it for sending to the focuser in the correct format'''
+		numbertoprocess = int(inputnumber)
+		temphigher = int(numbertoprocess/256)   # here we have split the number so as to get the two byte form
+		templower = numbertoprocess - temphigher*256
+		bigend = chr(temphigher)
+		littleend = chr(templower)
+		return [bigend, littleend]
+
+
+	def convertfocusoutput(self, outputbig, outputlittle):
+		'''This will take the output from the focuser and convert it to a user friendly format'''
+		#templist = list(output) #I'm going to assume the length of the string is 2
+		bigint = ord(outputbig) #The focuser sends the bigend first
+		littleint = ord(outputlittle)
+		tophalf = bigint*256
+		bottomhalf = littleint
+		totalnumber = tophalf+bottomhalf #by now we should have converted the two bytes into one number for easy reading
+		return totalnumber	
+
+
+
 
 	def messages(self):
 		'''I'm trying to make this so if you don't get a response within 5 minutes instead
@@ -586,18 +545,6 @@ class BisqueMountServer:
 				data = 'ERROR, TheSkyX is not responding.'
 			if success: break
 		return data
-
-#	def auto_dome_slew(self): #!!!!!!!!! WORK BEING DONE HERE !!!!!!!!!!!!!!!!!
-#		'''Can set up a situation where the dome automatically slews to the
-#		same azimuth as the telescope.'''
-#		if self.dome_slewing_enabled:
-#			data = self.cmd_mountGetAzAlt()
-#			#Gotta split it up so we just get the
-#			temp = str.split(data)
-#			Azimuth = data[0]
-#			dome_socket.send(Azimuth) # !!! DON'T send to client_socket, this socket is for TheSkyX communications
-#			return dome_socket.recv(1024)
-#
-			
+	
 
 	

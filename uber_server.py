@@ -10,12 +10,6 @@ class UberServer:
 	bisque_IP = "10.238.16.11"
 	meade_IP  = "10.238.16.12"
 
-	xaxis_flip = 1.0     #all these should be in telescope server or labjack server or split between the two?
-	north_vector = [0,0]
-	east_vector = [0.0]
-	theta = 1 
-	transformation_matrix = [math.cos(theta), math.sin(theta), -1*math.sin(theta), math.cos(theta)]	
-
 
 	dome_tracking = True
 
@@ -27,21 +21,23 @@ class UberServer:
 	weatherstation_client = client_socket.ClientSocket("weatherstation")
 	imagingsourcecamera_client = client_socket.ClientSocket("imagingsourcecamera")
 
+#***************************** A list of user commands *****************************#
+
 
 	def cmd_finishSession(self,the_command):
 		'''Close the slits, home the dome, home the telescope, put telescope in sleep mode.'''
 		# actual stuffs for this to come
 
 	# This whole thing is rather dodgy at the moment.
-	def cmd_rebootServer(self,the_command):
-		'''Can reboot any of the low level servers if they crash using this command, simply input the name of the server
-		you wish to reboot: ie labjack.'''
-		commands = str.split(the_command)
-		temp = open("device_list.txt")
-		tempread = read(temp)
-		if len(commands) = 2:
-			device_name = commands[1]
-			if device_name in tempread:
+#	def cmd_rebootServer(self,the_command):
+#		'''Can reboot any of the low level servers if they crash using this command, simply input the name of the server
+#		you wish to reboot: ie labjack.'''
+#		commands = str.split(the_command)
+#		temp = open("device_list.txt")
+#		tempread = read(temp)
+#		if len(commands) = 2:
+#			device_name = commands[1]
+#			if device_name in tempread:
 				# ssh into relevant machine maybe: os.system("ssh phy-admin@"+meade_IP)
 				# result = os.system("/"+device_name+"/./"+device_name+"_main")
 				# we actually have to ssh into the correct machine first
@@ -112,75 +108,35 @@ class UberServer:
 
 
 
-	def cmd_focusStarInfo(self, the_command):
-		'''Jib jib jib.'''
+	def cmd_orientateCamera(self, the_command):
+		'''This will control the camera and the telescope to get the camera orientation.'''
+		imagingsourcecamera_client.send_command('orientationCapture base')
+		bisquemount_client.send_command('jog 1 N')  # jogs the telescope 1 arcsec (or arcmin??) north
+		imagingsourcecamera_client.send_command('orientationCapture north 1')
+		bisquemount_clinet.send_command('jog 1 E')
+		imagingsourcecamera_client.send_command('orientationCapture east 1')
+		response = imagingsourcecamera_client.send_comamnd('calculateCameraOrientation')
+		return response
 
 
-
-	def cmd_centerStarInfo(self, the_command):
+	def cmd_centerStar(self, the_command):
 		'''This pulls together commands from the camera server and the telescope server so we can
-		center and focus a bright star with just one call to this command.'''
-		centering = True # We start by assuming the star is neither centered nor focused so both these are set to true
-		focusing = True
-		#while centering + focusing: # While we are focusing and/or centering
-			data = imagingsource.star_centering_and_focusing(self) # we need to change this to give out an array of data
-			# then eg: focusing with iraf
-			if data[0] == 1: centering = False
-			if data[1] == 1: focusing = False
-			# so have, are we focused? are we centered? direction and amount to move telescope, direction to move focuser
-			dDec = data[2]
-			dAz = data[3]
-			focus_direction = data[4]
-			some_amount = 8000
-			if centering: 
-				if dDec > 0: bisquemount_client.send('jog amount_N N')
-				else: bisquemount_client.send('jog amount_s S')
-				if aAz > 0: bisquemount_client.send('jog amount_E E')
-				else: bisquemount_client.send('jog amount_W W')
-			if focusing: 
-				bisquemount_client.send('focusGoTo '+str(some_amount))  
-				#time.sleep(1) 
-				#bisquemount_client.send('fs') #something like this
-				# I think this should be done by getting the current position and adding/taking away
-				# an amount of counts and then telling the focuser to go to this new position
+		center and focus a bright star with just one call to this command. It is recommended that you 
+		focus the star before attemping to center it for more accurate results'''
+		imagingsourcecamera_client.send_command('captureImages centering_image 1')
+		response = imagingsourcecamera_client.send_command('starDistanceFromCenter centering_image')
+		try: dNorth, dEast = response
+		except Exception: "Error with star centering"
 
-		# I think Mike said we need to get the star within 4 pixels.. but can't quite remember.
-		#if math.hypot(x_distance, y_distance) > 1:  # !!! <-- Need to decide a limit
-			#translated_x = (self.transformation_matrix[0]*x_distance + self.transformation_matrix[1]*y_distance)*self.xaxis_flip
-			#translated_y =  self.transformation_matrix[2]*x_distance + self.transformation_matrix[3]*y_distance
-			#Need to convert distance into coordinates for the telescope orientation
-			#
-			#Tell telescope to move
-			#client_socket.send(COMMAND)
-			# we should have it in RA Dec
-			#dDec = translated_x # with some voodoo here
-			#dAz = translated_y # more voodoo
-		#else: centering = 0 # Star is centered so we can stop the loop
-		return 'Bright star focused and centered.'
+		if dNorth > 0: bisquemount_client.send('jog '+dNorth+' N')
+		else: bisquemount_client.send('jog 'str(float(dNorth)*-1)+' S')
+		if aAz > 0: bisquemount_client.send('jog '+dEast+' E')
+		else: bisquemount_client.send('jog '+str(float(dEast)*-1)+' W')
+
+		return 'Bright star centered.'
 
 
-#*************** End of User Commands ***************#
-
-
-
-	def azimuth_telescope_to_dome(self,command):
-		# maybe put most of this information within the telescope class so it knows its orientation
-		# however we have information for both the telescope and the dome here...
-		'''This will convert the azimuth given from the telescope to a standard format so we can use the same
-		process to deal with the bisquemount and meademount autoslewing.'''
-		domeoffset = 0 #this is an ANGLE which accounts for the angle when we are pointing north
-		domeTelescopeDistance = 0
-		commands = str.split(command)
-		if len(commands) != 1: return 'Error'
-		telescopeAzimuth = commands[0]
-		correction = asin((self.domeTelescopeDistance/self.domeRadius)*math.sin(math.radians(telescopeAzimuth + domeoffset)))
-		#Above we have also changed coordinate systems.
-		correctionDegrees = math.degrees(correction)
-		#whether you add or minus the correction depends on the telescopeAzimuth size
-		if telescopeAzimuth <= (180-domeoffset) and telescopeAzimuth >= (360-domeoffset): correctedAzimuth = correctionDegrees + telescopeAzimuth
-		if telescopeAzimuth > (180-domeoffset) and telescopeAzimuth < (360-domeoffset): correctedAzimuth = telescopeAzimuth - correctionDegrees
-		return str(correctedAzimuth)
-
+#***************************** End of User Commands *****************************#
 
 
 
@@ -192,16 +148,21 @@ class UberServer:
 		if self.dome_tracking:
 			meademount_client.send('getAzimuth')
 			telescopeAzimuth = meademount_client.recv(1024)
-			labjack_response = labjack_client.send_command('dome')
+			domeAzimuth = labjack_client.send_command('dome location')
 			ljr = str.split(labjack_response)
 			dome_current_azimuth = ljr[3]
-			try: float(telescopeAzimuth)
+			try: 
+				float(telescopeAzimuth)
+				float(domeAzimuth)
 			except Exception: 
 				self.dome_tracking = False
 				return 'Error with Azimuth output from telescope, dome tracking switched off'
-			domeAzimuth = self.azimuth_telescope_to_dome(str(telescopeAzimuth))
 			if abs(float(domeAzimuth) - float(dome_current_azimuth)) > 4:
 				dome_response = dome_client.send_command('moveDome '+str(domeAzimuth))
+
+# We have a potential mess in the above function as the labjack will output it's azimuth in it's coordinate
+# system (I think..).. Think about this.
+
 
 
 

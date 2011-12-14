@@ -913,6 +913,7 @@ class MeademountServer:
 		return ser.readline()
 
 # $$$$$$$$$$$$$$%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%$$$$$$$$$$$$$$$$%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# making a goTo command as the meademount apparently currently doesn't have one, you need to do it in two stages
 
 	def goTo(self,the_command):
 		'''point the telescope at a specific RA and Dec, input RA first then Dec.'''
@@ -1017,6 +1018,9 @@ class MeademountServer:
 				return hours
 			else: return command
 		else: return command
+
+# I think we should use the Az and Alt to orient the camera, as RA and Dec move with the sky, but Alt and Az don't
+# so that way we wont accidentally get some sky movement in our camera orientation
 	
 
 
