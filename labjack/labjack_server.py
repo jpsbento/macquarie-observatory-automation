@@ -174,22 +174,24 @@ class LabjackServer:
 				dome_command_temp = self.current_position + degree_move
 			else:
 				try: dome_command_temp = float(user_input)
-				except Exception: return 'ERROR invalid input'
-
+				except Exception: return 'ERROR invalid input '+str(user_input)
+				while dome_command_temp > 360: dome_command_temp -= 360
+				while dome_command_temp < 0: dome_command_temp += 360
 			if self.dome_correction_enabled:
 				correction = math.asin((self.domeTelescopeDistance/self.domeRadius)*math.sin(math.radians(dome_command_temp + self.domeAngleOffset)))		
 				#Above we have also changed coordinate systems.
+
 				correctionDegrees = math.degrees(correction)
 				#whether you add or minus the correction depends on the telescopeAzimuth size
-				if dome_command_temp <= (180- self.domeAngleOffset) and dome_command_temp >= (360-self.domeAngleOffset): 
+				if dome_command_temp <= (180- self.domeAngleOffset) and dome_command_temp >= (0-self.domeAngleOffset): 
 					dome_command_temp = correctionDegrees + self.dome_comand
 				elif dome_command_temp > (180 - self.domeAngleOffset) and dome_command_temp < (360-self.domeAngleOffset): 
 					dome_command_temp = dome_command_temp - correctionDegrees
 				else: return 'ERROR invalid number input.'
 
 			# we only record our dome position between 0 and 360 degrees
-			while dome_command_temp > 360: dome_command_temp -= 360
-			while dome_command_temp < 0: dome_command_temp += 360
+				while dome_command_temp > 360: dome_command_temp -= 360
+				while dome_command_temp < 0: dome_command_temp += 360
 			self.counts_at_start = self.current_position
 			self.dome_command = dome_command_temp
 			self.dome_moving = True #This will tell background task 'dome_location' to call task 'dome_moving'
@@ -209,7 +211,7 @@ class LabjackServer:
 			else: return 'ERROR'
 			
 			return "Dome's current position: "+str(self.current_position)+" degrees. Dome moving."
-		else: return 'ERROR invalid input'
+		else: return 'ERROR invalid input not a number'
 
                 
 #******************************* End of user commands ********************************#
