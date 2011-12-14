@@ -159,6 +159,9 @@ class LabjackServer:
 				      # global self.dome_command when we have finished processing our value
 		if len(commands) == 2 and commands[1] == 'location':
 			return str(self.current_position)
+		elif len(commands) == 2 and commands[1] == 'stop':
+			self.dome_relays("stop")
+			return 'Dome motion stopped'
 		elif self.dome_moving == True:
 			return "Dome moving, input only available when the dome is stationary."
 
@@ -197,6 +200,7 @@ class LabjackServer:
 			self.dome_command = dome_command_temp
 			self.dome_moving = True #This will tell background task 'dome_location' to call task 'dome_moving'
 			degree_distance = self.dome_command - self.current_position
+			if degree_distance == 0: return 'Dome already at given azimuth'
 			if degree_distance > 180: 
 				self.dome_relays("anticlockwise")
 				self.direction_dome_moving = "anticlockwise"
