@@ -186,7 +186,7 @@ class LabjackServer:
 				#whether you add or minus the correction depends on the telescopeAzimuth size
 				if dome_command_temp <= (180- self.domeAngleOffset) and dome_command_temp >= (0-self.domeAngleOffset): 
 					dome_command_temp = correctionDegrees + dome_command_temp
-				elif dome_command_temp => (180 - self.domeAngleOffset) and dome_command_temp <= (360-self.domeAngleOffset): 
+				elif dome_command_temp >= (180 - self.domeAngleOffset) and dome_command_temp <= (360-self.domeAngleOffset): 
 					dome_command_temp = dome_command_temp - correctionDegrees
 				else: return 'ERROR invalid number input.'
 
