@@ -3,7 +3,8 @@ getDec
 getAlt
 getAz
 move
-fs
+slewToRaDec
+jog
 s
 getAlignmentMenuEntry
 getCalanderDate
@@ -11,6 +12,7 @@ setCalanderDate
 getDistBars
 setFan
 setFocus
+fs
 fieldOperation
 getFieldRadius
 setFieldRadius
@@ -68,10 +70,10 @@ highPrecisionToggle
 sleep
 wakeUp
 slewAltAz
-slewCoord
+slewObjectCoord
 startTelescopeAutomaticAlignmentSequence
 switchManual
 switchQuartz
 sync
 syncSelenopgraphic
-?
+meademountHelp

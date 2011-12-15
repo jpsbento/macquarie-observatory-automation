@@ -8,6 +8,7 @@ import select
 import string
 from datetime import datetime
 import time
+import math
 
 #Open port connected to the mount
 ser = serial.Serial('/dev/ttyUSB0',9600, timeout = 1) # non blocking serial port, will wait
@@ -35,12 +36,16 @@ class MeademountServer:
 	def cmd_getRA(self,the_command):
 		'''Returns the current right ascension of the telescope.'''
 		ser.write(':GR#')
-		return ser.read(100)
+		response = ser.read(100)
+		to_send = self.convert_RA_hours(response)
+		return str(to_send)
 
 	def cmd_getDec(self,the_command):
 		'''Returns the current declination of the telescope.'''
 		ser.write(':GD#')
-		return ser.readline()
+		response = ser.read(100)
+		to_send = self.convert_AltDec(response)
+		return str(to_send)
 
 	def cmd_getAlt(self,the_command):
 		'''Returns the current Altitude of the telescope.'''
@@ -94,17 +99,23 @@ class MeademountServer:
 		allowed_directions = ['N','S','E','W']
 		if len(commands) == 3 and commands[1] in allowed_directions:
 			direction = commands[1]
-			try: jog_amount = float(commands[2])
-			except Exception 'ERROR Amount to jog must be specified as a NUMBER in arcmins'
+			try: 
+				jog_amount = float(commands[2])/60.0
+				print str(jog_amount)
+			except Exception: return 'ERROR Amount to jog must be specified as a NUMBER in arcmins'
 			try:
-				current_Ra = self.cmd_getRA('getRA')
-				current_Dec = self.cmd_getDec('getDec')
+				current_Ra = float(self.cmd_getRA('getRA'))
+				current_Dec = float(self.cmd_getDec('getDec'))
+				print str(current_Ra)
+				print str(current_Dec)
 			except Exception: return 'ERROR getting telescope Ra/Dec'
-			if direction == 'N': self.setObjectDec('setObjectDec '+str(current_Dec+jog_amount))
-			if direction == 'S': self.setObjectDec('setObjectDec '+str(current_Dec-jog_amount))
-			if direction == 'E': self.setObjectRA('setObjectRA '+str(current_Ra+jog_amount))
-			if direction == 'W': self.setObjectRA('setObjectRA '+str(current_Ra-jog_amount))
-			responseSlew = self.cmd.slewObjectCoord('slewObjectCoord')
+			self.cmd_setObjectDec('setObjectDec '+str(current_Dec))
+			self.cmd_setObjectRA('setObjectRA '+str(current_Ra))
+			if direction == 'N': self.cmd_setObjectDec('setObjectDec '+str(current_Dec+jog_amount))
+			if direction == 'S': self.cmd_setObjectDec('setObjectDec '+str(current_Dec-jog_amount))
+			if direction == 'E': self.cmd_setObjectRA('setObjectRA '+str(current_Ra+jog_amount))
+			if direction == 'W': self.cmd_setObjectRA('setObjectRA '+str(current_Ra-jog_amount))
+			responseSlew = self.cmd_slewObjectCoord('slewObjectCoord')
 			return responseSlew
 		else: return 'ERROR invalid input, see "help jog"'
 
@@ -145,7 +156,8 @@ class MeademountServer:
 		if len(commands) == 2:
 			setdate = command[1]
 			if len(setdate) == 8 and setdate[2] == '/' and setdate[5] == '/':
-				try int(setdate[0]+setdate[1]+setdate[3]+setdate[4]+setdate[6]+setdate[8]):
+				try: 
+					int(setdate[0]+setdate[1]+setdate[3]+setdate[4]+setdate[6]+setdate[8])
 					ser.write(':SC '+setdate+'#')
 					message = ser.readline()
 					message = message + ser.readline()
@@ -404,7 +416,8 @@ class MeademountServer:
 		if (len(commands) ==2):
 			settime = commands[1]
 			if len(settime) == 8 and settime[2] == ':' and settime[5] == ':':
-				try int(settime[0]+settime[1]+settime[3]+settime[4]+settime[6]+settime[7]):
+				try: 
+					int(settime[0]+settime[1]+settime[3]+settime[4]+settime[6]+settime[7])
 					ser.write(':SL '+settime+'#')
 					return ser.readline()
 				except Exception: return 'ERROR, input in incorrect form'
@@ -507,9 +520,10 @@ class MeademountServer:
 		if (len(commands) == 2):
 			Alt = commands[1]
 			if len(Alt) == 6 and Alt[0] == '+' or '-' and Alt[3] == chr(223):
-				try: float(Alt[1]+Alt[2]+Alt[4]+Alt[5]):
-						ser.write(':Sa '+Alt+'#')
-						return ser.readline()
+				try: 
+					float(Alt[1]+Alt[2]+Alt[4]+Alt[5])
+					ser.write(':Sa '+Alt+'#')
+					return ser.readline()
 				except Exception: return 'ERROR, incorrect input format'
 			else: return 'ERROR, incorrect input format'
 		else: return 'ERROR, incorrect input length'
@@ -521,7 +535,8 @@ class MeademountServer:
 		if (len(commands) == 2):
 			Az = commands[1]
 			if len(Az) == 6 and Az[3] == chr(223):
-				try float(Az[0]+Az[1]+Az[2]+Az[4]+Az[5]):
+				try: 
+					float(Az[0]+Az[1]+Az[2]+Az[4]+Az[5])
 					ser.write(':Sa '+Az+'#')
 					return ser.readline()
 				except Exception: return 'ERROR invalid input'
@@ -534,16 +549,27 @@ class MeademountServer:
 		return ser.readline()
 
 	def cmd_setObjectDec(self,the_command):
-		'''Sets object declination. Please input in form: sDD*MM ie +59.09'''
+		'''Sets object declination. Please input in form: sDD*MM ie +59*09:00'''
 		commands = str.split(the_command)
 		if (len(commands) == 2):
 			DEC = commands[1]
-			if (len(DEC) == 6) and DEC[0] == '+' or '-' and DEC[3] == chr(223):
-				try: int(DEC[1]+DEC[2]+DEC[4]+DEC[5]):
+			if len(DEC) == 9 and (DEC[0] == '+' or '-') and DEC[3] == chr(223):
+				try: 
+					int(DEC[1]+DEC[2]+DEC[4]+DEC[5])
 					ser.write(':Sa '+DEC+'#')
 					return ser.readline()
 				except Exception: return 'ERROR, incorrect input form'
-			else: return 'ERROR, incorrect input length'
+			else: 
+				try: dec_float = float(DEC)
+				except Exception: return 'ERRRRRRROR'
+				degrees = math.floor(dec_float)
+				mins = math.floor((dec_float - degrees)*60)
+				secs = math.floor((dec_float - degrees - mins)*3600)
+				sign = ''
+				if dec_float >= 0: sign == '+'
+				else: sign == '-'
+				ser.write(':Sa '+sign+str(degrees)+str(chr(223))+str(mins)+':'+str(secs)+'#')
+				
 		else: return 'ERROR, incorrect input length'
 
 	def cmd_getObjectRA(self,the_command):
@@ -553,15 +579,23 @@ class MeademountServer:
 
 	def cmd_setObjectRA(self,the_command):
 		'''Sets object right ascension. Please input in form: HH:MM:SS ie 09:08:02'''
-		commands = str.split(the_commands)
+		commands = str.split(the_command)
 		if (len(commands) == 2):
 			RA = commands[1]
 			if (len(RA) == 8) and RA[2] == ':' and RA[5] == ':':
-				try int(RA[0]+RA[1]+RA[3]+RA[4]+RA[6]+RA[7]):
+				try: 
+					int(RA[0]+RA[1]+RA[3]+RA[4]+RA[6]+RA[7])
 					ser.write(':Sr '+RA+'#')
 					return ser.readline()
 				except Exception: return 'ERROR, incorrect format'
-			else: return 'ERROR, incorrect format'
+			else:
+				try: ra_float = float(RA)
+				except Exception: return 'EERRRRRRRRORRR'
+				hours = math.floor(ra_float)
+				mins = math.floor((ra_float - hours)*60)
+				secs = math.floor((ra_float - hours - mins)*3600)
+				ser.write(':Sr '+str(hours)+':'+str(mins)+':'+str(secs)+'#')
+				
 		else: return 'ERROR, incorrect input length'
 
 
@@ -632,7 +666,8 @@ class MeademountServer:
 			settime = commands[1]
 			if (len(settime) == 8):
 				if settime[2] == ':' and settime[5] == ':':
-					try: int(settime[0]+settime[1]+settime[3]+settime[4]+settime[6]+settime[7]):
+					try: 
+						int(settime[0]+settime[1]+settime[3]+settime[4]+settime[6]+settime[7])
 						ser.write(':SS '+settime+'#')
 						return ser.readline()
 					except Exception: return 'ERROR invalid input'
@@ -700,7 +735,8 @@ class MeademountServer:
 			lat = commands[1]
 			sign = '+'
 			if len(lat) == 6 and lat[0] == '-' or '+' and lat[3] == '.':
-				try int(lat[1]+lat[2]+lat[4]+lat[5]):
+				try: 
+					int(lat[1]+lat[2]+lat[4]+lat[5])
 					ser.write(':St '+lat+'#')
 					return ser.readline()
 				except Exception: return 'ERROR incorrect input format'
@@ -719,7 +755,8 @@ class MeademountServer:
 		if (len(commands) == 2):
 			lon = commands[1]
 			if len(lon) == 6 and lon[3] == chr(223):
-				try int(lon[0]+lon[1]+lon[2]+lon[4]+lon[5]):
+				try: 
+					int(lon[0]+lon[1]+lon[2]+lon[4]+lon[5])
 					ser.write(':Sg '+lon+'#')
 					return ser.readline()
 				except Exception: return 'ERROR, incorrect input format'
@@ -841,7 +878,7 @@ class MeademountServer:
 		if len(commands) == 2:
 			libtype = commands[1]
 			if len(libtype) == 1 and libtype.isdigit():
-				if int(libtype) == 0 or  1) or 2:
+				if int(libtype) == 0 or  1 or 2:
 					ser.write(':Ls '+libtype+'#')
 					return ser.readline()
 				else: return 'ERROR, invalid input'
@@ -850,7 +887,7 @@ class MeademountServer:
 
 	def cmd_setTelescopeAlignment(self,the_command):
 		'''Sets the telescopes alignment type to LAND, POLAR or ALTAZ.'''
-		commands = str.split(the_commands)
+		commands = str.split(the_command)
 		if len(commands) == 2:
 			if commands[1] == 'LAND':
 				ser.write(':AL#')
@@ -1032,24 +1069,29 @@ class MeademountServer:
 	def convert_AltDec(self,command): # <-- more enlightening names are required
 		'''Converts the Alt or Dec (they are given out by the meademount in the same format)
 		into easy user friendly format'''
-		if len(str.split(command)) == 1 and len(command) == 7:
-			if command[0] == '+' or '-' and command[3] == chr(223):
-				degrees = int(command[0]+command[1]+command[2])
-				minutes = int(command[4]+command[5])
-				degrees += minutes/60.0
-				return degrees
+		if len(str.split(command)) == 1 and len(command) == 10:
+			if command[0] == '+' or '-':
+				try:
+					degrees = int(command[1]+command[2])
+					minutes = int(command[4]+command[5])
+					seconds = int(command[7]+command[8])
+					degrees += minutes/60.0
+					return degrees
+				except Exception: return command
 			else: return command
 		else: return command
 
 	def convert_RA_hours(self,command):
 		'''converts hours into an easy to use format'''
-		if len(str.split(command)) == 1 and len(x) == 8:
-			if command[2] == ':':
+		if len(str.split(command)) == 1 and len(command) == 9:
+			try:
 				hours = int(command[0]+command[1])
-				minutes = float(command[3]+command[4]+command[5]+command[6])
+				minutes = int(command[3]+command[4])
+				seconds = int(command[6]+command[7])
 				hours += minutes/60.0
+				hours += seconds/3600.0
 				return hours
-			else: return command
+			except Exception: return command
 		else: return command
 
 # I think we should use the Az and Alt to orient the camera, as RA and Dec move with the sky, but Alt and Az don't
