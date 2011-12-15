@@ -29,14 +29,22 @@ LJ.getFeedback(u3.Timer0Config(8), u3.Timer1Config(8)) #Sets up the dome trackin
 class LabjackServer:
 
 #Some properties relating to the relative encoder.
-	dome_command = 0 		      #this is the distance the user wants the dome to move to be in position
-	dome_moving = False     	      #a variable to keep track of whether the dome is moving due to a remote user command
-	current_position = 0 		      #The position that the dome is at right now
-	last_position_count = 0
-	counts_per_degree = 11.83 	      #how many counts from the wheel encoder there is to a degree
-	slitoffset = 53.83*counts_per_degree  #position, in counts, of the slits when home switch is activated
-	counts_at_start = 0.0		      #This will record the counts from the labjack before the dome starts to move to a new position
-				  	      #We need this to keep track of how far we have traveled.
+	dome_command = 0 		      # The distance the user wants the dome to move to be in position
+	dome_moving = False     	      # A variable to keep track of whether the dome is moving due to a remote user command
+
+	slitoffset = 53.83*counts_per_degree  # The position, in counts, of the slits when home switch is activated
+
+
+	total_counts = 0		      # The total number of counts since we started the program
+	current_position = 0 		      # The position that the dome is at right now in counts (counts reset at home position)
+	last_position_count = 0		      # Where were we? Where are we now? This tells us how many counts we have moved
+					      # which tells us how much to increment current_position
+	counts_at_start = 0		      # Record the counts from the labjack before the dome starts to move to a new position		  	
+	counts_to_move = 0		      # Number of counts dome needs to move to get to given destination
+	counts_per_degree = 11.83 	      # how many counts from the wheel encoder there is to a degree
+	home_sensor_count = 0		      # whenever the homing sensor is activated the Counter0 labjack output changes 
+					      # by a positive amount, so every time the number changes, we know we've hit home.
+					      # home_sensor_count keeps track of this change
 
 
 	dome_correction_enabled = 1   #This sets whether we want to correct the azimuth for the dome so '20' actually
@@ -45,15 +53,12 @@ class LabjackServer:
 	domeAngleOffset = 90 	 #This is the angle between the line joining the center of the telescope and the center of the dome,
 				 #and the line joining the telescope to the point on the dome the telescopes is pointing, when the dome
 			 	 #is pointing North. Not actually 90, it needs to be measured.
-	
-	dome_direction_rotate = "stopped"
 
 
 	domeRadius = 1 		  # Specify the radius in meters
 	domeTelescopeDistance = 0 #The distance in meters between the center of the dome an the telescope
 
-	home_sensor_count = 0 # whenever the homing sensor is activated the number changes positively by a random amount
-			      # so every time the number changes, we know we've hit home.
+
 
 
 #********************** a wee diagram to clear up the dome variables: *************
@@ -123,8 +128,8 @@ class LabjackServer:
 
 	def cmd_numHomes(self,the_command):
 		'''Return the number of times the dome home sensor has been pressed.'''
- 		home_output = str( (LJ.getFeedback( u3.Counter0() ))[0] )
-		return home_output
+ 		#home_output = str( (LJ.getFeedback( u3.Counter0() ))[0] )
+		return str(self.home_sensor_count)
 	
 	def cmd_domeCorrection(self,the_command): # I don't think we need this as we will always want to correct
 		'''Used to turn the dome correction on or off (automatically set to on). When dome correction is on,
@@ -158,16 +163,15 @@ class LabjackServer:
 		dome_command_temp = 0 # We use this to keep track of our dome command and only change
 				      # global self.dome_command when we have finished processing our value
 		if len(commands) == 2 and commands[1] == 'location':
-			return str(self.current_position)
+			return str(self.current_position/self.counts_per_degree)
 		elif len(commands) == 2 and commands[1] == 'stop':
 			self.dome_relays("stop")
 			self.dome_moving = False
 			return 'Dome motion stopped'
 		elif self.dome_moving == True:
 			return "Dome moving, input only available when the dome is stationary."
-
 		elif len(commands) == 2:
-			self.counts_at_start=self.current_position
+			self.counts_at_start=self.total_counts
 			user_command = commands[1]
 			dome_command_temp = 0
 			if user_command[0] == '+' or '-': #user has asked to move a certain amount from where we are now
@@ -198,26 +202,20 @@ class LabjackServer:
 			# we only record our dome position between 0 and 360 degrees
 				while dome_command_temp > 360: dome_command_temp -= 360
 				while dome_command_temp < 0: dome_command_temp += 360
-			self.counts_at_start = self.current_position
-			self.dome_command = dome_command_temp
+			self.dome_command = dome_command_temp*self.counts_per_degree
 			self.dome_moving = True #This will tell background task 'dome_location' to call task 'dome_moving'
-			degree_distance = self.dome_command - self.current_position
-			if degree_distance == 0: return 'Dome already at given azimuth'
-			if degree_distance > 180: 
-				self.dome_relays("anticlockwise")
-				self.direction_dome_moving = "anticlockwise"
-			elif degree_distance > 0 and degree_distance < 180: 
+			self.counts_to_move = (self.dome_command - self.current_position)
+			degree_distance = self.counts_to_move/self.counts_per_degree
+			if self.counts_to_move == 0: return 'Dome already at given azimuth'
+			elif self.counts_to_move > 0: 
 				self.dome_relays("clockwise")
-				self.direction_dome_moving = "clockwise"
+			elif self.counts_to_move < 0: 
+				self.dome_relays("anticlockwise")
 			elif degree_distance < -180: 
 				self.dome_relays("clockwise")
-				self.direction_dome_moving = "clockwise"
-			elif degree_distance < 0 and degree_distance > -180: 
-				self.dome_relays("anticlockwise")
-				self.direction_dome_moving = "anticlockwise"
-			else: return 'ERROR '+str(self.dome_command)+' '+str(degree_distance)
+			else: return 'ERROR '+str(self.dome_command/self.counts_per_degree)
 			
-			return "Dome's current position: "+str(self.current_position)+" degrees. Dome moving."
+			return "Dome's current position: "+str(self.current_position/self.counts_per_degree)+" degrees. Dome moving."
 		else: return 'ERROR invalid input not a number'
 
                 
@@ -227,13 +225,13 @@ class LabjackServer:
 	def dome_location(self):
 		temp = LJ.getFeedback(u3.QuadratureInputTimer()) #This will constantly update the current position of the dome
 		#self.current_position = float(temp[-1])		 #This enables us to keep track even if the dome is manually moved
-		position_count = float(temp[-1])
+		position_count = int(temp[-1])
 
 		# convert into degrees here!
-
-		current_position_temp = self.current_position + (position_count - self.last_position_count)/self.counts_per_degree
-		while current_position_temp > 360: current_position_temp = current_position_temp - 360
-		while current_position_temp < 0: current_position_temp = current_position_temp + 360
+		self.total_counts = int(temp[-1])
+		current_position_temp = self.current_position + (position_count - self.last_position_count) #/self.counts_per_degree
+		#while current_position_temp > 360: current_position_temp = current_position_temp - 360
+		#while current_position_temp < 0: current_position_temp = current_position_temp + 360
 		self.current_position = current_position_temp
 		self.last_position_count = position_count
 		
@@ -241,20 +239,23 @@ class LabjackServer:
 		# We can test to see if this leads to any great loss in accuracy 
 
 
-		f = open('dome_position.dat','w')
-		f.write("Dome is in position "+str(self.current_position)+" degrees.")
-		f.close()
+		#f = open('dome_position.dat','w')
+		#f.write("Dome is in position "+str(self.current_position)+" degrees.")
+		#f.close()
  		if self.dome_moving == True:
-			if self.dome_direction_rotate == "clockwise": 
-				if self.dome_command == 360: self.dome_command = 0
-				if (self.current_position >= self.dome_command):
+			#counts_to_move
+			if self.counts_to_move <= 0:
+				if self.total_counts <= self.counts_at_start + self.counts_to_move:
 					self.dome_relays("stop")
-					self.dome_moving == False
-			elif self.dome_direction_rotate == "anticlockwise":
-				if self.dome_command == 0: self.dome_command = 360
-				if (self.current_position <= self.dome_command):
+					self.dome_moving = False
+			elif self.counts_to_move > 0:
+				if self.total_counts >= self.counts_at_start + self.counts_to_move:
 					self.dome_relays("stop")
-					self.dome_moving == False
+					self.dome_moving = False
+			else: 
+				print 'ERROR IN DOME LOCATION'
+
+					
 
 
 
@@ -265,12 +266,18 @@ class LabjackServer:
 		if len(commands) != 1: return 'Error'
 		telescopeAzimuth = commands[0]
 		correction = asin((self.domeTelescopeDistance/self.domeRadius)*math.sin(math.radians(telescopeAzimuth + self.domeAngleOffset)))
-		#Above we have also changed coordinate systems.
+		# Above we have also changed coordinate systems.
 		correctionDegrees = math.degrees(correction)
-		#whether you add or minus the correction depends on the telescopeAzimuth size
-		if telescopeAzimuth <= (180-self.domeAngleOffset) and telescopeAzimuth >= (360-self.domeAngleOffset): correctedAzimuth = correctionDegrees + telescopeAzimuth
-		if telescopeAzimuth > (180-self.domeAngleOffset) and telescopeAzimuth < (360-self.domeAngleOffset): correctedAzimuth = telescopeAzimuth - correctionDegrees
-		return str(correctedAzimuth)
+		# whether you add or minus the correction depends on the telescopeAzimuth
+		if telescopeAzimuth <= (180-self.domeAngleOffset) and telescopeAzimuth >= (360-self.domeAngleOffset): 
+			correctedAzimuth = correctionDegrees + telescopeAzimuth
+			return str(correctedAzimuth)
+		elif telescopeAzimuth > (180-self.domeAngleOffset) and telescopeAzimuth < (360-self.domeAngleOffset): 
+			correctedAzimuth = telescopeAzimuth - correctionDegrees
+			return str(correctedAzimuth)
+		else:
+			print 'ERROR IN AZIMUTH TELESCOPE TO DOME'
+			return telescopeAzimuth
 
 
 	def dome_relays(self, command):
@@ -289,11 +296,10 @@ class LabjackServer:
  		home_output = int(str( (LJ.getFeedback( u3.Counter0() ))[0] ))
 		if home_output != self.home_sensor_count:  # We've hit home!
 			self.home_sensor_count = home_output
-			if self.dome_slewing_enabled:
-				self.current_position = self.azimuth_telescope_to_dome(0) # Correct value not known yet
+			if self.dome_correction_enabled:
+				self.current_position = self.azimuth_telescope_to_dome(0) # After testing this will become self.slits_offset
 			else: self.current_position = 0
-			return 1
-		return 0
+
 
 
 

@@ -74,8 +74,39 @@ class MeademountServer:
 				return 'ERROR, invalid input see help'
 		else: return 'ERROR, incorrect input length.'
 
+	def cmd_slewToRaDec(self,the_command):
+		'''Give it an Ra followed by a Dec and it does it in one step'''
+		commands = str.split(the_command)
+		if len(commands) != 3: return 'Invalid input'
+		Ra = commands[1]
+		Dec = commands[2]
+		responseRa = self.cmd_setObjectRA('setObjectRA '+str(Ra))
+		responseDec = self.cmd_setObjectDec('setObjectDec '+str(Dec))
+		responseSlew = self.cmd_slewObjectCoord('slewObjectCoord')
+		return responseSlew
+
 
 	#Here have a jog command perhaps
+	def cmd_jog(self,the_command):
+		'''Give it a distance to move and a direction, ie N S E or W and the telescope will move
+		by that amount. ie type "jog N 1" to jog the telescope north by 1 arcmin'''
+		commands = str.split(the_command)
+		allowed_directions = ['N','S','E','W']
+		if len(commands) == 3 and commands[1] in allowed_directions:
+			direction = commands[1]
+			try: jog_amount = float(commands[2])
+			except Exception 'ERROR Amount to jog must be specified as a NUMBER in arcmins'
+			try:
+				current_Ra = self.cmd_getRA('getRA')
+				current_Dec = self.cmd_getDec('getDec')
+			except Exception: return 'ERROR getting telescope Ra/Dec'
+			if direction == 'N': self.setObjectDec('setObjectDec '+str(current_Dec+jog_amount))
+			if direction == 'S': self.setObjectDec('setObjectDec '+str(current_Dec-jog_amount))
+			if direction == 'E': self.setObjectRA('setObjectRA '+str(current_Ra+jog_amount))
+			if direction == 'W': self.setObjectRA('setObjectRA '+str(current_Ra-jog_amount))
+			responseSlew = self.cmd.slewObjectCoord('slewObjectCoord')
+			return responseSlew
+		else: return 'ERROR invalid input, see "help jog"'
 
 
 
@@ -533,6 +564,8 @@ class MeademountServer:
 			else: return 'ERROR, incorrect format'
 		else: return 'ERROR, incorrect input length'
 
+
+
 	def cmd_getObjectInfo(self,the_command):
 		'''Gets the current object information.'''
 		ser.write(':LI#')
@@ -903,7 +936,7 @@ class MeademountServer:
 		ser.write(':MA#')
 		return ser.readline()
 
-	def cmd_slewCoord(self,the_command): #*** more than one output
+	def cmd_slewObjectCoord(self,the_command): #*** more than one output
 		'''Slews telescope to current object coordinates. 0 returned if the
 		telescope can complete the slew, 1 returned if object is below the
 		horizon, 2 returned if the object is below the higher limit, 4

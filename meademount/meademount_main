@@ -5,7 +5,7 @@ import sys
 sys.path.append('..')
 import server_socket
 mm=meademount_server.MeademountServer()
-ss=server_socket.ServerSocket(23457, 'meademount', mm)	
+ss=server_socket.ServerSocket(23458, 'meademount', mm)	
 ss.add_job(mm.too_low_check)
 ss.run()
 ss.close()

@@ -280,14 +280,14 @@ class BisqueMountServer:
 
 	def cmd_jog(self,the_command):
 		'''Jogs the telescope by a given amount (specified in arcminutes) in a given direction.
-		Please input jog amount first and direction second. The directions that can be used are: 
+		Please input jog direction first and jog amount second. The directions that can be used are: 
 		North, South, East, West, Up, Down, Left, Right. Please input direction using first letter 
 		only ie: N, S, E, W, U, D, L, R.'''
 		commands = str.split(the_command)
 		allowed_directions = ['N','S','E','W','U','D','L','R']
 		if len(commands) == 3:
-			dJog = commands[1]
-			dDirection = commands[2]
+			dJog = commands[2]
+			dDirection = commands[1]
 			linestoreplace = ['var dJog = "amountJog";\n','var dDirection = "direction";\n']
 			newlines = ['var dJog = "'+dJog+'";\r\n','var dDirection = "'+dDirection+'";\r\n']
 			if self.is_float_try(dJog) and dDirection in allowed_directions:

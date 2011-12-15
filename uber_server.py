@@ -9,17 +9,20 @@ class UberServer:
 
 	bisque_IP = "10.238.16.11"
 	meade_IP  = "10.238.16.12"
-
+#23458 <-- bisquemount port number
 
 	dome_tracking = True
+
+	telescope_type = 'bisquemount'
+	#telescope_type = 'meademount'
 
 
 	# We set clients, one for each device we are talking to
 
-	labjack_client = client_socket.ClientSocket("labjack")
-	meademount_client = client_socket.ClientSocket("meademount")
-	weatherstation_client = client_socket.ClientSocket("weatherstation")
-	imagingsourcecamera_client = client_socket.ClientSocket("imagingsourcecamera")
+	labjack_client = client_socket.ClientSocket("labjack "+telescope_type) #23456 <- port number
+	telescope_client = client_socket.ClientSocket("telescope "+telescope_type)  #23458 <- port number
+	weatherstation_client = client_socket.ClientSocket("weatherstation "+telescope_type) #23457 <- port number
+	imagingsourcecamera_client = client_socket.ClientSocket("imagingsourcecamera "+telescope_type) #23459 <- port number
 
 #***************************** A list of user commands *****************************#
 
@@ -43,10 +46,10 @@ class UberServer:
 				# we actually have to ssh into the correct machine first
 				# if result == 0: it's worked, if not it hasn't
 
-	def cmd_home(self,the_command):
-		'''Home the telescope and the dome.'''
-		meade_response = meademount_client.send_command('home')
-		dome_response = dome_client.send_command('home')
+#	def cmd_home(self,the_command):
+#		'''Home the telescope and the dome.'''
+#		meade_response = telescope_client.send_command('home')
+#		dome_response = self.dome_client.send_command('home')
 
 
 	def cmd_labjack(self,the_command):
@@ -68,7 +71,7 @@ class UberServer:
 		if len(commands) > 1:
 			del commands[0]
 			command_for_meademount = ' '.join(commands)
-			response = self.meademount_client.send_command(command_for_meademount)
+			response = self.telescope_client.send_command(command_for_meademount)
 			return str(response)
 		else: return 'To get a list of commands for the meademount type "meademount help".'
 
@@ -110,12 +113,12 @@ class UberServer:
 
 	def cmd_orientateCamera(self, the_command):
 		'''This will control the camera and the telescope to get the camera orientation.'''
-		imagingsourcecamera_client.send_command('orientationCapture base')
-		bisquemount_client.send_command('jog 1 N')  # jogs the telescope 1 arcsec (or arcmin??) north
-		imagingsourcecamera_client.send_command('orientationCapture north 1')
-		bisquemount_clinet.send_command('jog 1 E')
-		imagingsourcecamera_client.send_command('orientationCapture east 1')
-		response = imagingsourcecamera_client.send_comamnd('calculateCameraOrientation')
+		self.imagingsourcecamera_client.send_command('orientationCapture base')
+		self.telescope_client.send_command('jog 1 N')  # jogs the telescope 1 arcsec (or arcmin??) north
+		self.imagingsourcecamera_client.send_command('orientationCapture north 1')
+		self.telescope_client.send_command('jog 1 E')
+		self.imagingsourcecamera_client.send_command('orientationCapture east 1')
+		response = self.imagingsourcecamera_client.send_comamnd('calculateCameraOrientation')
 		return response
 
 
@@ -128,10 +131,10 @@ class UberServer:
 		try: dNorth, dEast = response
 		except Exception: "Error with star centering"
 
-		if dNorth > 0: bisquemount_client.send('jog '+dNorth+' N')
-		else: bisquemount_client.send('jog 'str(float(dNorth)*-1)+' S')
-		if aAz > 0: bisquemount_client.send('jog '+dEast+' E')
-		else: bisquemount_client.send('jog '+str(float(dEast)*-1)+' W')
+		if dNorth > 0: self.telescope_client.send('jog N '+dNorth)
+		else: self.telescope_client.send('jog S 'str(float(dNorth)*-1)) # Ensures we always send a postive jog distance to the telescope
+		if aAz > 0: self.telescope_client.send('jog E '+dEast+' E')
+		else: self.telescope_client.send('jog W '+str(float(dEast)*-1))
 
 		return 'Bright star centered.'
 
@@ -146,9 +149,9 @@ class UberServer:
 		tracking is turned on.'''
 		#set this as a background task when setting up uber_main
 		if self.dome_tracking:
-			meademount_client.send('getAzimuth')
-			telescopeAzimuth = meademount_client.recv(1024)
-			domeAzimuth = labjack_client.send_command('dome location')
+			self.telescope_client.send('getAzimuth')
+			telescopeAzimuth = self.telescope_client.recv(1024)
+			domeAzimuth = self.labjack_client.send_command('dome location')
 			ljr = str.split(labjack_response)
 			dome_current_azimuth = ljr[3]
 			try: 
@@ -158,7 +161,7 @@ class UberServer:
 				self.dome_tracking = False
 				return 'Error with Azimuth output from telescope, dome tracking switched off'
 			if abs(float(domeAzimuth) - float(dome_current_azimuth)) > 4:
-				dome_response = dome_client.send_command('moveDome '+str(domeAzimuth))
+				dome_response = self.dome_client.send_command('moveDome '+str(domeAzimuth))
 
 # We have a potential mess in the above function as the labjack will output it's azimuth in it's coordinate
 # system (I think..).. Think about this.
