@@ -11,7 +11,7 @@ class UberServer:
 	meade_IP  = "10.238.16.12"
 #23458 <-- bisquemount port number
 
-	dome_tracking = True
+	dome_tracking = False
 
 	telescope_type = 'bisquemount'
 	#telescope_type = 'meademount'
@@ -145,8 +145,8 @@ class UberServer:
 			if abs(float(domeAzimuth) - float(dome_current_azimuth)) > 4:
 				dome_response = self.dome_client.send_command('moveDome '+str(domeAzimuth))
 
-# We have a potential mess in the above function as the labjack will output it's azimuth in it's coordinate
-# system (I think..).. Think about this.
+	# We have a potential confusion in the above function as the labjack will output it's azimuth in its coordinate
+	# system, not the telescope's
 
 
 	def waiting_messages(self):

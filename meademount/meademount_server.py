@@ -10,20 +10,20 @@ from datetime import datetime
 import time
 
 #Open port connected to the mount
-ser = serial.Serial('/dev/ttyUSB0',9600, timeout = 1) #non blocking serial port, will wait
-						      #for one second
+ser = serial.Serial('/dev/ttyUSB0',9600, timeout = 1) # non blocking serial port, will wait
+						      # for one second
 
-print ser.portstr       #check which port was really used
-#print ser.isOpen() #Bug test to check that the port is actually open
+print ser.portstr       # check which port was really used
+#print ser.isOpen() # Bug test to check that the port is actually open
 
 #client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #Make a client to communicate with the labjack and dome position
 #client_socket.connect(("10.72.26.145",3040))
 
 class MeademountServer:
 
-	domeoffset = 90 #This is the angle between 'd': the line joining the center of the dome and the telescope, and 'x': the line 
-			#joining the telescope and the point on the dome the telescope is pointing at, when  pointing north.
-			#It's probably not actually 90 degrees, someone needs to measure it.
+	domeoffset = 90 # This is the angle between 'd': the line joining the center of the dome and the telescope, and 'x': the line 
+			# joining the telescope and the point on the dome the telescope is pointing at, when  pointing north.
+			# It's probably not actually 90 degrees, someone needs to measure it.
 
 	domeTelescopeDistance = 0 #distance between the center of the dome and the telescope
 	domeRadius = 1	#Radius of the dome.

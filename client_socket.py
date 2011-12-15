@@ -32,7 +32,6 @@ class ClientSocket:
 		self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.client.connect(ADS)
 		self.client.settimeout(600)
-		self.client.setblocking(0)
 		self.client.setsockopt(1, 2, 1)
 		self.client.setsockopt(6, 1, 1)
 

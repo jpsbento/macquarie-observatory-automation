@@ -28,7 +28,8 @@ LJ.getFeedback(u3.Timer0Config(8), u3.Timer1Config(8)) #Sets up the dome trackin
 #2) Now define our main class, the LabjackServer.
 class LabjackServer:
 
-#Some properties relating to the relative encoder.
+#Some properties relating to the relative encoder:
+
 	dome_command = 0 		      # The distance the user wants the dome to move to be in position
 	dome_moving = False     	      # A variable to keep track of whether the dome is moving due to a remote user command
 
@@ -47,21 +48,21 @@ class LabjackServer:
 					      # home_sensor_count keeps track of this change
 
 
-	dome_correction_enabled = 1   #This sets whether we want to correct the azimuth for the dome so '20' actually
-				      #points to '20' in the reference frame of the telescope and NOT the dome
-				      #Initially set as enabled.
-	domeAngleOffset = 90 	 #This is the angle between the line joining the center of the telescope and the center of the dome,
-				 #and the line joining the telescope to the point on the dome the telescopes is pointing, when the dome
-			 	 #is pointing North. Not actually 90, it needs to be measured.
+	dome_correction_enabled = 0  	      # This sets whether we want the azimuth of the dome to be corrected for the telescope.
+				              # In general with will be set to 1, for basic testing it's easiest if it's set to 0
+
+	domeAngleOffset = 90 	 	      # This is the angle between the line joining the center of the telescope and the center of the dome,
+					      # and the line joining the telescope to the point on the dome the telescopes is pointing, when the dome
+			 		      # is pointing North. Not actually 90, it needs to be measured.
 
 
-	domeRadius = 1 		  # Specify the radius in meters
-	domeTelescopeDistance = 0 #The distance in meters between the center of the dome an the telescope
+	domeRadius = 1 		 	      # Specify the radius in meters
+	domeTelescopeDistance = 0 	      # The distance in meters between the center of the dome an the telescope
 
 
 
 
-#********************** a wee diagram to clear up the dome variables: *************
+#********************** a wee diagram to clear up the dome variables: **********************#
 #
 # (This is a birds eye view of the dome.)
 #
@@ -131,7 +132,7 @@ class LabjackServer:
  		#home_output = str( (LJ.getFeedback( u3.Counter0() ))[0] )
 		return str(self.home_sensor_count)
 	
-	def cmd_domeCorrection(self,the_command): # I don't think we need this as we will always want to correct
+	def cmd_domeCorrection(self,the_command):
 		'''Used to turn the dome correction on or off (automatically set to on). When dome correction is on,
 		the dome will move to the azimuth given to it, but that azimuith in the reference frame of the dome.
 		This way if the telescope is at 20, a command to the dome will move to 20 with dome correction enabled
@@ -189,10 +190,10 @@ class LabjackServer:
 				while dome_command_temp < 0: dome_command_temp += 360
 			if self.dome_correction_enabled:
 				correction = math.asin((self.domeTelescopeDistance/self.domeRadius)*math.sin(math.radians(dome_command_temp + self.domeAngleOffset)))		
-				#Above we have also changed coordinate systems.
+				#Above we have corrected the dome azimuth to line up with the telescope azimuth
 
 				correctionDegrees = math.degrees(correction)
-				#whether you add or minus the correction depends on the telescopeAzimuth size
+				# whether you add or minus the correction depends on the telescopeAzimuth
 				if dome_command_temp <= (180- self.domeAngleOffset) and dome_command_temp >= (0-self.domeAngleOffset): 
 					dome_command_temp = correctionDegrees + dome_command_temp
 				elif dome_command_temp >= (180 - self.domeAngleOffset) and dome_command_temp <= (360-self.domeAngleOffset): 

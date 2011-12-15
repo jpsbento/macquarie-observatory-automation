@@ -31,10 +31,8 @@ class BisqueMountServer:
 #The focuser echos the command back to the user.
 
 	def cmd_focusGoToPosition(self,the_command):
-		'''Tell the focuser to go to a position. User input currently unknown.
-		16 bit position value sent as two bytes, most significant byte first.
-		Input position in inches ie 0.234" but without non number characters, so
-		0.234" becomes 0234 (this might well be a lie)'''
+		'''Tell the focuser to go to a position. The position is specified in counts with a maximum
+		of 4 digits, ie: 8023'''
 		commands = str.split(the_command)
 		if len(commands) == 2 and commands[1].isdigit():
 			positioncommand = self.convertnumberforfocuser(commands[1])
