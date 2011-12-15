@@ -47,7 +47,7 @@ class ServerSocket:
 			client.setblocking(0)
 			self.input.append(client)
 			self.clients.append(client)
-			self.input[-1].send("Welcome to "+self.hardware_name+"! There are "+str(len(self.clients))+" people connected\n> ")
+			#self.input[-1].send("Welcome to "+self.hardware_name+"! There are "+str(len(self.clients))+" people connected\n> ")
 			self.log("A client has joined, number of clients connected: "+str(len(self.clients)))
 			return 0
 		elif s == sys.stdin:

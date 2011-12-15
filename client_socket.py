@@ -15,7 +15,7 @@ class ClientSocket:
 		IP = ''
 		Port = ''
 		IP_column = 1 # which IP column do we want in Device list?
-		if telescope_type == 'bisquemount': IP_column = 1 # The bisquemount IP is recorded first in device_list.txt
+		if telescope_type == 'bisquemount': IP_column = 1  # The bisquemount IP is recorded first in device_list.txt
 		elif telescope_type == 'meademount': IP_column = 2 # The meademount IP is recorded second in device_list.txt
 		else: 
 			print 'ERROR telescope not defined in list'
@@ -32,10 +32,18 @@ class ClientSocket:
 		self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.client.connect(ADS)
 		self.client.settimeout(600)
+		self.client.setblocking(0)
+		self.client.setsockopt(1, 2, 1)
+		self.client.setsockopt(6, 1, 1)
 
 
-	def command_send(self, command):
+
+	def send_command(self, command):
 #sends a command to the device server and waits for a response
 		self.client.send(command)
-		return self.client.recv(1024)
+		try: return self.client.recv(1024)
+		except Exception: return
+
+
+
 

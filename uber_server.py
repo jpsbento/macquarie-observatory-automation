@@ -24,6 +24,7 @@ class UberServer:
 	#weatherstation_client = client_socket.ClientSocket("weatherstation "+telescope_type) #23457 <- port number
 	#imagingsourcecamera_client = client_socket.ClientSocket("imagingsourcecamera "+telescope_type) #23459 <- port number
 
+
 #***************************** A list of user commands *****************************#
 
 
@@ -147,6 +148,9 @@ class UberServer:
 # We have a potential mess in the above function as the labjack will output it's azimuth in it's coordinate
 # system (I think..).. Think about this.
 
+
+	def waiting_messages(self):
+		self.labjack_client.waiting_messages()
 
 
 
