@@ -32,6 +32,7 @@ class LabjackServer:
 	dome_command = 0 		      # The distance the user wants the dome to move to be in position
 	dome_moving = False     	      # A variable to keep track of whether the dome is moving due to a remote user command
 
+	counts_per_degree = 11.83 	      # how many counts from the wheel encoder there is to a degree
 	slitoffset = 53.83*counts_per_degree  # The position, in counts, of the slits when home switch is activated
 
 
@@ -41,7 +42,6 @@ class LabjackServer:
 					      # which tells us how much to increment current_position
 	counts_at_start = 0		      # Record the counts from the labjack before the dome starts to move to a new position		  	
 	counts_to_move = 0		      # Number of counts dome needs to move to get to given destination
-	counts_per_degree = 11.83 	      # how many counts from the wheel encoder there is to a degree
 	home_sensor_count = 0		      # whenever the homing sensor is activated the Counter0 labjack output changes 
 					      # by a positive amount, so every time the number changes, we know we've hit home.
 					      # home_sensor_count keeps track of this change

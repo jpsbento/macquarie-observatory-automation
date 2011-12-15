@@ -19,10 +19,10 @@ class UberServer:
 
 	# We set clients, one for each device we are talking to
 
-	labjack_client = client_socket.ClientSocket("labjack "+telescope_type) #23456 <- port number
-	telescope_client = client_socket.ClientSocket("telescope "+telescope_type)  #23458 <- port number
-	weatherstation_client = client_socket.ClientSocket("weatherstation "+telescope_type) #23457 <- port number
-	imagingsourcecamera_client = client_socket.ClientSocket("imagingsourcecamera "+telescope_type) #23459 <- port number
+	labjack_client = client_socket.ClientSocket("labjack",telescope_type) #23456 <- port number
+	#telescope_client = client_socket.ClientSocket("telescope "+telescope_type)  #23458 <- port number
+	#weatherstation_client = client_socket.ClientSocket("weatherstation "+telescope_type) #23457 <- port number
+	#imagingsourcecamera_client = client_socket.ClientSocket("imagingsourcecamera "+telescope_type) #23459 <- port number
 
 #***************************** A list of user commands *****************************#
 
@@ -31,25 +31,6 @@ class UberServer:
 		'''Close the slits, home the dome, home the telescope, put telescope in sleep mode.'''
 		# actual stuffs for this to come
 
-	# This whole thing is rather dodgy at the moment.
-#	def cmd_rebootServer(self,the_command):
-#		'''Can reboot any of the low level servers if they crash using this command, simply input the name of the server
-#		you wish to reboot: ie labjack.'''
-#		commands = str.split(the_command)
-#		temp = open("device_list.txt")
-#		tempread = read(temp)
-#		if len(commands) = 2:
-#			device_name = commands[1]
-#			if device_name in tempread:
-				# ssh into relevant machine maybe: os.system("ssh phy-admin@"+meade_IP)
-				# result = os.system("/"+device_name+"/./"+device_name+"_main")
-				# we actually have to ssh into the correct machine first
-				# if result == 0: it's worked, if not it hasn't
-
-#	def cmd_home(self,the_command):
-#		'''Home the telescope and the dome.'''
-#		meade_response = telescope_client.send_command('home')
-#		dome_response = self.dome_client.send_command('home')
 
 
 	def cmd_labjack(self,the_command):
@@ -131,9 +112,9 @@ class UberServer:
 		try: dNorth, dEast = response
 		except Exception: "Error with star centering"
 
-		if dNorth > 0: self.telescope_client.send('jog N '+dNorth)
-		else: self.telescope_client.send('jog S 'str(float(dNorth)*-1)) # Ensures we always send a postive jog distance to the telescope
-		if aAz > 0: self.telescope_client.send('jog E '+dEast+' E')
+		if dNorth > 0: self.telescope_client.send('jog N '+str(dNorth))
+		else: self.telescope_client.send('jog S '+str(float(dNorth)*-1)) # Ensures we always send a postive jog distance to the telescope
+		if aAz > 0: self.telescope_client.send('jog E '+str(dEast))
 		else: self.telescope_client.send('jog W '+str(float(dEast)*-1))
 
 		return 'Bright star centered.'

@@ -25,7 +25,7 @@ class ClientSocket:
 			if item[0][0] != '#' and device == item[0]:
 				try:
 					IP = item[IP_column]
-					Port = item[3]
+					Port = int(item[3])
 				except Exception: print 'ERROR IN DEVICE_LIST.TXT'
 				break
 		ADS = (IP,Port)
