@@ -31,7 +31,9 @@ class MeademountServer:
 
 
 
-#A list of user commands (roughly in alphabetical order, or at least a user friendly order):			
+#A list of user commands (roughly in alphabetical order, or at least a user friendly order):
+
+#************************************************ Most useful commands ************************************************#		
 
 	def cmd_getRA(self,the_command):
 		'''Returns the current right ascension of the telescope.'''
@@ -47,7 +49,7 @@ class MeademountServer:
 		to_send = self.convert_AltDec(response)
 		return str(to_send)
 
-	def cmd_getAlt(self,the_command):
+	def cmd_getAlt(self,the_command): ####################
 		'''Returns the current Altitude of the telescope.'''
 		ser.write(':GA#')
 		return ser.readline()
@@ -87,7 +89,21 @@ class MeademountServer:
 		Dec = commands[2]
 		responseRa = self.cmd_setObjectRA('setObjectRA '+str(Ra))
 		responseDec = self.cmd_setObjectDec('setObjectDec '+str(Dec))
+		if responseRa == 'ERROR' or responseDec == 'ERROR': return 'ERROR setting Ra or Dec'
 		responseSlew = self.cmd_slewObjectCoord('slewObjectCoord')
+		return responseSlew
+
+
+	def cmd_slewToAzAlt(self,the_command):
+		'''Point the telescope at a specific Altitude and Azimuth, input Alt first then Az.'''
+		commands = str.split(the_command)
+		if len(commands) != 3: return 'ERROR invalid input
+		Az = commands[1]
+		Alt = commands[2]
+		responseAz = self.cmd_setObjectAz(Az)
+		responseAlt = self.cmd_setObjectAlt(Alt)
+		if responseAz == 'ERROR' or responseAlt == 'ERROR': return 'ERROR setting Alt or Az'
+		responseSlew = self.cmd_slewObjectCoord('slew_ObjectCoord')
 		return responseSlew
 
 
@@ -109,12 +125,20 @@ class MeademountServer:
 				print str(current_Ra)
 				print str(current_Dec)
 			except Exception: return 'ERROR getting telescope Ra/Dec'
-			self.cmd_setObjectDec('setObjectDec '+str(current_Dec))
-			self.cmd_setObjectRA('setObjectRA '+str(current_Ra))
-			if direction == 'N': self.cmd_setObjectDec('setObjectDec '+str(current_Dec+jog_amount))
-			if direction == 'S': self.cmd_setObjectDec('setObjectDec '+str(current_Dec-jog_amount))
-			if direction == 'E': self.cmd_setObjectRA('setObjectRA '+str(current_Ra+jog_amount))
-			if direction == 'W': self.cmd_setObjectRA('setObjectRA '+str(current_Ra-jog_amount))
+			responseDec = self.cmd_setObjectDec('setObjectDec '+str(current_Dec))
+			responseRa = self.cmd_setObjectRA('setObjectRA '+str(current_Ra))
+			if responseDec == 'ERROR' or responseRa == 'ERROR': return 'ERROR setting object RA/Dec'
+			response = ''
+			if direction == 'N': 
+				response = self.cmd_setObjectDec('setObjectDec '+str(current_Dec+jog_amount))
+			elif direction == 'S': 
+				response = self.cmd_setObjectDec('setObjectDec '+str(current_Dec-jog_amount))
+			elif direction == 'E': 
+				response = self.cmd_setObjectRA('setObjectRA '+str(current_Ra+jog_amount))
+			elif direction == 'W': 
+				response = self.cmd_setObjectRA('setObjectRA '+str(current_Ra-jog_amount))
+			else: return 'Strange Error in Jog command'
+			if response == 'ERROR': return 'ERROR setting Object Dec/Ra'
 			responseSlew = self.cmd_slewObjectCoord('slewObjectCoord')
 			return responseSlew
 		else: return 'ERROR invalid input, see "help jog"'
@@ -129,6 +153,42 @@ class MeademountServer:
 		ser.write(':Qe#')
 		ser.write(':Q#')
 		return 'Telescope movement stopped.'
+
+
+
+	def cmd_setFocus(self,the_command):
+		''''out' starts focus out, 'in' starts focus in, 'stop' stops focus
+		'fast' sets focus fast and 'slow' sets focus slow.'''
+		commands = str.split(the_command)
+		if len(commands) == 2:
+			if commands[1] == 'out':
+				ser.write(':F+#')
+				return 'started focusing out'
+			elif commands[1] == 'in':
+				ser.write(':F-#')
+				return 'started focusing in'
+			elif commands[1] == 'stop':
+				ser.write(':FQ#')
+				return 'stopped focus change'
+			elif commands[1] == 'fast':
+				ser.write(':FF#')
+				return 'set focus fast'
+			elif commands[1] == 'slow':
+				ser.write(':FS#')
+				return 'set focus slow'
+			elif commands[1] == '1' or '2' or '3' or '4':
+				ser.write(':F'+commands[1]+'#')
+				return 'set focuser speed to '+commands[1]
+			else: return 'ERROR, invalid input'
+		else: return 'ERROR, invalid input'
+
+	def cmd_fs(self,the_command):
+		'''Halts the focuser motion.'''
+		ser.write(':FQ#')
+		return 'focuser motion stopped'
+
+
+#************************************************ Other commands ************************************************#
 
 	def cmd_getAlignmentMenuEntry(self,the_command): #NEW PROCESS VALUE
 		'''Gets the Aligment Menu Entry, 0 1 or 2.'''
@@ -191,36 +251,6 @@ class MeademountServer:
 		else: return 'ERROR, invalid input length'
 
 
-	def cmd_setFocus(self,the_command):
-		''''out' starts focus out, 'in' starts focus in, 'stop' stops focus
-		'fast' sets focus fast and 'slow' sets focus slow.'''
-		commands = str.split(the_command)
-		if len(commands) == 2:
-			if commands[1] == 'out':
-				ser.write(':F+#')
-				return 'started focusing out'
-			elif commands[1] == 'in':
-				ser.write(':F-#')
-				return 'started focusing in'
-			elif commands[1] == 'stop':
-				ser.write(':FQ#')
-				return 'stopped focus change'
-			elif commands[1] == 'fast':
-				ser.write(':FF#')
-				return 'set focus fast'
-			elif commands[1] == 'slow':
-				ser.write(':FS#')
-				return 'set focus slow'
-			elif commands[1] == '1' or '2' or '3' or '4':
-				ser.write(':F'+commands[1]+'#')
-				return 'set focuser speed to '+commands[1]
-			else: return 'ERROR, invalid input'
-		else: return 'ERROR, invalid input'
-
-	def cmd_fs(self,the_command):
-		'''Halts the focuser motion.'''
-		ser.write(':FQ#')
-		return 'focuser motion stopped'
 
 
 	def cmd_fieldOperation(self,the_command):
@@ -498,6 +528,8 @@ class MeademountServer:
 				return 'Error, see help'
 		else: return 'ERROR, invalid input.'
 
+#************************************* Start of Object Commands *************************************#
+
 	def cmd_findObject(self,the_command):
 		'''To  the next object in a FIND sequence type 'findObject next'. To find the previous 
 		object in a Find sequence tpye 'findObject previous'.'''
@@ -513,72 +545,112 @@ class MeademountServer:
 		else: return 'ERROR, invalid input'
 
 
-	def cmd_setObjectAlt(self,the_command):
+	def cmd_setObjectAlt(self,the_command): ### DO NOT DELETE
 		'''Sets object altitude (for MA command). Please input in
-		form: sDD*MM ie +10*06'''
+		form: sDD*MM ie +10*06, or input in degrees in decimal form.'''
 		commands = str.split(the_command)
 		if (len(commands) == 2):
 			Alt = commands[1]
-			if len(Alt) == 6 and Alt[0] == '+' or '-' and Alt[3] == chr(223):
+			if len(Alt) == 6 and Alt[0] == '+' or '-' and (Alt[3] == chr(223) or '*'):
 				try: 
 					float(Alt[1]+Alt[2]+Alt[4]+Alt[5])
 					ser.write(':Sa '+Alt+'#')
 					return ser.readline()
-				except Exception: return 'ERROR, incorrect input format'
-			else: return 'ERROR, incorrect input format'
-		else: return 'ERROR, incorrect input length'
+				except Exception: return 'ERROR'
+			else:
+				try:
+					float_alt = float(Alt)
+				except Exception: return 'ERROR'
+				sign = ''
+				if float_alt >= 0: sign == '+'
+				else: 
+					sign == '-'
+					float_alt = float_alt*-1
+				degrees = int(math.floor(float_alt))
+				mins = int(math.floor((float_alt - degrees)*60.0))
+				secs = int(math.floor((float_alt - degrees - mins/60.0)*3600.0))
 
-	def cmd_setObjectAz(self,the_command):
+				if len(str(degrees)) > 2: return 'ERROR'
+				if len(str(degrees) == 1: degrees = '0'+str(degrees)
+				if len(str(mins)) == 1: mins = '0'+str(mins)
+				if len(str(secs)) == 1: secs = '0'+str(secs)
+				send_Alt = sign+str(degrees)+str(chr(223))+str(mins)+':'+str(secs)
+				ser.write('Sz '+str(send_Az)+'#')
+				return ser.readline()
+		else: return 'ERROR'
+
+	def cmd_setObjectAz(self,the_command):  ### DO NOT DELETE
 		'''Sets object azimuth (for MA command). Please input in
-		form: DDD*MM ie 258*09'''
+		form: DDD*MM ie 258*09:00. Or input in degrees in decimal form.'''
 		commands = str.split(the_command)
 		if (len(commands) == 2):
 			Az = commands[1]
-			if len(Az) == 6 and Az[3] == chr(223):
+			if len(Az) == 6 and (Az[3] == chr(223) or '*'):
 				try: 
 					float(Az[0]+Az[1]+Az[2]+Az[4]+Az[5])
-					ser.write(':Sa '+Az+'#')
+					ser.write(':Sz '+Az+'#')
 					return ser.readline()
-				except Exception: return 'ERROR invalid input'
-			else: return 'ERROR, incorrect input format'
-		else: return 'ERROR, incorrect input length'
+				except Exception: return 'ERROR'
+			else:
+				try: float_Az = float(Az)
+				except Exception: return 'ERROR'
+				degrees = int(math.floor(float_Az))
+				mins = int(math.floor((float_Az - degrees)*60.0))
+				secs = int(math.floor((float_Az - degrees - mins/60.0)*3600.0))
+				if len(str(degrees)) > 3: return 'ERROR'
+				if len(str(degrees) == 2: degrees = '0'+str(degrees)
+				if len(str(degrees) == 1: degrees = '00'+str(degrees)
+				if len(str(mins)) == 1: mins = '0'+str(mins)
+				if len(str(secs)) == 1: secs = '0'+str(secs)
+				send_Az = str(degrees)+str(chr(223))+str(mins)+':'+str(secs)
+				ser.write('Sz '+str(send_Az)+'#')
+				return ser.readline()
+		else: return 'ERROR'
 
-	def cmd_getObjectDec(self,the_command):
+
+	def cmd_getObjectDec(self,the_command): ### DO NOT DELETE
 		'''Gets object declination.'''
 		ser.write(':Gd#')
 		return ser.readline()
 
-	def cmd_setObjectDec(self,the_command):
-		'''Sets object declination. Please input in form: sDD*MM ie +59*09:00'''
+	def cmd_setObjectDec(self,the_command):  #DO NOT DELETE
+		'''Sets object declination. Please input in form: sDD*MM ie +59*09:00, or input in degrees in decimal form'''
 		commands = str.split(the_command)
 		if (len(commands) == 2):
 			DEC = commands[1]
-			if len(DEC) == 9 and (DEC[0] == '+' or '-') and DEC[3] == chr(223):
+			if len(DEC) == 9 and (DEC[0] == '+' or '-') and (DEC[3] == chr(223) or '*'):
 				try: 
 					int(DEC[1]+DEC[2]+DEC[4]+DEC[5])
-					ser.write(':Sa '+DEC+'#')
+					ser.write(':Sd '+DEC+'#')
 					return ser.readline()
-				except Exception: return 'ERROR, incorrect input form'
+				except Exception: return 'ERROR'
 			else: 
 				try: dec_float = float(DEC)
-				except Exception: return 'ERRRRRRROR'
-				degrees = math.floor(dec_float)
-				mins = math.floor((dec_float - degrees)*60)
-				secs = math.floor((dec_float - degrees - mins)*3600)
+				except Exception: return 'ERROR'
 				sign = ''
 				if dec_float >= 0: sign == '+'
-				else: sign == '-'
-				ser.write(':Sa '+sign+str(degrees)+str(chr(223))+str(mins)+':'+str(secs)+'#')
-				
-		else: return 'ERROR, incorrect input length'
+				else: 
+					sign == '-'
+					dec_float = dec_float*-1
+				degrees = int(math.floor(dec_float))
+				mins = int(math.floor((dec_float - degrees)*60))
+				secs = int(math.floor((dec_float - degrees - mins/60.0)*3600))
 
-	def cmd_getObjectRA(self,the_command):
+				if len(str(degrees)) > 2: return 'ERROR'
+				if len(str(degrees)) != 2: degrees = '0'+str(degrees)
+				if len(str(mins)) !=2: mins = '0'+str(mins)
+				if len(str(secs)) != 2: secs = '0'+str(secs)
+				ser.write(':Sd '+sign+str(degrees)+str(chr(223))+str(mins)+':'+str(secs)+'#')
+				return ser.readline()
+		else: return 'ERROR'
+
+	def cmd_getObjectRA(self,the_command): ### DO NOT DELETE
 		'''Gets object right ascension.'''
 		ser.write(':Gr#')
 		return ser.readline()
 
-	def cmd_setObjectRA(self,the_command):
-		'''Sets object right ascension. Please input in form: HH:MM:SS ie 09:08:02'''
+	def cmd_setObjectRA(self,the_command):  ### DO NOT DELETE
+		'''Sets object right ascension. Please input in form: HH:MM:SS ie 09:08:02, or input in hours in decimal form.'''
 		commands = str.split(the_command)
 		if (len(commands) == 2):
 			RA = commands[1]
@@ -587,16 +659,20 @@ class MeademountServer:
 					int(RA[0]+RA[1]+RA[3]+RA[4]+RA[6]+RA[7])
 					ser.write(':Sr '+RA+'#')
 					return ser.readline()
-				except Exception: return 'ERROR, incorrect format'
+				except Exception: return 'ERROR'
 			else:
 				try: ra_float = float(RA)
-				except Exception: return 'EERRRRRRRRORRR'
-				hours = math.floor(ra_float)
-				mins = math.floor((ra_float - hours)*60)
-				secs = math.floor((ra_float - hours - mins)*3600)
+				except Exception: return 'ERROR'
+				hours = int(math.floor(ra_float))
+				mins = int(math.floor((ra_float - hours)*60))
+				secs = int(math.floor((ra_float - hours - mins/60.0)*3600))
+				if len(str(hours)) > 2: return 'ERROR'
+				if len(str(hours)) != 2: hours = '0'+str(hours)
+				if len(str(mins)) != 2: mins = '0'+str(mins)
+				if len(str(secs)) !=2: secs = '0'+str(secs)
 				ser.write(':Sr '+str(hours)+':'+str(mins)+':'+str(secs)+'#')
-				
-		else: return 'ERROR, incorrect input length'
+				return ser.readline()
+		else: return 'ERROR' # <-- tells us there is an error
 
 
 
@@ -654,6 +730,17 @@ class MeademountServer:
 		else: return 'ERROR, incorrect input length'
 
 
+	def cmd_slewObjectCoord(self,the_command): #*** more than one output
+		'''Slews telescope to current object coordinates. 0 returned if the
+		telescope can complete the slew, 1 returned if object is below the
+		horizon, 2 returned if the object is below the higher limit, 4
+		returned if object is above the lower limit. If 1, 2 or 4 is returned
+		a string containing an appropritate message is also returned.'''
+		ser.write(':MS#')
+		return ser.readline()
+
+#************************************* End of Object Commands *************************************#
+
 	def cmd_getSiderealTime(self,the_command):
 		'''Returns the current sidereal time.'''
 		ser.write(':GS#')
@@ -674,6 +761,8 @@ class MeademountServer:
 				else: return 'ERROR, input in incorrect form'
 			else: return 'ERROR input of incorrect length'
 		else: return 'ERROR: Incorrect format, see help'
+
+#************************************* Start of Site Commands *************************************#
 
 
 	def cmd_getSiteName(self,the_command):
@@ -754,7 +843,7 @@ class MeademountServer:
 		commands = str.split(the_command)
 		if (len(commands) == 2):
 			lon = commands[1]
-			if len(lon) == 6 and lon[3] == chr(223):
+			if len(lon) == 6 and (lon[3] == chr(223) or '*'):
 				try: 
 					int(lon[0]+lon[1]+lon[2]+lon[4]+lon[5])
 					ser.write(':Sg '+lon+'#')
@@ -762,6 +851,8 @@ class MeademountServer:
 				except Exception: return 'ERROR, incorrect input format'
 			else: return 'ERROR, incorrect input length'
 		else: return "ERROR, incorrect input length"
+
+#************************************* End of Site Commands *************************************#
 
 
 	def cmd_getSizeLimit(self,the_command):
@@ -916,6 +1007,8 @@ class MeademountServer:
 				return 'Error, see help'
 		else: return 'ERROR, invalid input length'
 
+#************************************* Start of Home Commands *************************************#
+
 	def cmd_goHome(self,the_command):
 		'''Slews the telescope to the home position.'''
 		ser.write(':hP#')
@@ -949,6 +1042,8 @@ class MeademountServer:
 			return 'home search in progress'
 		else: return value
 
+#************************************* End of Home Commands *************************************#
+
 	def cmd_highPrecisionToggle(self,the_command): #NEW
 		'''Toggles high precision pointing. Enables/disables it. When
 		high precision pointing is enabled scope will first allow the operator
@@ -972,29 +1067,6 @@ class MeademountServer:
 		ALTAZ modes.'''
 		ser.write(':MA#')
 		return ser.readline()
-
-	def cmd_slewObjectCoord(self,the_command): #*** more than one output
-		'''Slews telescope to current object coordinates. 0 returned if the
-		telescope can complete the slew, 1 returned if object is below the
-		horizon, 2 returned if the object is below the higher limit, 4
-		returned if object is above the lower limit. If 1, 2 or 4 is returned
-		a string containing an appropritate message is also returned.'''
-		ser.write(':MS#')
-		return ser.readline()
-
-# $$$$$$$$$$$$$$%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%$$$$$$$$$$$$$$$$%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# making a goTo command as the meademount apparently currently doesn't have one, you need to do it in two stages
-
-	def goTo(self,the_command):
-		'''point the telescope at a specific RA and Dec, input RA first then Dec.'''
-		commands = str.split(the_command)
-		
-		self.cmd_setObjectDec(dec)
-		self.cmd_setObjectRa(Ra)
-		self.cmd_slewCoord()
-
-# $$$$$$$$$$$$$$%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%$$$$$$$$$$$$$$$$%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 
 
 	def cmd_startTelescopeAutomaticAlignmentSequence(self,the_command): #NEW
@@ -1046,7 +1118,7 @@ class MeademountServer:
 			else: return 'ERROR, invalid input'
 		else: return 'ERROR, invalid input'
 
-#************************* End of user commands ********************************#
+#************************************* End of user commands *************************************#
 
 
 #Handle meademount output: these are to enable ease of use when these commands are called for automation purposes

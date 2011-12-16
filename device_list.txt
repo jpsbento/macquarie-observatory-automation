@@ -1,5 +1,5 @@
 # Hardwear Object      bisquemount IP  meademount IP  Port
 labjack                10.238.16.11    10.238.16.12   23456
-telescope              10.238.16.11    10.238.16.12   23458
 weatherstation         10.238.16.12    10.238.16.12   23457
+telescope              10.238.16.11    10.238.16.12   23458
 imagingsourcecamera    10.238.16.11    10.238.16.12   23459
