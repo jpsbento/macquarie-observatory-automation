@@ -98,7 +98,7 @@ class MeademountServer:
 	def cmd_slewToAzAlt(self,the_command):
 		'''Point the telescope at a specific Altitude and Azimuth, input Alt first then Az.'''
 		commands = str.split(the_command)
-		if len(commands) != 3: return 'ERROR invalid input
+		if len(commands) != 3: return 'ERROR invalid input'
 		Az = commands[1]
 		Alt = commands[2]
 		responseAz = self.cmd_setObjectAz(Az)
@@ -572,7 +572,7 @@ class MeademountServer:
 				secs = int(math.floor((float_alt - degrees - mins/60.0)*3600.0))
 
 				if len(str(degrees)) > 2: return 'ERROR'
-				if len(str(degrees) == 1: degrees = '0'+str(degrees)
+				if len(str(degrees)) == 1: degrees = '0'+str(degrees)
 				if len(str(mins)) == 1: mins = '0'+str(mins)
 				if len(str(secs)) == 1: secs = '0'+str(secs)
 				send_Alt = sign+str(degrees)+str(chr(223))+str(mins)+':'+str(secs)
@@ -599,8 +599,8 @@ class MeademountServer:
 				mins = int(math.floor((float_Az - degrees)*60.0))
 				secs = int(math.floor((float_Az - degrees - mins/60.0)*3600.0))
 				if len(str(degrees)) > 3: return 'ERROR'
-				if len(str(degrees) == 2: degrees = '0'+str(degrees)
-				if len(str(degrees) == 1: degrees = '00'+str(degrees)
+				if len(str(degrees)) == 2: degrees = '0'+str(degrees)
+				if len(str(degrees)) == 1: degrees = '00'+str(degrees)
 				if len(str(mins)) == 1: mins = '0'+str(mins)
 				if len(str(secs)) == 1: secs = '0'+str(secs)
 				send_Az = str(degrees)+str(chr(223))+str(mins)+':'+str(secs)

@@ -4,15 +4,16 @@ getAlt
 getAz
 move
 slewToRaDec
+slewToAzAlt
 jog
 s
+setFocus
+fs
 getAlignmentMenuEntry
 getCalanderDate
 setCalanderDate
 getDistBars
 setFan
-setFocus
-fs
 fieldOperation
 getFieldRadius
 setFieldRadius
@@ -45,6 +46,7 @@ getObjectInfo
 setObjectMessier
 setObjectNGC
 setObjectStar
+slewObjectCoord
 getSiderealTime
 setSiderealTime
 getSiteName
@@ -70,7 +72,6 @@ highPrecisionToggle
 sleep
 wakeUp
 slewAltAz
-slewObjectCoord
 startTelescopeAutomaticAlignmentSequence
 switchManual
 switchQuartz
