@@ -31,7 +31,8 @@ class MeademountServer:
 
 
 
-#A list of user commands (roughly in alphabetical order, or at least a user friendly order):
+
+#************************************************ USER COMMANDS FOR TELESCOPE ************************************************#
 
 #************************************************ Most useful commands ************************************************#		
 
@@ -188,7 +189,7 @@ class MeademountServer:
 		return 'focuser motion stopped'
 
 
-#************************************************ Other commands ************************************************#
+#************************************************ End of most useful commands ************************************************#
 
 	def cmd_getAlignmentMenuEntry(self,the_command): #NEW PROCESS VALUE
 		'''Gets the Aligment Menu Entry, 0 1 or 2.'''
