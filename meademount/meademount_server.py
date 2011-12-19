@@ -119,16 +119,16 @@ class MeademountServer:
 			try: 
 				jog_amount = float(commands[2])/60.0
 				print str(jog_amount)
-			except Exception: return 'ERROR Amount to jog must be specified as a NUMBER in arcmins'
+			except Exception: return 'ERROR'
 			try:
 				current_Ra = float(self.cmd_getRA('getRA'))
 				current_Dec = float(self.cmd_getDec('getDec'))
 				print str(current_Ra)
 				print str(current_Dec)
-			except Exception: return 'ERROR getting telescope Ra/Dec'
+			except Exception: return 'ERROR'
 			responseDec = self.cmd_setObjectDec('setObjectDec '+str(current_Dec))
 			responseRa = self.cmd_setObjectRA('setObjectRA '+str(current_Ra))
-			if responseDec == 'ERROR' or responseRa == 'ERROR': return 'ERROR setting object RA/Dec'
+			if responseDec == 'ERROR' or responseRa == 'ERROR': return 'ERROR'
 			response = ''
 			if direction == 'N': 
 				response = self.cmd_setObjectDec('setObjectDec '+str(current_Dec+jog_amount))
@@ -138,11 +138,11 @@ class MeademountServer:
 				response = self.cmd_setObjectRA('setObjectRA '+str(current_Ra+jog_amount))
 			elif direction == 'W': 
 				response = self.cmd_setObjectRA('setObjectRA '+str(current_Ra-jog_amount))
-			else: return 'Strange Error in Jog command'
-			if response == 'ERROR': return 'ERROR setting Object Dec/Ra'
+			else: return 'ERROR'
+			if response == 'ERROR': return 'ERROR'
 			responseSlew = self.cmd_slewObjectCoord('slewObjectCoord')
 			return responseSlew
-		else: return 'ERROR invalid input, see "help jog"'
+		else: return 'ERROR'
 
 
 

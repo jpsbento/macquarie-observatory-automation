@@ -20,9 +20,9 @@ class UberServer:
 	# We set clients, one for each device we are talking to
 
 	labjack_client = client_socket.ClientSocket("labjack",telescope_type) #23456 <- port number
-	#telescope_client = client_socket.ClientSocket("telescope "+telescope_type)  #23458 <- port number
-	#weatherstation_client = client_socket.ClientSocket("weatherstation "+telescope_type) #23457 <- port number
-	#imagingsourcecamera_client = client_socket.ClientSocket("imagingsourcecamera "+telescope_type) #23459 <- port number
+	#telescope_client = client_socket.ClientSocket("telescope",telescope_type)  #23458 <- port number
+	#weatherstation_client = client_socket.ClientSocket("weatherstation",telescope_type) #23457 <- port number
+	#imagingsourcecamera_client = client_socket.ClientSocket("imagingsourcecamera",telescope_type) #23459 <- port number
 
 
 #***************************** A list of user commands *****************************#
@@ -68,7 +68,7 @@ class UberServer:
 			return str(response)
 		else: return 'To get a list of commands for the weatherstation type "weatherstation help".'
 
-	def cmd_imagingsourcecamera(self, the_command):
+	def cmd_imagingsourcecamera(self,the_command):
 		'''A user can still access the low level commands from the imaging source camera using this command. ie
 		type 'imagingsourcecamera help' to get all the available commands for the imaging source camera server.'''
 		commands = str.split(the_command)
@@ -96,11 +96,13 @@ class UberServer:
 	def cmd_orientateCamera(self, the_command):
 		'''This will control the camera and the telescope to get the camera orientation.'''
 		self.imagingsourcecamera_client.send_command('orientationCapture base')
-		self.telescope_client.send_command('jog 1 N')  # jogs the telescope 1 arcsec (or arcmin??) north
+		jog_response = self.telescope_client.send_command('jog N 1')  # jogs the telescope 1 arcsec (or arcmin??) north
+		if jog_response == 'ERROR': return 'ERROR in telescope movement.'
 		self.imagingsourcecamera_client.send_command('orientationCapture north 1')
-		self.telescope_client.send_command('jog 1 E')
-		self.imagingsourcecamera_client.send_command('orientationCapture east 1')
-		response = self.imagingsourcecamera_client.send_comamnd('calculateCameraOrientation')
+		jog_response = self.telescope_client.send_command('jog E 1')
+		if jog_response == 'ERROR': return 'ERROR in telescope movement'
+		self.imagingsourcecamera_client.send_command('orientationCapture east 1') # Should add some responses here to keep track
+		response = self.imagingsourcecamera_client.send_command('calculateCameraOrientation')
 		return response
 
 
@@ -113,12 +115,20 @@ class UberServer:
 		try: dNorth, dEast = response
 		except Exception: "Error with star centering"
 
-		if dNorth > 0: self.telescope_client.send('jog N '+str(dNorth))
-		else: self.telescope_client.send('jog S '+str(float(dNorth)*-1)) # Ensures we always send a postive jog distance to the telescope
-		if aAz > 0: self.telescope_client.send('jog E '+str(dEast))
-		else: self.telescope_client.send('jog W '+str(float(dEast)*-1))
+		if dNorth >= 0: 
+			jog_response = self.telescope_client.send('jog N '+str(dNorth))
+			if jog_response == 'ERROR': return 'ERROR'
+		else: 
+			jog_response = self.telescope_client.send('jog S '+str(float(dNorth)*-1)) # Always send a postive jog distance
+			if jog_response == 'ERROR': return 'ERROR'
+		if aAz >= 0: 
+			jog_response = self.telescope_client.send('jog E '+str(dEast))
+			if jog_response == 'ERROR': return 'ERROR'
+		else: 
+			jog_response = self.telescope_client.send('jog W '+str(float(dEast)*-1))
+			if jog_response == 'ERROR': return 'ERROR'
 
-		return 'Bright star centered.'
+		return 'Successful'
 
 
 #***************************** End of User Commands *****************************#
@@ -131,11 +141,10 @@ class UberServer:
 		tracking is turned on.'''
 		#set this as a background task when setting up uber_main
 		if self.dome_tracking:
-			self.telescope_client.send('getAzimuth')
-			telescopeAzimuth = self.telescope_client.recv(1024)
+			telescopeAzimuth = self.telescope_client.send_command('getAzimuth')
 			domeAzimuth = self.labjack_client.send_command('dome location')
-			ljr = str.split(labjack_response)
-			dome_current_azimuth = ljr[3]
+			labjack_split = str.split(labjack_response)
+			dome_current_azimuth = labjack_split[3]
 			try: 
 				float(telescopeAzimuth)
 				float(domeAzimuth)
@@ -149,7 +158,7 @@ class UberServer:
 	# system, not the telescope's
 
 
-	def waiting_messages(self):
+	def waiting_messages(self): # I don't think this will work...
 		self.labjack_client.waiting_messages()
 
 

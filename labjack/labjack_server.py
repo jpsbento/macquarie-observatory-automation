@@ -67,13 +67,13 @@ class LabjackServer:
 # (This is a birds eye view of the dome.)
 #
 #
-#           North   P     /  < --- slit position for given azimuth
-#              \    |    /  / <--- telescope line of sight for given azimuth
-#               \   |   /  /
-#                \  |  /  /
-#                 \i| /  /
-#                  \|/  /
-#                   x  o                  x = center of the dome
+#           North         /  < --- slit position for given azimuth
+#              \         /  / <--- telescope line of sight for given azimuth
+#               \       /  /
+#                \     /  /
+#                 \   /  /
+#                i \ /  /
+#    zero ----------x  o                  x = center of the dome
 #                                         o = position of telescope
 #                                         distance between o to x = domeTelescopeDistance <-- code variable above
 #                                         angle i = domeAngleOffset <-- code variable above
@@ -86,9 +86,9 @@ class LabjackServer:
 # For this reason we need to calculate the angle difference between the telescope line of sight
 # and the dome slits 'line of sight' for every point on the dome circumference. This angle is what
 # is refered to in the code as the 'dome correction'. The diargram is drawn so that the north vector and the line joining
-# x and o are not perpendicular to keep the code general. It is mathematically easiest to calculate 
-# the dome correction angle with respect to this perpendicular line labled P on the diagram and then add on the
-# angle between North and P, (labled i in the diagram) after the calculation. Angle i is named the domeAngleOffset in the code.
+# x and o are not parallel to keep the code general. It is mathematically easiest to calculate 
+# the dome correction angle with respect to the line joining x and o labled 'zero' on the diagram and then add on the
+# angle between North and zero, (labled i in the diagram) after the calculation. Angle i is named the domeAngleOffset in the code.
 
 
 # domeTelescopeDistance = the distance between x and o in the diagram
@@ -228,7 +228,9 @@ class LabjackServer:
 		#self.current_position = float(temp[-1])		 #This enables us to keep track even if the dome is manually moved
 		position_count = int(temp[-1])
 
-		# convert into degrees here!
+		# we record all positions in counts to prevent loss of accuracy and divide the counts by counts_per_degree only when returning
+		# a value, to give this value in degreeeeeeees.
+
 		self.total_counts = int(temp[-1])
 		current_position_temp = self.current_position + (position_count - self.last_position_count) #/self.counts_per_degree
 		#while current_position_temp > 360: current_position_temp = current_position_temp - 360
@@ -236,13 +238,7 @@ class LabjackServer:
 		self.current_position = current_position_temp
 		self.last_position_count = position_count
 		
-		# Perhaps here instead of using counts directly, add them on to the last known position
-		# We can test to see if this leads to any great loss in accuracy 
 
-
-		#f = open('dome_position.dat','w')
-		#f.write("Dome is in position "+str(self.current_position)+" degrees.")
-		#f.close()
  		if self.dome_moving == True:
 			#counts_to_move
 			if self.counts_to_move <= 0:
@@ -256,8 +252,6 @@ class LabjackServer:
 			else: 
 				print 'ERROR IN DOME LOCATION'
 
-					
-
 
 
 	def azimuth_telescope_to_dome(self,command):
@@ -265,30 +259,79 @@ class LabjackServer:
 		so that the line of sight of the telescope is always in line with the slits.'''
 		commands = str.split(command)
 		if len(commands) != 1: return 'Error'
-		telescopeAzimuth = commands[0]
-		correction = asin((self.domeTelescopeDistance/self.domeRadius)*math.sin(math.radians(telescopeAzimuth + self.domeAngleOffset)))
-		# Above we have also changed coordinate systems.
-		correctionDegrees = math.degrees(correction)
-		# whether you add or minus the correction depends on the telescopeAzimuth
-		if telescopeAzimuth <= (180-self.domeAngleOffset) and telescopeAzimuth >= (360-self.domeAngleOffset): 
-			correctedAzimuth = correctionDegrees + telescopeAzimuth
+		try: telescopeAzimuth = float(commands[0])
+		except Exception: return 'ERROR'
+		correction = math.asin((self.domeTelescopeDistance/self.domeRadius)*math.sin(math.radians(telescopeAzimuth + self.domeAngleOffset)))
+
+		if (telescopeAzimuth + self.domeAngleOffset) <= 180 and: 
+		#if telescopeAzimuth <= 180:
+			correctedAzimuth = telescopeAzimuth + math.degrees(correction)
+			while correctedAzimuth > 360: correctedAzimuth = correctedAzimuth - 360
+			while correctedAzimuth < 0: correctedAzimuth = correctedAzimuth + 360
 			return str(correctedAzimuth)
-		elif telescopeAzimuth > (180-self.domeAngleOffset) and telescopeAzimuth < (360-self.domeAngleOffset): 
-			correctedAzimuth = telescopeAzimuth - correctionDegrees
+
+		elif (telescopeAzimuth + self.domeAngleOffset) > 180: #and (telescopeAzimuth + self.domeAngleOffset) <= 360: 
+			correctedAzimuth = telescopeAzimuth - math.degrees(correction)
+			while correctedAzimuth > 360: correctedAzimuth = correctedAzimuth - 360
+			while correctedAzimuth < 0: correctedAzimuth = correctedAzimuth + 360
 			return str(correctedAzimuth)
 		else:
 			print 'ERROR IN AZIMUTH TELESCOPE TO DOME'
 			return telescopeAzimuth
 
 
-	def dome_relays(self, command):
+	def azimuth_dome_to_telescope(self,command):
+		'''Convert the azimuth of the dome into the telescopes coordinate system.'''
+		commands = str.split(command)
+		if len(commands) != 1: return 'ERROR'
+		try: domeAzimuth = float(commands[0])
+		except Exception: return 'ERROR'
+		z = math.sqrt(self.domeRadius**2+self.domeTelescopeDistance**2-2*self.domeRadius*self.domeTelescopeDistance*math.cos(math.radians(180 - domeAzimuth)))
+		correction = math.acos((self.domeTelescopeDistance**2 + self.domeRadius**2 - z**2)/(-2*z*self.domeRadius))
+		if (domeAzimuth + self.domeAngleOffset) <= 180: # and (domeAzimuth + self.domeAngleOffset) >= 0:
+			correctedAzimuth = domeAzimuth - math.degrees(correction)
+			while correctedAzimuth > 360: correctedAzimuth = correctedAzimuth - 360
+			while correctedAzimuth < 0: correctedAzimuth = correctedAzimuth + 360
+			return correctedAzimuth
+
+		elif (domeAzimuth + self.domeAngleOffset) > 180: # and (domeAzimuth + self.domeAngleOffset) <= 360:
+			correctedAzimuth = domeAzimuth + math.degrees(correction)
+			while correctedAzimuth > 360: correctedAzimuth = correctedAzimuth - 360
+			while correctedAzimuth < 0: correctedAzimuth = correctedAzimuth + 360
+			return correctedAzimuth
+		else: 
+			print 'ERROR IN AZIMUTH DOME TO TELESCOPE'
+			return domeAzimuth
+
+#    Diagram to help explain azimuth_dome_to_telescope function
+#   
+#                        /| <----- telescope azimuth
+#                       /j|
+#          dome ---->  /  |
+#          azimuth    /   |
+#                    /    |    	Here we want to get angle j as this is the difference between the 
+#               |   /     |	dome's actual azimuth and the azimuth command sent to the telescope
+#   azimuth --> |  /      |	in the dome's coordinate system.
+#   sent to     |j/       |
+#   telescope   |/        |
+#   in domes    -----------
+#   coordinate system
+# 
+# We are just working backwards from the azimuth_telescope_to_dome function above.
+# We want to get the same angle, but we have different starting information so have
+# to use a different process.
+#
+
+
+
+	def dome_relays(self, command): # 
 		'''Move the dome clockwise, anticlockwise or stop dome motion'''
 		commands = str.split(command)
-		#if len(commands) != 1: return 'ERROR'
-		#if commands[0] == 'clockwise': # command to move dome clockwise
-		#elif commands[0] == 'anticlockwise': # command to move dome anticlockwise
-		#elif commands[0] == 'stop': # command to stop dome motion
-		#else: return 'ERROR'
+		if len(commands) != 1: return 'ERROR'
+		if commands[0] == 'clockwise': pass # command to move dome clockwise
+		elif commands[0] == 'anticlockwise': pass # command to move dome anticlockwise
+		elif commands[0] == 'stop': pass # command to stop dome motion
+		else: return 'ERROR'
 
 
 

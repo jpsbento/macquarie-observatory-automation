@@ -293,9 +293,9 @@ class BisqueMountServer:
 					script = self.readscript('Jog.js')
 					client_socket.send(script)
 					return self.messages()
-				else: return "ERROR with files"
-			else: return 'ERROR invalid input'
-		else: return 'ERROR invalid input'
+				else: return 'ERROR'
+			else: return 'ERROR'
+		else: return 'ERROR'
 		
 
 	def cmd_park(self,the_command):
