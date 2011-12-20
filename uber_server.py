@@ -7,12 +7,11 @@ import client_socket
 
 class UberServer:
 
-	#bisque_IP = "10.238.16.11"
-	#meade_IP  = "10.238.16.12"
-#23458 <-- bisquemount port number
 
 	dome_tracking = False
 
+ 	
+	# A list of the telescopes we have, comment out all but the telescope you wish to connect with:
 	telescope_type = 'bisquemount'
 	#telescope_type = 'meademount'
 

@@ -14,26 +14,30 @@ class ClientSocket:
 		device_list = devicefile.readlines()
 		IP = ''
 		Port = ''
-		IP_column = 1 # which IP column do we want in Device list?
-		if telescope_type == 'bisquemount': IP_column = 1  # The bisquemount IP is recorded first in device_list.txt
-		elif telescope_type == 'meademount': IP_column = 2 # The meademount IP is recorded second in device_list.txt
-		else: 
-			print 'ERROR telescope not defined in list'
-			return
+		IP_column = ''
+		Port_column = ''
+		if device_list[0][0] == '#':
+			items = str.split(device_list[0])
+			for i in range(0, len(items)-1):
+				if items[i] == telescope_type+'IP': IP_column = i
+				if items[i] == 'Port\n': Port_column = i
+		else: return 'ERROR'
+		if IP_column == '' or Port_column == '': return 'ERROR'
 		for line in device_list:
 			item = str.split(line)
 			if item[0][0] != '#' and device == item[0]:
 				try:
 					IP = item[IP_column]
-					Port = int(item[3])
-				except Exception: print 'ERROR IN DEVICE_LIST.TXT'
-				break
+					Port = int(item[Port_column])
+				except Exception: return 'ERROR'
 		ADS = (IP,Port)
-		self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		self.client.connect(ADS)
-		self.client.settimeout(600)
-		self.client.setsockopt(1, 2, 1)
-		self.client.setsockopt(6, 1, 1)
+		try:
+			self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+			self.client.connect(ADS)
+			self.client.settimeout(600)
+			self.client.setsockopt(1, 2, 1)
+			self.client.setsockopt(6, 1, 1)
+		except Exception: return 'ERROR'
 
 
 
