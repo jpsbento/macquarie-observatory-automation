@@ -7,8 +7,8 @@ import client_socket
 
 class UberServer:
 
-	bisque_IP = "10.238.16.11"
-	meade_IP  = "10.238.16.12"
+	#bisque_IP = "10.238.16.11"
+	#meade_IP  = "10.238.16.12"
 #23458 <-- bisquemount port number
 
 	dome_tracking = False

@@ -37,9 +37,10 @@ class LabjackServer:
 	slitoffset = 53.83*counts_per_degree  # The position, in counts, of the slits when home switch is activated
 
 
-	total_counts = 0		      # The total number of counts since we started the program
+	total_counts = 0		      # The total number of counts since we started the program, raw output from wheel
+	total_count_at_last_home = 0	      # The total counts we had last time we passed through home
 	current_position = 0 		      # The position that the dome is at right now in counts (counts reset at home position)
-	last_position_count = 0		      # Where were we? Where are we now? This tells us how many counts we have moved
+	#last_position_count = 0		      # Where were we? Where are we now? This tells us how many counts we have moved
 					      # which tells us how much to increment current_position
 	counts_at_start = 0		      # Record the counts from the labjack before the dome starts to move to a new position		  	
 	counts_to_move = 0		      # Number of counts dome needs to move to get to given destination
@@ -51,7 +52,7 @@ class LabjackServer:
 	dome_correction_enabled = 0  	      # This sets whether we want the azimuth of the dome to be corrected for the telescope.
 				              # In general with will be set to 1, for basic testing it's easiest if it's set to 0
 
-	domeAngleOffset = 90 	 	      # This is the angle between the line joining the center of the telescope and the center of the dome,
+	domeAngleOffset = 0 	 	      # This is the angle between the line joining the center of the telescope and the center of the dome,
 					      # and the line joining the telescope to the point on the dome the telescopes is pointing, when the dome
 			 		      # is pointing North. Not actually 90, it needs to be measured.
 
@@ -224,21 +225,18 @@ class LabjackServer:
                 
 
 	def dome_location(self):
-		temp = LJ.getFeedback(u3.QuadratureInputTimer()) #This will constantly update the current position of the dome
-		#self.current_position = float(temp[-1])		 #This enables us to keep track even if the dome is manually moved
-		position_count = int(temp[-1])
-
-		# we record all positions in counts to prevent loss of accuracy and divide the counts by counts_per_degree only when returning
-		# a value, to give this value in degreeeeeeees.
-
-		self.total_counts = int(temp[-1])
-		current_position_temp = self.current_position + (position_count - self.last_position_count) #/self.counts_per_degree
-		#while current_position_temp > 360: current_position_temp = current_position_temp - 360
-		#while current_position_temp < 0: current_position_temp = current_position_temp + 360
+		raw_wheel_output = LJ.getFeedback(u3.QuadratureInputTimer()) #This will constantly update the current position of the dome
+		#self.current_position = float(raw_wheel_output[-1])		 #This enables us to keep track even if the dome is manually moved
+		#position_count = int(raw_wheel_output[-1])
+		self.total_counts = int(raw_wheel_output[-1])
+		current_position_temp = self.total_counts - self.total_count_at_last_home
+		if current_position_temp < 0: current_position_temp = int(360*self.counts_per_degree) - abs(current_position_temp)
+		#current_position_temp = self.current_position + (position_count - self.last_position_count) #/self.counts_per_degree
+		#if current_position_temp < 0: current_position_temp = 360*self.counts_per_degree - current_position_temp
+		#self.current_position = current_position_temp
+		#self.last_position_count = position_count
 		self.current_position = current_position_temp
-		self.last_position_count = position_count
-		
-
+	
  		if self.dome_moving == True:
 			#counts_to_move
 			if self.counts_to_move <= 0:
@@ -263,7 +261,7 @@ class LabjackServer:
 		except Exception: return 'ERROR'
 		correction = math.asin((self.domeTelescopeDistance/self.domeRadius)*math.sin(math.radians(telescopeAzimuth + self.domeAngleOffset)))
 
-		if (telescopeAzimuth + self.domeAngleOffset) <= 180 and: 
+		if (telescopeAzimuth + self.domeAngleOffset) <= 180: 
 		#if telescopeAzimuth <= 180:
 			correctedAzimuth = telescopeAzimuth + math.degrees(correction)
 			while correctedAzimuth > 360: correctedAzimuth = correctedAzimuth - 360
@@ -340,10 +338,7 @@ class LabjackServer:
  		home_output = int(str( (LJ.getFeedback( u3.Counter0() ))[0] ))
 		if home_output != self.home_sensor_count:  # We've hit home!
 			self.home_sensor_count = home_output
-			if self.dome_correction_enabled:
-				self.current_position = self.azimuth_telescope_to_dome(0) # After testing this will become self.slits_offset
-			else: self.current_position = 0
-
+			self.total_count_at_last_home = self.total_counts
 
 
 
