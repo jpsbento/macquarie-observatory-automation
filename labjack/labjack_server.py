@@ -22,6 +22,8 @@ LJ=u3.U3()
 LJPROBE=ei1050.EI1050(LJ, enablePinNum=0, dataPinNum=1, clockPinNum=2) #Sets up the humidity probe
 LJ.configIO(NumberOfTimersEnabled = 2, EnableCounter0 = 1)
 LJ.getFeedback(u3.Timer0Config(8), u3.Timer1Config(8)) #Sets up the dome tracking wheel
+DAC0_REGISTER = 5000  # clockwise movement
+DAC1_REGISTER = 5002  # anticlockwise movement
 
 
 #***********************************************************************#
@@ -286,9 +288,15 @@ class LabjackServer:
 		'''Move the dome clockwise, anticlockwise or stop dome motion'''
 		commands = str.split(command)
 		if len(commands) != 1: return 'ERROR'
-		if commands[0] == 'clockwise': pass # command to move dome clockwise
-		elif commands[0] == 'anticlockwise': pass # command to move dome anticlockwise
-		elif commands[0] == 'stop': pass # command to stop dome motion
+		if commands[0] == 'clockwise': 
+			LJ.writeRegister(DAC1_REGISTER, 0)
+			LJ.writeRegister(DAC0_REGISTER, 5) # command to move dome clockwise
+		elif commands[0] == 'anticlockwise': 
+			LJ.writeRegister(DAC0_REGISTER, 0)
+			LJ.writeRegister(DAC1_REGISTER, 5) # command to move dome anticlockwise
+		elif commands[0] == 'stop':
+			LJ.writeRegister(DAC0_REGISTER, 0) # command to stop movement
+			LJ.writeRegister(DAC1_REGISTER, 0)
 		else: return 'ERROR'
 
 

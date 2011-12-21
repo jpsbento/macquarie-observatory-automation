@@ -77,7 +77,7 @@ class ImagingSourceCameraServer:
 		if len(commands) == 1:
 			message = ""
 			for i in range(0, len(self.properties)-1):
-				message += " property: "+properties[i]+', allowed range: '+str(self.allowed_range[i][0])+' to '+str(self.allowed_range[i][-1]+', in increments of: 'str(int(self.allowed_range[i][1]) - int(self.allowed_range[i][0]))+"\n"
+				message += " property: "+properties[i]+', allowed range: '+str(self.allowed_range[i][0])+' to '+str(self.allowed_range[i][-1])+', in increments of: '+str(int(self.allowed_range[i][1]) - int(self.allowed_range[i][0]))+"\n"
 			return message
 		elif len(commands) == 2 and commands[1] == 'show':
 			message = ''
@@ -119,11 +119,11 @@ class ImagingSourceCameraServer:
 		pixel and the brightest star in arcseconds in the North and East directions. When calling this function 
 		you must specify which file for daofind to use (do not add the file extension, ie type "filename" NOT "filename.fits"'''
 		commands = str.split(the_command)
-		if len(commands) =! 2: return 'Invalid input, give name of file with data.'
+		if len(commands) != 2: return 'Invalid input, give name of file with data.'
 		filename = commands[1]	
 		dDec = 0
 		dAz = 0
-		brightest_star_info = self.analyseImage(filename'.fits', filename'.txt') 
+		brightest_star_info = self.analyseImage(filename+'.fits', filename+'.txt') 
 		star_sharp = float(brightest_star_info[3])  # We will use this to check the focus of the star
 		star_mag = float(brightest_star_info[2])    # We use this to identify the brightest star
 		xpixel_pos = float(brightest_star_info[0])  # x pixel position of the brightest star
@@ -225,30 +225,30 @@ class ImagingSourceCameraServer:
 		east_star_mag = float(east_star_info[2])
 
 		vector_movedN = [base_xpixel_pos - north_xpixel_pos, base_ypixel_pos - north_ypixel_pos]
-		hypotenuseN = math.hypot(vector_movedN[0], vector_movedN[1])) # this is number of pixels moved for N/S
+		hypotenuseN = math.hypot(vector_movedN[0], vector_movedN[1]) # this is number of pixels moved for N/S
 		self.oneArcsecinPixelsN = hypotenuesN/self.north_move_arcsecs
 		self.theta = math.tan(abs(vector_movedN[1]/vector_movedN[0]))
 
 		if vector_movedN[0] < 0 and vector_movedN[1] < 0: self.theta = math.pi+ self.theta
 		elif vector_movedN[0] < 0 and vector_movedN[1] > 0: self.theta = math.pi - self.theta
 		elif vector_movedN[0] > 0 and vector_movedN[1] < 0: self.theta = 2*math.pi - self.theta
-		elif vector_movedN[0] > 0 and vector_movedN[1] > 0: # All good nothing to do
+		elif vector_movedN[0] > 0 and vector_movedN[1] > 0: pass # All good nothing to do
 		elif vector_movedN[0] == 0 and vector_movedN[1] > 0: self.theta = math.pi/2.0
 		elif vector_movedN[0] == 0 and vector_movedN[1] < 0: self.theta = 3.0*math.pi/2.0
 		elif vector_movedN[0] > 0 and vector_movedN[1] == 0: self.theta = 0
 		elif vector_movedN[0] < 0 and vector_movedN[1] == 0: self.theta = math.pi
-		else: return "I shouldn't be able to get here. Theta Error.'
+		else: return "I shouldn't be able to get here. Theta Error."
 
 		# Need to recalculate the transformation matrix:
 		self.transformation_matrix = [math.cos(self.theta), math.sin(self.theta), -1*math.sin(self.theta), math.cos(self.theta)]	
 
 		vector_movedE = [north_xpixel_pos - east_xpixel_pos, north_ypixel_pos - east_ypixel_pos]
-		hypotenuseE = math.hypot(vector_movedE[0], vector_movedE[1])) # this is number of pixels moved for E/W
+		hypotenuseE = math.hypot(vector_movedE[0], vector_movedE[1]) # this is number of pixels moved for E/W
 		self.oneArcsecinPixelsE = hypotenuesE/self.east_move_arcsecs
 
 		translated_y =  self.transformation_matrix[2]*vector_movedE[0] + self.transformation_matrix[3]*vector_movedE[1]
-		if translated_y =< 0: self.axis_flip = 1 # because positive is west, negative is east
-		elif translated y > 0: self.axis_flip = -1
+		if translated_y <= 0: self.axis_flip = 1 # because positive is west, negative is east
+		elif translated_y > 0: self.axis_flip = -1
 		else: 'Oops'
 		return 'Orientation complete'
 
@@ -296,7 +296,7 @@ class ImagingSourceCameraServer:
 #*********************************** End of user commands ***********************************#
 
 
-	def analyseImage(self, input_image, outfile)
+	def analyseImage(self, input_image, outfile):
 		iraf.noao(_doprint=0)     # load noao
 		iraf.digiphot(_doprint=0) # load digiphot
 		iraf.apphot(_doprint=0)   # load apphot
