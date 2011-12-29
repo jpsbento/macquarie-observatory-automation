@@ -44,7 +44,7 @@ class ImagingSourceCameraServer:
 	brightnessDefault = 0
 	gammaDefault = 100
 	
-	#Put in the allowed values for relevant options
+	#Put in the allowed values for each option
 	#We give an array for each variable
 	frameRateAllowedValues = range(1,241) #setting up the allowed frame rates to be in 0.25 increments 
 	for r in range(0,len(frameRateAllowedValues)):
@@ -55,10 +55,12 @@ class ImagingSourceCameraServer:
 	brightnessAllowedValues = range(0, 64)
 	gainAllowedValues = range(260, 1024)
 
+	# writing all these in arrays shortens the code later on
 	properties = ['frame rate', 'Exposure, Auto', 'Exposure (Absolute)', 'Gain', 'Brightness', 'Gamma']
 	default_values = [frameRateDefault, exposureAutoDefault, exposureAbsoluteDefault, brightnessDefault, gammaDefault]
 	allowed_range = [frameRateRange, exposureAutoRange, exposureAbsoluteRange, gainRange, brightnessRange, gammaRange]
 	set_values = [frameRateDefault, exposureAutoDefault, exposureAbsoluteDefault, brightnessDefault, gammaDefault]
+	# We initially have the values to set as being the default values (some values unicap gave)
 	
 	
 
@@ -204,6 +206,35 @@ class ImagingSourceCameraServer:
 		self.dev.stop_capture()
 		return str(commands[1])+' image captured.' # change this to a number perhaps for ease when automating
 
+	def cmd_focusCapture(self,the_command):
+		'''This will capture the images to be used for focusing an image. When calling this image you need
+		to give the function the focuser counts the photo is being taken at. Might make life easier to combine
+		this with the orientate capture'''
+		commands = str.split(the_command)
+		if len(commands) !=2: return 'ERROR'
+		try: focus_count = int(commands[1])
+		except Exception: return 'ERROR'
+
+		image_name = 'focusImage'#_'+str(focus_count)
+		self.dev.start_capture()
+		
+		imgbuf = self.dev.wait_buffer( 10 ) #Prolly wont work with the below
+
+		t1 = time.time()
+		imgbuf = self.dev.wait_buffer( 11 )
+		dt = time.time() - t1
+		
+		rgbbuf = imgbuf.convert( 'RGB3' )
+		dummy = rgbbuf.save( image_name+'.raw' ) #saves it in RGB3 raw image format
+		Image.open( image_name+'.raw' ).save( image_name+'.jpg' ) #saves as a jpeg
+		os.system("convert -depth 8 -size 640x480+17 "+ image_name+'.raw' +" "+ image_name+'.fits') #saves as a fits file
+		self.stop_capture()
+		#return self.analyseImage(filename+'.fits', filename+'.txt') 
+		bright_star_info = self.analyseImage(filename+'.fits', 'focus_output.txt')
+		sharpness_value = bright_star_info[3]
+		return sharpness_value
+		
+
 
 	def cmd_calculateCameraOrientation(self, the_command):
 		'''This does the maths for the camera orientation. In this we treat the x axis as the North axis'''
@@ -267,29 +298,29 @@ class ImagingSourceCameraServer:
 
 
 
-	def cmd_calculateBestFocus(self,the_command):
-		'''Here we need to take a bunch of images at different focuses and use iraf to estimate the
-		position of best focus. This will be easiest with a focuser like the JMI where you can go to
-		specific positions and move by specific amounts.'''
-		#commands = str.split(the_command)
-		#if len(commands) != 2: return 'Invalid input'
-		#try: int(commands[1])
-		#except Exception: return 'Error, input the number of photos taken for focusing calculation'
-		filename = 'focusing_image'
-		# Need to check the correct number of files exist
-		# Need to actually work out how to use the blooming starfocus command in iraf
-
-		# A very basic focusing routine here could just take a photo, find the brightest star
-		# do a daofind on the fits file and return the sharpness of the brightest star
-		# it would then be down to a user/loop to do this, move focus, and if the sharpness decreased
-		# to continue moving the focuser in the same direction but if the sharpness goes up, to move the
-		# focuser in the other direction
-		# do this and half the distances you're traveling when you over step the best focus point till the distance
-		# gets down to 1 count
-		self.cmd_captureImages(filename, 1)
-		bright_star_info = self.analyseImage(filename+'.fits', 'focus_output.txt')
-		sharpness_value = bright_star_info[3]
-		return sharpness_value
+#	def cmd_calculateBestFocus(self,the_command):
+#		'''Here we need to take a bunch of images at different focuses and use iraf to estimate the
+#		position of best focus. This will be easiest with a focuser like the JMI where you can go to
+#		specific positions and move by specific amounts.'''
+#		#commands = str.split(the_command)
+#		#if len(commands) != 2: return 'Invalid input'
+#		#try: int(commands[1])
+#		#except Exception: return 'Error, input the number of photos taken for focusing calculation'
+#		filename = 'focusing_image'
+#		# Need to check the correct number of files exist
+#		# Need to actually work out how to use the blooming starfocus command in iraf
+#
+#		# A very basic focusing routine here could just take a photo, find the brightest star
+#		# do a daofind on the fits file and return the sharpness of the brightest star
+#		# it would then be down to a user/loop to do this, move focus, and if the sharpness decreased
+#		# to continue moving the focuser in the same direction but if the sharpness goes up, to move the
+#		# focuser in the other direction
+#		# do this and half the distances you're traveling when you over step the best focus point till the distance
+#		# gets down to 1 count
+#		self.cmd_captureImages(filename, 1)
+#		bright_star_info = self.analyseImage(filename+'.fits', 'focus_output.txt')
+#		sharpness_value = bright_star_info[3]
+#		return sharpness_value
 		
 
 
@@ -318,7 +349,7 @@ class ImagingSourceCameraServer:
 
 	def find_brightest_star(self, readinfile):
 		try: starfile = open(readinfile)
-		except Exception: return 'ERROR file not found' # <-- change this to returning a number
+		except Exception: return 'ERROR' # <-- change this to returning a number
 		startemp = starfile.readlines()
 		brighteststar = 50
 		xpixel = 0

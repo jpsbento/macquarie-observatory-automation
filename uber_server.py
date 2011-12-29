@@ -8,7 +8,7 @@ import client_socket
 class UberServer:
 
 
-	dome_tracking = False
+
 
  	
 	# A list of the telescopes we have, comment out all but the telescope you wish to connect with:
@@ -22,6 +22,8 @@ class UberServer:
 	#telescope_client = client_socket.ClientSocket("telescope",telescope_type)  #23458 <- port number
 	#weatherstation_client = client_socket.ClientSocket("weatherstation",telescope_type) #23457 <- port number
 	#imagingsourcecamera_client = client_socket.ClientSocket("imagingsourcecamera",telescope_type) #23459 <- port number
+
+	dome_tracking = False
 
 
 #***************************** A list of user commands *****************************#
@@ -128,6 +130,31 @@ class UberServer:
 			if jog_response == 'ERROR': return 'ERROR'
 
 		return 'Successful'
+
+	def cmd_focusStar(self, the_command):
+		'''This pulls together commands from the telescope servers and the camera server to focus a bright star.'''
+		move_focus_amount = 100
+		sharp_value = 0
+		focusing = True
+		imagingsourcecamera_client.send_command("focusCapture")
+		old_sharp_value = telescope_client.send_command("focusGoToPosition "+str(int(position)+move_focus_amount))
+		while move_focus_amount != 0:
+			focusposition = telescope_client.send_command("focusReadPosition")
+			try: focusposition = int(focusposition)
+			except Exception: return 'ERROR'
+			# need to get the sharpness
+			telescope_client.send_command("focusGoToPosition "+str(int(position)+move_focus_amount))
+			sharp_value = imagingsourcecamera_client.send_command("focusCapture")
+			# as the star becomes more in focus, the sharp_value decreases, so if it increases
+			# we are moving the focuser the wrong way
+			if sharp_value >= old_sharp_value: move_focus_amount = (move_focus_amount*-1)/2
+		return str(focusposition) # return the best focus position
+				
+			
+
+		
+		# take some photos.
+		pass
 
 
 #***************************** End of User Commands *****************************#
