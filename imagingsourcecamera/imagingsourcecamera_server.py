@@ -21,8 +21,8 @@ class ImagingSourceCameraServer:
 	# The central pixel coordinates
 	central_xpixel = 320.0   # 640 x pixel width
 	central_ypixel = 240.0   # 480 y pixel height
-	north_move_arcsecs = 0
-	east_move_arcsecs = 0
+	north_move_arcsecs = 1
+	east_move_arcsecs = 1
 	oneArcsecinPixelsN = 1  # This tells us how many pixels there are to one arcsecond in the North/South direction
 	oneArcsecinPixelsE = 1  # This tells us how many pixels there are to one arcsecond in the East/West direction
 	axis_flip = 1.0
@@ -46,14 +46,14 @@ class ImagingSourceCameraServer:
 	
 	#Put in the allowed values for each option
 	#We give an array for each variable
-	frameRateAllowedValues = range(1,241) #setting up the allowed frame rates to be in 0.25 increments 
-	for r in range(0,len(frameRateAllowedValues)):
-		frameRateAllowedValues[r] = frameRateAllowedValues[r]*0.25
-	exposureAutoAllowedValues = range(0,4)
-	exposureAbsoluteAllowedValues = range(1, 36000001)
-	gammaAllowedValues = range(1, 501)
-	brightnessAllowedValues = range(0, 64)
-	gainAllowedValues = range(260, 1024)
+	frameRateRange = range(1,241) #setting up the allowed frame rates to be in 0.25 increments 
+	for r in range(0,len(frameRateRange)):
+		frameRateRange[r] = frameRateRange[r]*0.25
+	exposureAutoRange = range(0,4)
+	exposureAbsoluteRange = range(1, 36000001)
+	gammaRange = range(1, 501)
+	brightnessRange = range(0, 64)
+	gainRange = range(260, 1024)
 
 	# writing all these in arrays shortens the code later on
 	properties = ['frame rate', 'Exposure, Auto', 'Exposure (Absolute)', 'Gain', 'Brightness', 'Gamma']
@@ -69,7 +69,7 @@ class ImagingSourceCameraServer:
 
 		
 		
-	def cmd_setCameraValues(self):
+	def cmd_setCameraValues(self,the_command):
 		'''This sets up the camera with the exposure settings etc. wanted by the user. If no input is given
 		this will list the allowed values for each of the settings, otherwise a user can set each setting individually. 
 		The properties are: FrameRate, ExposureAuto, ExposureAbs, Gain, Brightness, Gamma. To set a property type:
@@ -241,47 +241,64 @@ class ImagingSourceCameraServer:
 		base_star_info = self.analyseImage('base_orientation.fits','base_orientation.txt')
 		north_star_info = self.analyseImage('north_orientation.fits','north_orientation.txt')
 		east_star_info = self.analyseImage('east_orientation.fits','east_orientation.txt')
-		if base_bright_star == 0 or north_bright_star == 0 or east_bright_star == 0:
+		if base_star_info == 0 or north_star_info == 0 or east_star_info == 0:
 			return 'Orientation photos need to be taken'
-		brightest_star_info = self.find_brightest_star(outfile)
-		star_sharp = float(brightest_star_info[3])    # We will use this to check the focus of the star
+		#brightest_star_info = self.find_brightest_star(outfile)
+		#star_sharp = float(brightest_star_info[3])    # We will use this to check the focus of the star
 		base_xpixel_pos = float(base_star_info[0])    # x pixel position of the brightest star
 		base_ypixel_pos = float(base_star_info[1])    # y pixel position of the brightest star
-		base_star_mag = float(brightest_star_info[2]) # We use this to identify the brightest star
+		#base_star_mag = float(brightest_star_info[2]) # We use this to identify the brightest star
 		north_xpixel_pos = float(north_star_info[0])
 		north_ypixel_pos = float(north_star_info[1])
-		north_star_mag = float(north_star_info[2])
+		#north_star_mag = float(north_star_info[2])
 		east_xpixel_pos = float(east_star_info[0])  # The east move is to determine if we need a swap or not
-		east_y_pixel_pos = float(east_star_info[1])
-		east_star_mag = float(east_star_info[2])
+		east_ypixel_pos = float(east_star_info[1])
+		#east_star_mag = float(east_star_info[2])
 
 		vector_movedN = [base_xpixel_pos - north_xpixel_pos, base_ypixel_pos - north_ypixel_pos]
-		hypotenuseN = math.hypot(vector_movedN[0], vector_movedN[1]) # this is number of pixels moved for N/S
-		self.oneArcsecinPixelsN = hypotenuesN/self.north_move_arcsecs
-		self.theta = math.tan(abs(vector_movedN[1]/vector_movedN[0]))
+		if vector_movedN[0] == 0:
+			self.oneArcsecinPixelN = vector_movedN[1]/self.north_move_arcsecs
+		elif vector_movedN[1] == 0:
+			self.oneArcsecinPixelN = vector_movedN[0]/self.north_move_arcsecs
+		else:
+			hypotenuseN = math.hypot(vector_movedN[0], vector_movedN[1]) # this is number of pixels moved for E/W
+			self.oneArcsecinPixelsN = hypotenuseN/self.north_move_arcsecs
+
+		if vector_movedN[0] == 0 and vector_movedN[1] > 0: self.theta == math.pi/2.0
+		elif vector_movedN[0] == 0 and vector_movedN[1] < 0: self.theta == 3.0*math.pi/2.0
+		elif vector_movedN[1] == 0 and vector_movedN[0] > 0: self.theta == 0
+		elif vector_movedN[1] == 0 and vector_movedN[0] < 0: self.theta == math.pi
+		else: self.theta = math.tan(abs(vector_movedN[1]/vector_movedN[0]))
+		print str(self.theta)
 
 		if vector_movedN[0] < 0 and vector_movedN[1] < 0: self.theta = math.pi+ self.theta
 		elif vector_movedN[0] < 0 and vector_movedN[1] > 0: self.theta = math.pi - self.theta
 		elif vector_movedN[0] > 0 and vector_movedN[1] < 0: self.theta = 2*math.pi - self.theta
 		elif vector_movedN[0] > 0 and vector_movedN[1] > 0: pass # All good nothing to do
-		elif vector_movedN[0] == 0 and vector_movedN[1] > 0: self.theta = math.pi/2.0
-		elif vector_movedN[0] == 0 and vector_movedN[1] < 0: self.theta = 3.0*math.pi/2.0
-		elif vector_movedN[0] > 0 and vector_movedN[1] == 0: self.theta = 0
-		elif vector_movedN[0] < 0 and vector_movedN[1] == 0: self.theta = math.pi
-		else: return "I shouldn't be able to get here. Theta Error."
+		#elif vector_movedN[0] == 0 and vector_movedN[1] > 0: self.theta = math.pi/2.0
+		#elif vector_movedN[0] == 0 and vector_movedN[1] < 0: self.theta = 3.0*math.pi/2.0
+		#elif vector_movedN[0] > 0 and vector_movedN[1] == 0: self.theta = 0
+		#elif vector_movedN[0] < 0 and vector_movedN[1] == 0: self.theta = math.pi
+		#else: return "I shouldn't be able to get here. Theta Error."
+		print str(self.theta)
 
 		# Need to recalculate the transformation matrix:
 		self.transformation_matrix = [math.cos(self.theta), math.sin(self.theta), -1*math.sin(self.theta), math.cos(self.theta)]	
 
 		vector_movedE = [north_xpixel_pos - east_xpixel_pos, north_ypixel_pos - east_ypixel_pos]
-		hypotenuseE = math.hypot(vector_movedE[0], vector_movedE[1]) # this is number of pixels moved for E/W
-		self.oneArcsecinPixelsE = hypotenuesE/self.east_move_arcsecs
+		if vector_movedE[0] == 0:
+			self.oneArcsecinPixelE = vector_movedE[1]/self.east_move_arcsecs
+		elif vector_movedE[1] == 0:
+			self.oneArcsecinPixelE = vector_movedE[0]/self.east_move_arcsecs
+		else:
+			hypotenuseE = math.hypot(vector_movedE[0], vector_movedE[1]) # this is number of pixels moved for E/W
+			self.oneArcsecinPixelsE = hypotenuseE/self.east_move_arcsecs
 
 		translated_y =  self.transformation_matrix[2]*vector_movedE[0] + self.transformation_matrix[3]*vector_movedE[1]
 		if translated_y <= 0: self.axis_flip = 1 # because positive is west, negative is east
 		elif translated_y > 0: self.axis_flip = -1
 		else: 'Oops'
-		return 'Orientation complete'
+		return 'Orientation complete '+str(self.theta)
 
 		#  The above camera orientation command uses the following definition for the axis' with all rotations
 		#  being made in an anticlockwise direction
@@ -295,33 +312,11 @@ class ImagingSourceCameraServer:
 		#	      |
 		#	      |
 		#	      E
+		#
+		# so if we had a zero rotation angle, North would be along the x axis
+		#
 
 
-
-#	def cmd_calculateBestFocus(self,the_command):
-#		'''Here we need to take a bunch of images at different focuses and use iraf to estimate the
-#		position of best focus. This will be easiest with a focuser like the JMI where you can go to
-#		specific positions and move by specific amounts.'''
-#		#commands = str.split(the_command)
-#		#if len(commands) != 2: return 'Invalid input'
-#		#try: int(commands[1])
-#		#except Exception: return 'Error, input the number of photos taken for focusing calculation'
-#		filename = 'focusing_image'
-#		# Need to check the correct number of files exist
-#		# Need to actually work out how to use the blooming starfocus command in iraf
-#
-#		# A very basic focusing routine here could just take a photo, find the brightest star
-#		# do a daofind on the fits file and return the sharpness of the brightest star
-#		# it would then be down to a user/loop to do this, move focus, and if the sharpness decreased
-#		# to continue moving the focuser in the same direction but if the sharpness goes up, to move the
-#		# focuser in the other direction
-#		# do this and half the distances you're traveling when you over step the best focus point till the distance
-#		# gets down to 1 count
-#		self.cmd_captureImages(filename, 1)
-#		bright_star_info = self.analyseImage(filename+'.fits', 'focus_output.txt')
-#		sharpness_value = bright_star_info[3]
-#		return sharpness_value
-		
 
 
 #*********************************** End of user commands ***********************************#
@@ -331,6 +326,9 @@ class ImagingSourceCameraServer:
 		iraf.noao(_doprint=0)     # load noao
 		iraf.digiphot(_doprint=0) # load digiphot
 		iraf.apphot(_doprint=0)   # load apphot
+		#iraf.daofind.setParam('image',FitsFileName)		#Set ImageName
+		iraf.daofind.setParam('verify','no')			#Don't verify
+		iraf.daofind.setParam('interactive','no')		#Interactive
 		
 		self.check_if_file_exists(outfile)
 		try: iraf.daofind(image = input_image, output = outfile)
@@ -357,8 +355,9 @@ class ImagingSourceCameraServer:
 		for lines in startemp:
 			if lines[0][0] != '#': #don't want the comments
 				linetemp = str.split(lines)
-				if float(linetemp[2]) < brighteststar:
-					starmag = float(linetemp[2])
+				print linetemp
+				if 1: #float(linetemp[2]) < brighteststar:
+					starmag = 1 #float(linetemp[2])
 					xpixel = float(linetemp[0])
 					ypixel = float(linetemp[1])
 					starsharp = float(linetemp[3])
