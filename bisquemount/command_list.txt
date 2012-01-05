@@ -1,4 +1,3 @@
-automaticDomeSlewing
 focusGoToPosition
 focusReadPosition
 focusReadStateRegister
@@ -16,10 +15,10 @@ mountGetRaDec
 mountGetAzAlt
 moveTelescope
 findHome
+jog
 park
 runQuery
 setParkPosition
-setWhenWhere
 s
 slewToRaDec
 slewToAzAlt

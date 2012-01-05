@@ -234,11 +234,49 @@ class BisqueMountServer:
 		client_socket.send(TheSkyXCommand)
 		return self.messages()
 
+	def cmd_getRA(self, the_command):
+		'''Returns just the RA of the mount with a simple number output'''
+		TheSkyXCommand = self.readscript('MountGetRaDec.js')
+		client_socket.send(TheSkyXCommand)
+		response = self.messages()
+		responses = str.split(response, '|')
+		RA = responses[0]
+		return RA
+
+	def cmd_getDec(self, the_command):
+		'''Returns just the Dec of the mount with a simple number output'''
+		TheSkyXCommand = self.readscript('MountGetRaDec.js')
+		client_socket.send(TheSkyXCommand)
+		response = self.messages()
+		responses = str.split(response, '|')
+		Dec = responses[1]
+		return Dec
+
 	def cmd_mountGetAzAlt(self,the_command):
 		'''Gets the current Altitide and Azimuth of the mount.'''
 		TheSkyXCommand = self.readscript('MountGetAzAlt.js')
 		client_socket.send(TheSkyXCommand)
 		return self.messages()
+
+	def cmd_getAzimuth(self, the_command):
+		'''Gets the current Azimuth of the mount with a simple number output, range 0 to 360 degrees'''
+		TheSkyXCommand = self.readscript('MountGetAzAlt.js')
+		client_socket.send(TheSkyXCommand)
+		response = self.messages()
+		responses = str.split(response, '|')
+		Az = responses[0]
+		return Az
+
+
+	def cmd_getAltitude(self, the_command):
+		'''Gets the current Altitude of the mount with a simple number output, range -90 to 90 degrees'''
+		TheSkyXCommand = self.readscript('MountGetAzAlt.js')
+		client_socket.send(TheSkyXCommand)
+		response = self.messages()
+		responses = str.split(response, '|')
+		Alt = responses[1]
+		return Alt
+
 
 
 	def cmd_moveTelescope(self, the_command):
