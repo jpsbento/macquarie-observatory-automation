@@ -7,9 +7,6 @@ import client_socket
 
 class UberServer:
 
-
-
-
  	
 	# A list of the telescopes we have, comment out all but the telescope you wish to connect with:
 	telescope_type = 'bisquemount'
@@ -129,7 +126,7 @@ class UberServer:
 			jog_response = self.telescope_client.send('jog W '+str(float(dEast)*-1))
 			if jog_response == 'ERROR': return 'ERROR'
 
-		return 'Successful'
+		return 'Successful centering of star'
 
 	def cmd_focusStar(self, the_command):
 		'''This pulls together commands from the telescope servers and the camera server to focus a bright star.'''
@@ -150,11 +147,6 @@ class UberServer:
 			if sharp_value >= old_sharp_value: move_focus_amount = (move_focus_amount*-1)/2
 		return str(focusposition) # return the best focus position
 				
-			
-
-		
-		# take some photos.
-		pass
 
 
 #***************************** End of User Commands *****************************#

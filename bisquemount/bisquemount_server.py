@@ -318,7 +318,7 @@ class BisqueMountServer:
 		client_socket.send(script)
 		return self.messages()
 
-#	def cmd_setWhenWhere(self,the_command): #THIS ISN'T DONE PROPERLY YET.
+#	def XXX_setWhenWhere(self,the_command): #THIS ISN'T DONE PROPERLY YET.
 #		'''This can be used to specify the location, date and time to be used by the sky.
 #		Input should look like: double(JulianDay) int(IDSTOption) int(IUseSystemClock)
 #		String(IpszDescripton) double(longitude) double(latitude) double(TimeZone)
@@ -528,7 +528,7 @@ class BisqueMountServer:
 
 
 
-	def messages(self):
+	def messages(self):  # Need to work on the timeouts.
 		'''I'm trying to make this so if you don't get a response within 5 minutes instead
 		of hanging indefinitely or completely quitting, the user is simply told, and can 
 		try again.'''

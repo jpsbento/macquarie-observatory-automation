@@ -17,10 +17,13 @@ import socket
 class ImagingSourceCameraServer:
 
 	dev = unicap.Device( unicap.enumerate_devices()[0] ) # I am assuming this will be the first camera the program comes across
+
+	magnitude_conversion = 0 # How to convert from the magnitude iraf gives out and the actual magnitude of a star.
+				 # I *think* you just add this number (when calculated) to all Iraf mags and you're set.
 	
 	# The central pixel coordinates
-	central_xpixel = 320.0   # 640 x pixel width
-	central_ypixel = 240.0   # 480 y pixel height
+	central_xpixel = 326.0   # 640 x pixel width
+	central_ypixel = 216.0   # 480 y pixel height
 	north_move_arcsecs = 1
 	east_move_arcsecs = 1
 	oneArcsecinPixelsN = 1  # This tells us how many pixels there are to one arcsecond in the North/South direction
@@ -64,10 +67,23 @@ class ImagingSourceCameraServer:
 	
 	
 
-	
+
 #******************************* The main camera commands ***********************************#
 
-		
+
+	def cmd_captureImages(self,the_command):
+		'''This will capture images and save them to fits files (and jpeg for easy viewing) with the specified 
+		filename. If the number of images to capture is greater than one, the images saved will be numbered, ie:
+		filename_1.fits filename_2.fits filename_3.fits and so on.'''
+		commands = str.split(the_command)
+		if len(commands) =! 3: return 'ERROR'
+		filename = commands[1]
+		try: number_of_images = int(commands[2])
+		except Exception: return 'ERROR input number of images to take in integer form'
+		capture = self.capture_images(filename, upperlimit)
+		if not capture: return 'ERROR capturing images'
+		return 'Finished capturing'
+
 		
 	def cmd_setCameraValues(self,the_command):
 		'''This sets up the camera with the exposure settings etc. wanted by the user. If no input is given
@@ -157,30 +173,20 @@ class ImagingSourceCameraServer:
 		except Exception: return 'Invalid number.'
 		upperlimit = int(commands[2])
 		base_filename = commands[1]
-		self.dev.start_capture()
-		imgbuf = self.dev.wait_buffer( 10 ) 
-		for i in range( 0, upperlimit ):
-			#self.dev.set_property( prop )
-			t1 = time.time()
-			imgbuf = self.dev.wait_buffer( 11 )
-			dt = time.time() - t1
-			#print 'dt: %f  ===> %f' % ( dt, 1.0/dt )
-			filename= base_filename+str(i)
-			rgbbuf = imgbuf.convert( 'RGB3' )
-			dummy = rgbbuf.save( filename+'.raw' ) # saves it in RGB3 raw image format
-			Image.open( filename+'.raw' ).save( filename+'.jpg' ) # saves as a jpeg
-			os.system("convert -depth 8 -size 640x480+17 "+ filename+'.raw' +" "+ filename+'.fits') # saves as a fits file
-		self.dev.stop_capture()
+
+		capture = self.capture_images(base_filename, upperlimit)
+		if not capture: return 'ERROR capturing images'
+		return 'Capture complete'
 
 
 	def cmd_orientationCapture(self, the_command):  # need to have some define settings for this perhaps who knows
-		'''This will take the photos for camera orientation and automatically name them
-		so that another function can calculate the orientation easily. For the base photograph type
-		the command "base", to take the photograph after the telescope has been moved North type "north amountmoved" where
-		amountmoved is in arcseconds. To take the photograph after the telescope has been moved East type
-		"east amountmoved" where again amountmoved is in arcseconds'''
+		'''This will take the photos for camera orientation and automatically name them so that another function 
+		can calculate the orientation easily. For the base photograph type the command "base", to take the 
+		photograph after the telescope has been moved North type "north amountmoved" where amountmoved is in arcseconds. 
+		To take the photograph after the telescope has been moved East type "east amountmoved" where again amountmoved 
+		is in arcseconds'''
 		commands = str.split(the_command)
-		image_name
+		image_name = ''
 		if len(commands) == 2 and commands[1] == 'base': image_name = 'base_orientation'
 		elif len(commands) == 3:
 			if commands[1] == 'North' and self.is_float_try(commands[2]):
@@ -190,20 +196,10 @@ class ImagingSourceCameraServer:
 				image_name = 'east_orientation'
 				self.east_move_arcsecs = float(commands[2])
 		else: return 'Invalid input'
-		self.dev.start_capture()
-		
-		imgbuf = self.dev.wait_buffer( 10 ) #Prolly wont work with the below
 
-		t1 = time.time()
-		imgbuf = self.dev.wait_buffer( 11 )
-		dt = time.time() - t1
-		
-		rgbbuf = imgbuf.convert( 'RGB3' )
-		dummy = rgbbuf.save( image_name+'.raw' ) #saves it in RGB3 raw image format
-		Image.open( image_name+'.raw' ).save( image_name+'.jpg' ) #saves as a jpeg
-		os.system("convert -depth 8 -size 640x480+17 "+ image_name+'.raw' +" "+ image_name+'.fits') #saves as a fits file
-		
-		self.dev.stop_capture()
+		capture = capture_images(base_filename, upperlimit)
+		if not capture: return 'ERROR capturing image'
+
 		return str(commands[1])+' image captured.' # change this to a number perhaps for ease when automating
 
 	def cmd_focusCapture(self,the_command):
@@ -214,22 +210,11 @@ class ImagingSourceCameraServer:
 		if len(commands) !=2: return 'ERROR'
 		try: focus_count = int(commands[1])
 		except Exception: return 'ERROR'
+		filename = 'focusImage'
 
-		image_name = 'focusImage'#_'+str(focus_count)
-		self.dev.start_capture()
-		
-		imgbuf = self.dev.wait_buffer( 10 ) #Prolly wont work with the below
+		capture = self.capture_images(base_filename, upperlimit)
+		if not capture: return 'ERROR capturing images'
 
-		t1 = time.time()
-		imgbuf = self.dev.wait_buffer( 11 )
-		dt = time.time() - t1
-		
-		rgbbuf = imgbuf.convert( 'RGB3' )
-		dummy = rgbbuf.save( image_name+'.raw' ) #saves it in RGB3 raw image format
-		Image.open( image_name+'.raw' ).save( image_name+'.jpg' ) #saves as a jpeg
-		os.system("convert -depth 8 -size 640x480+17 "+ image_name+'.raw' +" "+ image_name+'.fits') #saves as a fits file
-		self.stop_capture()
-		#return self.analyseImage(filename+'.fits', filename+'.txt') 
 		bright_star_info = self.analyseImage(filename+'.fits', 'focus_output.txt')
 		sharpness_value = bright_star_info[3]
 		return sharpness_value
@@ -243,7 +228,7 @@ class ImagingSourceCameraServer:
 		east_star_info = self.analyseImage('east_orientation.fits','east_orientation.txt')
 		if base_star_info == 0 or north_star_info == 0 or east_star_info == 0:
 			return 'Orientation photos need to be taken'
-		#brightest_star_info = self.find_brightest_star(outfile)
+		#brightest_star_info = self.find_brightest_star(outfile) # need to account for error here
 		#star_sharp = float(brightest_star_info[3])    # We will use this to check the focus of the star
 		base_xpixel_pos = float(base_star_info[0])    # x pixel position of the brightest star
 		base_ypixel_pos = float(base_star_info[1])    # y pixel position of the brightest star
@@ -275,11 +260,6 @@ class ImagingSourceCameraServer:
 		elif vector_movedN[0] < 0 and vector_movedN[1] > 0: self.theta = math.pi - self.theta
 		elif vector_movedN[0] > 0 and vector_movedN[1] < 0: self.theta = 2*math.pi - self.theta
 		elif vector_movedN[0] > 0 and vector_movedN[1] > 0: pass # All good nothing to do
-		#elif vector_movedN[0] == 0 and vector_movedN[1] > 0: self.theta = math.pi/2.0
-		#elif vector_movedN[0] == 0 and vector_movedN[1] < 0: self.theta = 3.0*math.pi/2.0
-		#elif vector_movedN[0] > 0 and vector_movedN[1] == 0: self.theta = 0
-		#elif vector_movedN[0] < 0 and vector_movedN[1] == 0: self.theta = math.pi
-		#else: return "I shouldn't be able to get here. Theta Error."
 		print str(self.theta)
 
 		# Need to recalculate the transformation matrix:
@@ -319,8 +299,52 @@ class ImagingSourceCameraServer:
 
 
 
+	def cmd_calibrateMagnitude(self, the_command):
+		'''We need a way to also convert the magnitudes from IRAF to actual magnitudes. Do this by centering on a star with
+		a known magnitude, reading out the maginitude from IRAF and then calculating the conversion to use for all
+		future stars.'''
+		commands = str.split(the_command)
+		if len(commands) =! 2: return 'ERROR, input actual star magnitude'
+		try: star_magnitude = float(commands[1])
+		except Exception: return 'ERROR, input number for star magnitude'
+
+		self.capture_images('magnitudeCalibration', 1) # we need to neaten this up
+
+		star_info = self.analyseImage(input_image, outfile) # put in these parameters
+		try: star_magnitude_IRAF = float(star_info[0])
+		except Exception: return 'ERROR reading daofind output'
+
+		self.magnitude_conversion = float(star_magnitude) - float(star_magnitude_IRAF)
+		return 'Magnitude correction calibrated'
+
+
+
 #*********************************** End of user commands ***********************************#
 
+	def capture_images(self, base_filename, upperlimit):
+		'''This takes the photos to be used for science. Input the name of the images to capture (images will then be
+		numbered: ie filename1.fits filename2.fits) and the number of images to capture. Note: when specifying a filename
+		you do not need to include the extention: ie input "filename" not "filename.fits"'''
+		commands = str.split(the_command)
+		try: int(upperlimit)
+		except Exception: return False
+
+		self.dev.start_capture()
+		imgbuf = self.dev.wait_buffer( 10 ) 
+		for i in range( 0, upperlimit ):
+			#self.dev.set_property( prop )
+			t1 = time.time()
+			imgbuf = self.dev.wait_buffer( 11 )
+			dt = time.time() - t1
+			#print 'dt: %f  ===> %f' % ( dt, 1.0/dt )
+			if upperlimit > 1: filename= base_filename+'_'+str(i)  # if we are taking several images we need to number them
+			else: filename = base_filename
+			rgbbuf = imgbuf.convert( 'RGB3' )
+			dummy = rgbbuf.save( filename+'.raw' ) # saves it in RGB3 raw image format
+			Image.open( filename+'.raw' ).save( filename+'.jpg' ) # saves as a jpeg
+			os.system("convert -depth 8 -size 640x480+17 "+ filename+'.raw' +" "+ filename+'.fits') # saves as a fits file
+		self.dev.stop_capture()
+		return True
 
 	def analyseImage(self, input_image, outfile):
 		iraf.noao(_doprint=0)     # load noao
@@ -368,11 +392,6 @@ class ImagingSourceCameraServer:
 		#i = 0 # counter to stop this going on forever
 		if os.path.isfile(filename): os.remove(filename)
 		return filename
-	
-
-		
-		
-
 
 
 
