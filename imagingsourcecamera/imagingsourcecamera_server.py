@@ -22,8 +22,8 @@ class ImagingSourceCameraServer:
 				 # I *think* you just add this number (when calculated) to all Iraf mags and you're set.
 	
 	# The central pixel coordinates
-	central_xpixel = 326.0   # 640 x pixel width
-	central_ypixel = 216.0   # 480 y pixel height
+	target_xpixel = 326.0   # 640 x pixel width
+	target_ypixel = 216.0   # 480 y pixel height
 	north_move_arcsecs = 1
 	east_move_arcsecs = 1
 	oneArcsecinPixelsN = 1  # This tells us how many pixels there are to one arcsecond in the North/South direction
@@ -66,11 +66,8 @@ class ImagingSourceCameraServer:
 	default_values = [frameRateDefault, exposureAutoDefault, exposureAbsoluteDefault, gainDefault, brightnessDefault, gammaDefault]
 	# We initially have the values to set as being the default values (some values unicap gave)
 	
-	
-
 
 #******************************* The main camera commands ***********************************#
-
 
 	def cmd_captureImages(self, the_command):
 		'''This takes the photos to be used for science. Input the name of the images to capture (images will then be
@@ -148,8 +145,8 @@ class ImagingSourceCameraServer:
 		xpixel_pos = float(brightest_star_info[0])  # x pixel position of the brightest star
 		ypixel_pos = float(brightest_star_info[1])  # y pixel position of the brightest star
 		# Find distance from the center of the image
-		x_distance = float(self.central_xpixel) - xpixel_pos # The position of the star relative to the central pixel
-		y_distance = float(self.central_ypixel) - ypixel_pos
+		x_distance = float(self.target_xpixel) - xpixel_pos # The position of the star relative to the central pixel
+		y_distance = float(self.target_ypixel) - ypixel_pos
 		vector_to_move = [x_distance, y_distance]
 		translated_x = self.transformation_matrix[0]*x_distance + self.transformation_matrix[1]*y_distance
 		translated_y =  (self.transformation_matrix[2]*x_distance + self.transformation_matrix[3]*y_distance)*self.axis_flip
@@ -162,10 +159,6 @@ class ImagingSourceCameraServer:
 		return [dArcsecN, dArcsecE] 
 		# ^ This returns the distance between the central pixel and the brightest star in arcseconds in the North and East directions		
 		
-		
-		
-
-
 
 	def cmd_orientationCapture(self, the_command):  # need to have some define settings for this perhaps who knows
 		'''This will take the photos for camera orientation and automatically name them so that another function 
@@ -218,6 +211,7 @@ class ImagingSourceCameraServer:
 		if base_star_info == 0 or north_star_info == 0 or east_star_info == 0:
 			return 'Orientation photos need to be taken'
 		#brightest_star_info = self.find_brightest_star(outfile) # need to account for error here
+									 # also what if brighter star comes into field of view?
 		#star_sharp = float(brightest_star_info[3])    # We will use this to check the focus of the star
 		base_xpixel_pos = float(base_star_info[0])    # x pixel position of the brightest star
 		base_ypixel_pos = float(base_star_info[1])    # y pixel position of the brightest star
@@ -266,7 +260,7 @@ class ImagingSourceCameraServer:
 		translated_y =  self.transformation_matrix[2]*vector_movedE[0] + self.transformation_matrix[3]*vector_movedE[1]
 		if translated_y <= 0: self.axis_flip = 1 # because positive is west, negative is east
 		elif translated_y > 0: self.axis_flip = -1
-		else: 'Oops'
+		else: 'Oops' # pointess error as we really can't get here
 		return 'Orientation complete '+str(self.theta)
 
 		#  The above camera orientation command uses the following definition for the axis' with all rotations
@@ -286,8 +280,6 @@ class ImagingSourceCameraServer:
 		#
 
 
-
-
 	def cmd_calibrateMagnitude(self, the_command):
 		'''We need a way to also convert the magnitudes from IRAF to actual magnitudes. Do this by centering on a star with
 		a known magnitude, reading out the maginitude from IRAF and then calculating the conversion to use for all
@@ -299,7 +291,7 @@ class ImagingSourceCameraServer:
 
 		self.capture_images('magnitudeCalibration', 1) # we need to neaten this up
 
-		star_info = self.analyseImage(input_image, outfile) # put in these parameters
+		star_info = self.analyseImage('magnitudeCalibration.fits', 'magnitudeCalibration.txt') # put in these parameters
 		try: star_magnitude_IRAF = float(star_info[0])
 		except Exception: return 'ERROR reading daofind output'
 

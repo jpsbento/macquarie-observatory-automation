@@ -32,35 +32,30 @@ class LabjackServer:
 
 #Some properties relating to the relative encoder:
 
-	dome_moving = False     	      # A variable to keep track of whether the dome is moving due to a remote user command
+	dome_moving = False     	    	# A variable to keep track of whether the dome is moving due to a remote user command
 
-	counts_per_degree = 11.83 	      # how many counts from the wheel encoder there is to a degree
-	slitoffset = 53.83*counts_per_degree  # The position, in counts, of the slits when the home switch is activated
-
-
-	total_counts = 0		      # The total number of counts since we started the program, raw output from wheel
-	total_count_at_last_home = 0	      # The total counts we had last time we passed through home
-	current_position = 0 		      # The position of the dome right now in counts (counts reset at home position)
-	counts_at_start = 0		      # Record the counts from the wheel before the dome starts to move to a new position		  	
-	counts_to_move = 0		      # Number of counts the wheel needs to move to get to user input destination
-	home_sensor_count = 0		      # Whenever the homing sensor is activated the Counter0 labjack output changes 
-					      # by a positive amount, so every time the number changes, we know we've hit home.
-					      # home_sensor_count keeps track of this change
+	counts_per_degree = 11.83 	   	# how many counts from the wheel encoder there is to a degree
+	slitoffset = 53.83*counts_per_degree 	# The position, in counts, of the slits when the home switch is activated
 
 
-	dome_correction_enabled = 0  	      # This sets whether we want the azimuth of the dome to be corrected for the telescope.
-				              # In general with will be set to 1, for basic testing it's easiest if it's set to 0
-
-	domeRadius = 1 		 	      # Specify the radius of the dome in meters
-	domeTelescopeDistance = 0 	      # The distance in meters between the center of the dome and the telescope
-	domeAngleOffset = 0 	 	      # This is the angle between the line joining the center of the telescope and the center of the dome,
-					      # and the line joining the telescope to the point on the dome the telescopes is pointing, when the dome
-			 		      # is pointing North. Not actually 0, it needs to be measured.
-
-
+	total_counts = 0		     	# The total number of counts since we started the program, raw output from wheel
+	total_count_at_last_home = 0	     	# The total counts we had last time we passed through home
+	current_position = 0 		    	# The position of the dome right now in counts (counts reset at home position)
+	counts_at_start = 0		     	# Record the counts from the wheel before the dome starts to move		  	
+	counts_to_move = 0		    	# Number of counts the wheel needs to move to get to destination
+	home_sensor_count = 0		     	# Whenever the homing sensor is activated the Counter0 labjack output changes 
+					    	# by a positive amount, so every time the number changes, we know we've hit home.
+					     	# home_sensor_count keeps track of this change
 
 
+	dome_correction_enabled = 0  	      	# This sets whether we want the azimuth of the dome to be corrected for the telescope.
+				              	# In general with will be set to 1, for basic testing it's easiest if it's set to 0
 
+	domeRadius = 1 		 	     	# Specify the radius of the dome in meters
+	domeTelescopeDistance = 0 	      	# The distance in meters between the center of the dome and the telescope
+	domeAngleOffset = 0 	 	      	# This is the angle between the line joining the center of the telescope and the center 
+					      	# of the dome, and the line joining the telescope to the point on the dome the telescopes 
+						# is pointing, when the dome is pointing North. Not actually 0, it needs to be measured.
 
 
 #********************** a wee diagram to clear up the dome variables: **********************#
@@ -103,10 +98,7 @@ class LabjackServer:
 # is called the 'slitoffset' and is recorded in labjack counts.
 
 
-
-
 #*************************************** List of user commands ***************************************#
-
 
 
 	def cmd_humidity(self,the_command):
@@ -191,8 +183,7 @@ class LabjackServer:
 		else: return 'ERROR invalid input not a number'
 
                 
-#******************************* End of user commands ********************************#
-                
+#******************************* End of user commands ********************************#              
 
 	def dome_location(self):
 		raw_wheel_output = LJ.getFeedback(u3.QuadratureInputTimer()) #This will constantly update the current position of the dome
@@ -282,8 +273,6 @@ class LabjackServer:
 # to use a different process.
 #
 
-
-
 	def dome_relays(self, command): # 
 		'''Move the dome clockwise, anticlockwise or stop dome motion'''
 		commands = str.split(command)
@@ -329,8 +318,6 @@ class LabjackServer:
 			while counts_to_move > 180*self.counts_per_degree: counts_to_move = counts_to_move - int(360*self.counts_per_degree)
 			while counts_to_move < -180*self.counts_per_degree: counts_to_move = counts_to_move + int(360*self.counts_per_degree)
 			return str(counts_to_move)
-
-
 
 
 

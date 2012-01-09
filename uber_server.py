@@ -16,9 +16,9 @@ class UberServer:
 	# We set clients, one for each device we are talking to
 
 	labjack_client = client_socket.ClientSocket("labjack",telescope_type) #23456 <- port number
-	#telescope_client = client_socket.ClientSocket("telescope",telescope_type)  #23458 <- port number
-	#weatherstation_client = client_socket.ClientSocket("weatherstation",telescope_type) #23457 <- port number
-	#imagingsourcecamera_client = client_socket.ClientSocket("imagingsourcecamera",telescope_type) #23459 <- port number
+	telescope_client = client_socket.ClientSocket("telescope",telescope_type)  #23458 <- port number
+	weatherstation_client = client_socket.ClientSocket("weatherstation",telescope_type) #23457 <- port number
+	imagingsourcecamera_client = client_socket.ClientSocket("imagingsourcecamera",telescope_type) #23459 <- port number
 
 	dome_tracking = False
 
