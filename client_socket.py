@@ -44,9 +44,10 @@ class ClientSocket:
 
 	def send_command(self, command):
 #sends a command to the device server and waits for a response
-		self.client.send(command)
+		try: self.client.send(command)
+		except Exception: return 'Error sending command, connection likely lost.'
 		try: return self.client.recv(1024)
-		except Exception: return
+		except Exception: return 'Error reciving response'
 
 
 

@@ -44,16 +44,16 @@ class UberServer:
 		else: return 'To get a list of commands for the labjack type "labjack help".'
 
 
-	def cmd_meademount(self,the_command):
-		'''A user can still access the low level commands from the meademount using this command. ie
-		type 'meademount help' to get all the available commands for the meademount server.'''
+	def cmd_telescope(self,the_command):
+		'''A user can still access the low level commands from the telescope using this command. ie
+		type 'telescope help' to get all the available commands for the telescope server.'''
 		commands = str.split(the_command)
 		if len(commands) > 1:
 			del commands[0]
-			command_for_meademount = ' '.join(commands)
-			response = self.telescope_client.send_command(command_for_meademount)
+			command_for_telescope = ' '.join(commands)
+			response = self.telescope_client.send_command(command_for_telescope)
 			return str(response)
-		else: return 'To get a list of commands for the meademount type "meademount help".'
+		else: return 'To get a list of commands for the telescope type "telescope help".'
 
 	def cmd_weatherstation(self,the_command):
 		'''A user can still access the low level commands from the weatherstation using this command. ie
