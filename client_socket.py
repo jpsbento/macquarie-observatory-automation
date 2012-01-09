@@ -12,6 +12,7 @@ class ClientSocket:
 		try: devicefile = open('device_list.txt')
 		except Exception: print 'ERROR file "device_list.txt" not found'
 		device_list = devicefile.readlines()
+		devicefile.close()
 		IP = ''
 		Port = ''
 		IP_column = ''

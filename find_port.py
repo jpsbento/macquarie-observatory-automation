@@ -5,8 +5,9 @@ class FindPort:
 	def __init__(self,device):
 		self.device = device
 		try: devicefile = open('device_list.txt')
-		except Exception: print 'ERROR file "device_list.txt" not found'
+		except Exception: return 'ERROR file "device_list.txt" not found'
 		device_list = devicefile.readlines()
+		devicefile.close()
 		Port = ''
 		Port_column = ''
 		if device_list[0][0] == '#':
@@ -23,5 +24,5 @@ class FindPort:
 					IP = item[IP_column]
 					Port = int(item[Port_column])
 				except Exception: print 'ERROR3'
-		return str(Port)
+		return int(Port)
 
