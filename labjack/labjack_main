@@ -5,8 +5,9 @@ import sys
 sys.path.append('..')
 import server_socket
 import find_port
+f = find_port.FindPort()
+Port = f.findPort('labjack')
 lj=labjack_server.LabjackServer()
-Port = find_port.FindPort('labjack')
 ss=server_socket.ServerSocket(Port, 'labjack', lj)	
 ss.add_job(lj.dome_location)
 ss.add_job(lj.home_tracker)

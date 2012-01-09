@@ -114,16 +114,16 @@ class UberServer:
 		except Exception: "Error with star centering"
 
 		if dNorth >= 0: 
-			jog_response = self.telescope_client.send('jog N '+str(dNorth))
+			jog_response = self.telescope_client.send_command('jog N '+str(dNorth))
 			if jog_response == 'ERROR': return 'ERROR'
 		else: 
-			jog_response = self.telescope_client.send('jog S '+str(float(dNorth)*-1)) # Always send a postive jog distance
+			jog_response = self.telescope_client.send_command('jog S '+str(float(dNorth)*-1)) # Always send a postive jog distance
 			if jog_response == 'ERROR': return 'ERROR'
 		if aAz >= 0: 
-			jog_response = self.telescope_client.send('jog E '+str(dEast))
+			jog_response = self.telescope_client.send_command('jog E '+str(dEast))
 			if jog_response == 'ERROR': return 'ERROR'
 		else: 
-			jog_response = self.telescope_client.send('jog W '+str(float(dEast)*-1))
+			jog_response = self.telescope_client.send_command('jog W '+str(float(dEast)*-1))
 			if jog_response == 'ERROR': return 'ERROR'
 
 		return 'Successful centering of star'
