@@ -3,4 +3,20 @@ sb.SBIGUnivDrvCommand(sb.CC_OPEN_DRIVER, None,None)
 r = sb.QueryUSBResults()
 sb.SBIGUnivDrvCommand(sb.CC_QUERY_USB, None,r)
 r.camerasFound
+r.usbInfo[0].name
+p = sb.OpenDeviceParams()
+p.deviceType=0x7F00
+sb.SBIGUnivDrvCommand(sb.CC_OPEN_DEVICE, p, None)
+p = sb.EstablishLinkParams()
+r = sb.EstablishLinkResults()
+sb.SBIGUnivDrvCommand(sb.CC_ESTABLISH_LINK,p,r)
+p = sb.GetCCDInfoParams()
+p.request = 0
+r = sb.GetCCDInfoResults0()
+sb.SBIGUnivDrvCommand(sb.CC_GET_CCD_INFO,p,r)
+r.readoutInfo[0].width
+r.readoutInfo[0].height
+hex(r.readoutInfo[0].gain
+hex(r.readoutInfo[0].pixel_width)
+sb.SBIGUnivDrvCommand(sb.CC_CLOSE_DEVICE, None,None)
 sb.SBIGUnivDrvCommand(sb.CC_CLOSE_DRIVER, None,None)
