@@ -12,7 +12,11 @@ fs
 find
 getTargetRaDec
 mountGetRaDec
+getRA
+getDec
 mountGetAzAlt
+getAzimuth
+getAltitude
 moveTelescope
 findHome
 jog

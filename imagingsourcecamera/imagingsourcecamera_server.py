@@ -46,6 +46,7 @@ class ImagingSourceCameraServer:
 	gainDefault = 1023
 	brightnessDefault = 0
 	gammaDefault = 100
+
 	
 	#Put in the allowed values for each option
 	#We give an array for each variable
@@ -60,9 +61,9 @@ class ImagingSourceCameraServer:
 
 	# writing all these in arrays shortens the code later on
 	properties = ['frame rate', 'Exposure, Auto', 'Exposure (Absolute)', 'Gain', 'Brightness', 'Gamma']
-	default_values = [frameRateDefault, exposureAutoDefault, exposureAbsoluteDefault, brightnessDefault, gammaDefault]
+	set_values = [frameRateDefault, exposureAutoDefault, exposureAbsoluteDefault, gainDefault, brightnessDefault, gammaDefault]
 	allowed_range = [frameRateRange, exposureAutoRange, exposureAbsoluteRange, gainRange, brightnessRange, gammaRange]
-	set_values = [frameRateDefault, exposureAutoDefault, exposureAbsoluteDefault, brightnessDefault, gammaDefault]
+	default_values = [frameRateDefault, exposureAutoDefault, exposureAbsoluteDefault, gainDefault, brightnessDefault, gammaDefault]
 	# We initially have the values to set as being the default values (some values unicap gave)
 	
 	
@@ -71,37 +72,34 @@ class ImagingSourceCameraServer:
 #******************************* The main camera commands ***********************************#
 
 
-	def cmd_captureImages(self,the_command):
-		'''This will capture images and save them to fits files (and jpeg for easy viewing) with the specified 
-		filename. If the number of images to capture is greater than one, the images saved will be numbered, ie:
-		filename_1.fits filename_2.fits filename_3.fits and so on.'''
+	def cmd_captureImages(self, the_command):
+		'''This takes the photos to be used for science. Input the name of the images to capture (images will then be
+		numbered: ie filename1.fits filename2.fits) and the number of images to capture. Note: when specifying a filename
+		you do not need to include the extention: ie input "filename" not "filename.fits"'''
 		commands = str.split(the_command)
-		if len(commands) =! 3: return 'ERROR'
-		filename = commands[1]
-		try: number_of_images = int(commands[2])
-		except Exception: return 'ERROR input number of images to take in integer form'
-		capture = self.capture_images(filename, upperlimit)
+		if len(commands) != 3: return 'Please input number of images to capture.'
+		try: int(commands[2])
+		except Exception: return 'Invalid number.'
+		upperlimit = int(commands[2])
+		base_filename = commands[1]
+		capture = self.capture_images(base_filename, upperlimit)
 		if not capture: return 'ERROR capturing images'
-		return 'Finished capturing'
+		return 'Capture complete'
 
 		
 	def cmd_setCameraValues(self,the_command):
-		'''This sets up the camera with the exposure settings etc. wanted by the user. If no input is given
-		this will list the allowed values for each of the settings, otherwise a user can set each setting individually. 
-		The properties are: FrameRate, ExposureAuto, ExposureAbs, Gain, Brightness, Gamma. To set a property type:
-		setCameraValues FrameRate 3 \nTo get a list of properties type: setCameraValues show.\nTo use the default settings
-		type "setCameraValues default"'''
+		'''This sets up the camera with the exposure settings etc. wanted by the user. If no input is given this will list the allowed values for each of the settings, otherwise a user can set each setting individually. The properties are: \nFrameRate \nExposureAuto \nExposureAbs \nGain \nBrightness \nGamma. \nTo set a property type: setCameraValues FrameRate 3 \nTo get a list of properties type: setCameraValues show.\nTo use the default settings type "setCameraValues default"'''
 		commands = str.split(the_command)
 		if len(commands) == 1:
 			message = ""
 			for i in range(0, len(self.properties)-1):
-				message += " property: "+properties[i]+', allowed range: '+str(self.allowed_range[i][0])+' to '+str(self.allowed_range[i][-1])+', in increments of: '+str(int(self.allowed_range[i][1]) - int(self.allowed_range[i][0]))+"\n"
+				message += " property: "+self.properties[i]+', allowed range: '+str(self.allowed_range[i][0])+' to '+str(self.allowed_range[i][-1])+', in increments of: '+str(float(self.allowed_range[i][1]) - int(self.allowed_range[i][0]))+"\n"
 			return message
 		elif len(commands) == 2 and commands[1] == 'show':
 			message = ''
-			for i in range(0, len(self.properties)-1):
-				message += properties[i]+' '+set_values[i]+'\n'
-			return message
+			for i in range(0, len(self.properties)):
+				message += '\n'+self.properties[i]+': '+str(self.set_values[i])
+			return message+'\n'
 
 		elif len(commands) == 2 and commands[1] == 'default':
 			for i in range(0,len(self.properties)-1):
@@ -116,17 +114,20 @@ class ImagingSourceCameraServer:
 			pro = commands[1]
 			try: float(commands[2])
 			except Exception: return 'Invalid input'
-			if pro == 'FrameRate' and float(commands[2]) in self.allowed_range[0]: self.set_values[0] == float(commands[2])
-			elif pro == 'ExposureAuto' and float(commands[2]) in self.allowed_range[1]: self.set_values[1] == float(commands[2])
-			elif pro == 'ExposureAbs' and float(commands[2]) in self.allowed_range[2]: self.set_values[2] == float(commands[2])
-			elif pro == 'Gain' and float(commands[2]) in self.allowed_range[3]: self.set_values[3] == float(commands[2])
-			elif pro == 'Brightness' and float(commands[2]) in self.allowed_range[4]: self.set_values[4] == float(commands[2])
-			elif pro == 'Gamma' and float(commands[2]) in self.allowed_range[5]: self.set_values[5] == float(commands[2])*100.0
+			if pro == 'FrameRate' and float(commands[2]) in self.allowed_range[0]: self.set_values[0] = float(commands[2])
+			elif pro == 'ExposureAuto' and float(commands[2]) in self.allowed_range[1]: self.set_values[1] = int(commands[2])
+			elif pro == 'ExposureAbs' and float(commands[2]) in self.allowed_range[2]: self.set_values[2] = int(commands[2])
+			elif pro == 'Gain' and float(commands[2]) in self.allowed_range[3]: self.set_values[3] = int(commands[2])
+			elif pro == 'Brightness' and float(commands[2]) in self.allowed_range[4]: self.set_values[4] = int(commands[2])
+			elif pro == 'Gamma' and float(commands[2]) in self.allowed_range[5]: self.set_values[5] = int(commands[2])
 			else: return 'Invalid input, type "setCameraValues show" for a list of allowed inputs and ranges'
 			for i in range(0,len(self.properties)-1):
 				prop = self.dev.get_property( self.properties[i] )
 				prop['value'] = float(self.set_values[i])
-				self.dev.set_property( prop )
+				try: self.dev.set_property( prop )
+				except Exception: 
+					self.set_values[i] = self.default_values[i]
+					return 'Property update failed. Error when updating: '+str(prop['identifier'])
 		return str(pro)+' value updated'
 		
 
@@ -163,20 +164,7 @@ class ImagingSourceCameraServer:
 		
 		
 		
-	def cmd_captureImages(self, the_command):
-		'''This takes the photos to be used for science. Input the name of the images to capture (images will then be
-		numbered: ie filename1.fits filename2.fits) and the number of images to capture. Note: when specifying a filename
-		you do not need to include the extention: ie input "filename" not "filename.fits"'''
-		commands = str.split(the_command)
-		if len(commands) != 3: return 'Please input number of images to capture.'
-		try: int(commands[2])
-		except Exception: return 'Invalid number.'
-		upperlimit = int(commands[2])
-		base_filename = commands[1]
 
-		capture = self.capture_images(base_filename, upperlimit)
-		if not capture: return 'ERROR capturing images'
-		return 'Capture complete'
 
 
 	def cmd_orientationCapture(self, the_command):  # need to have some define settings for this perhaps who knows
@@ -195,9 +183,10 @@ class ImagingSourceCameraServer:
 			elif commands[1] == 'East' and self.is_float_try(commands[2]):
 				image_name = 'east_orientation'
 				self.east_move_arcsecs = float(commands[2])
+			else: return 'ERROR see help'
 		else: return 'Invalid input'
 
-		capture = capture_images(base_filename, upperlimit)
+		capture = self.capture_images(image_name, 1)
 		if not capture: return 'ERROR capturing image'
 
 		return str(commands[1])+' image captured.' # change this to a number perhaps for ease when automating
@@ -212,7 +201,7 @@ class ImagingSourceCameraServer:
 		except Exception: return 'ERROR'
 		filename = 'focusImage'
 
-		capture = self.capture_images(base_filename, upperlimit)
+		capture = self.capture_images(filename, 1)
 		if not capture: return 'ERROR capturing images'
 
 		bright_star_info = self.analyseImage(filename+'.fits', 'focus_output.txt')
@@ -304,7 +293,7 @@ class ImagingSourceCameraServer:
 		a known magnitude, reading out the maginitude from IRAF and then calculating the conversion to use for all
 		future stars.'''
 		commands = str.split(the_command)
-		if len(commands) =! 2: return 'ERROR, input actual star magnitude'
+		if len(commands) != 2: return 'ERROR, input actual star magnitude'
 		try: star_magnitude = float(commands[1])
 		except Exception: return 'ERROR, input number for star magnitude'
 
@@ -325,7 +314,6 @@ class ImagingSourceCameraServer:
 		'''This takes the photos to be used for science. Input the name of the images to capture (images will then be
 		numbered: ie filename1.fits filename2.fits) and the number of images to capture. Note: when specifying a filename
 		you do not need to include the extention: ie input "filename" not "filename.fits"'''
-		commands = str.split(the_command)
 		try: int(upperlimit)
 		except Exception: return False
 
@@ -379,7 +367,7 @@ class ImagingSourceCameraServer:
 		for lines in startemp:
 			if lines[0][0] != '#': #don't want the comments
 				linetemp = str.split(lines)
-				print linetemp
+				#print linetemp
 				if 1: #float(linetemp[2]) < brighteststar:
 					starmag = 1 #float(linetemp[2])
 					xpixel = float(linetemp[0])
