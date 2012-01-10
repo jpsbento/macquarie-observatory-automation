@@ -10,28 +10,15 @@ import sys
 import select
 import string
 from datetime import datetime
-from socket import *
-#import binascii
 
 #Open port 0 at "9600,8,N,1", timeout of 5 seconds
-ser = serial.Serial(0)  #open first serial port
+ser = serial.Serial('/dev/ttyUSB1',9600,timeout=10)  #open first serial port
 print ser.portstr       #check which port was really used
 
 
 class WeatherstationServer:
 
-	IP = ''
-	PORT = 23460
-	ADS = (IP, PORT)
 
-	server = socket(AF_INET, SOCK_STREAM)
-	server.bind(ADS)
-	server.setblocking(0)
-	server.listen(5) #will allow 5 clients to connect with server
-	#server.setsockopt(1, 2, 1)
-
-	CLIENTS = []
-	input = [server, sys.stdin]
 #Global variables
 
 	data = []
@@ -125,9 +112,9 @@ class WeatherstationServer:
 		#they should be configured to automatically close.
 		self.slitvariable = cloudvariable*rainvariable*lightvariable #if = 1, it's safe for slits to be open! Unsafe otherwise.
 
-		print message
-		print str(cloudvariable)+' '+str(rainvariable)+' '+str(lightvariable)+' '+str(self.slitvariable)
-		print str(self.sequence)+" "+str(self.tempair)+" "+str(self.tempsky)+" "+str(self.clarity)+" "+str(self.light)+" "+str(self.rain)+" "+str(self.alertstate)
+		#print message
+		#print str(cloudvariable)+' '+str(rainvariable)+' '+str(lightvariable)+' '+str(self.slitvariable)
+		#print str(self.sequence)+" "+str(self.tempair)+" "+str(self.tempsky)+" "+str(self.clarity)+" "+str(self.light)+" "+str(self.rain)+" "+str(self.alertstate)
 		self.log(message)
 
 		return
@@ -137,41 +124,5 @@ class WeatherstationServer:
 		f = open('weatherlog.txt','a')
 		f.write(str(datetime.now())+" "+str(message)+'\n'),
 		f.close()
-
-
-	def socket_funct(self):
-		for s in self.input:
-			if s == self.server:
-				#handle server socket
-				try:
-					client, address = self.server.accept()
-					client.setblocking(0)
-					self.input.append(client)
-					self.CLIENTS.append(client)
-					self.input[-1].send(str(self.slitvariable))
-					return 
-				except IOError:
-					#print 'broken'
-					return 
-			elif s == sys.stdin:
-				#handle standard input
-				junk = string.split(sys.stdin.readline())
-				if junk[0] == "quit" or junk[0] == "exit" or junk[0] == "bye":
-					log("Manually shut down. Goodbye.")
-					running = 0 #so if we type anything into the server it will quit.
-					return 
-				else:
-					log('Error, command not expected, type "exit" or "quit" to exit server.')
-					return 
-			else:
-				#handle all other sockets
-				data = str(s.recv(1024))
-				if data:
-					return data
-				else:
-					s.close()
-					input.remove(s)
-					return 
-
 
 

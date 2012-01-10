@@ -4,9 +4,12 @@ import weatherstation_server
 import sys
 sys.path.append('..')
 import server_socket
+import find_port
+f = find_port.FindPort()
+Port = f.findPort('weatherstation')
 ws=weatherstation_server.WeatherstationServer()
-ss=server_socket.ServerSocket(23457, 'weatherstation', ws)	
+ss=server_socket.ServerSocket(Port, 'weatherstation', ws)	
 ss.add_job(ws.serialread)
-ss.add_job(ws.socket_funct)
+#ss.add_job(ws.socket_funct)
 ss.run()
 ss.close()
