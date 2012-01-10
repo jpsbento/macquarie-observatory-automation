@@ -5,6 +5,6 @@ import sys
 #sys.path.append('..')
 import server_socket
 ub=uber_server.UberServer()
-ss=server_socket.ServerSocket(23556, 'Super User', ub)	
+ss=server_socket.ServerSocket(23555, 'Super User', ub)	
 ss.run()
 ss.close()

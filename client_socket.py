@@ -7,7 +7,7 @@ from datetime import datetime
 class ClientSocket:
 
 	def __init__(self,device,telescope_type):
-#Set up the class properties "server", "input", "hardware_name" and "hardware_object"
+		#Set up the class properties "server", "input", "hardware_name" and "hardware_object"
 		self.device = device
 		try: devicefile = open('device_list.txt')
 		except Exception: print 'ERROR file "device_list.txt" not found'
@@ -47,7 +47,7 @@ class ClientSocket:
 #sends a command to the device server and waits for a response
 		try: self.client.send(command)
 		except Exception: return 'Error sending command, connection likely lost.'
-		try: return self.client.recv(1024)
+		try: return self.client.recv(5000)
 		except Exception: return 'Error reciving response'
 
 

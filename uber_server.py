@@ -3,14 +3,15 @@
 
 import os
 import client_socket
+import time
 
 
 class UberServer:
 
  	
 	# A list of the telescopes we have, comment out all but the telescope you wish to connect with:
-	telescope_type = 'bisquemount'
-	#telescope_type = 'meademount'
+	#telescope_type = 'bisquemount'
+	telescope_type = 'meademount'
 
 
 	# We set clients, one for each device we are talking to
@@ -29,7 +30,6 @@ class UberServer:
 	def cmd_finishSession(self,the_command):
 		'''Close the slits, home the dome, home the telescope, put telescope in sleep mode.'''
 		# actual stuffs for this to come
-
 
 
 	def cmd_labjack(self,the_command):
@@ -90,7 +90,6 @@ class UberServer:
 		else: return 'Invalid input, on/off expected.'
 
 
-
 	def cmd_orientateCamera(self, the_command):
 		'''This will control the camera and the telescope to get the camera orientation.'''
 		self.imagingsourcecamera_client.send_command('orientationCapture base')
@@ -148,10 +147,7 @@ class UberServer:
 		return str(focusposition) # return the best focus position
 				
 
-
 #***************************** End of User Commands *****************************#
-
-
 
 
 	def dome_tracking(self,command):
@@ -180,14 +176,13 @@ class UberServer:
 		self.labjack_client.waiting_messages()
 
 
-
-
-
-
-
-			
-			
-
+	def monitor_slits(self):
+		'''This will be a background task that monitors the output from the weatherstation and will decide whether
+		it is safe to keep the slits open or not'''
+		weather = weatherstation_client.send_command('safe')
+		if not weather:
+			response = labjack_client.send_command('slits close')
+			print response  # Need to find a way to send this over sockets so the user knows
 
 
 

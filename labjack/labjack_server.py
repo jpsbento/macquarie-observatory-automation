@@ -182,6 +182,15 @@ class LabjackServer:
 			return "Dome's current position: "+str(self.current_position/self.counts_per_degree)+" degrees. Dome moving."
 		else: return 'ERROR invalid input not a number'
 
+
+	def cmd_slits(self, the_command):
+		'''Command to open and close the slits.'''
+		commands = str.split(the_command)
+		if len(commands) != 2: return 'ERROR'
+		if commands[1] == 'open': return 'slits open'
+		elif commands[2] == 'close': return 'slits closed'
+		else: return 'ERROR'
+
                 
 #******************************* End of user commands ********************************#              
 

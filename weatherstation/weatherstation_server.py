@@ -60,6 +60,10 @@ class WeatherstationServer:
 		'''Returns all the latest data output from the weather station.'''
 		return "Clarity: "+str(self.clarity)+"\nLight: "+str(self.light)+"\nRain: "+str(self.rain)+"\nAir temperature: "+str(self.tempair)+"\nSky temperature: "+str(self.tempsky)
 
+	def cmd_safe(self, the_command):
+		'''Returns a 1 if it is safe to open the dome slits, and returns a zero otherwise.'''
+		return self.slitvariable
+
 
 
 #************************* End of user commands ********************************#

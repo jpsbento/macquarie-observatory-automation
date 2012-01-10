@@ -6,7 +6,6 @@ import os
 sys.path.append('..')
 import server_socket
 import find_port
-
 f = find_port.FindPort()
 Port = f.findPort('labjack')
 lj=labjack_server.LabjackServer()

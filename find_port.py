@@ -5,8 +5,8 @@ class FindPort:
 	def findPort(self, device):
 		self.device = device
 
-                devicefile = open('/home/phy-admin/macquarie-observatory-automation/device_list.txt','r')
-	#	except Exception: print 'ERROR file "device_list.txt" not found'
+              	try: devicefile = open('/home/phy-admin/macquarie-observatory-automation/device_list.txt','r')
+		except Exception: print 'ERROR file "device_list.txt" not found'
 		device_list = devicefile.readlines()
 		devicefile.close()
 		Port = ''
