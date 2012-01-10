@@ -82,7 +82,6 @@ class ImagingSourceCameraServer:
 		capture = self.capture_images(base_filename, upperlimit)
 		if not capture: return 'ERROR capturing images'
 		return 'Capture complete'
-
 		
 	def cmd_setCameraValues(self,the_command):
 		'''This sets up the camera with the exposure settings etc. wanted by the user. If no input is given this will list the allowed values for each of the settings, otherwise a user can set each setting individually. The properties are: \nFrameRate \nExposureAuto \nExposureAbs \nGain \nBrightness \nGamma. \nTo set a property type: setCameraValues FrameRate 3 \nTo get a list of properties type: setCameraValues show.\nTo use the default settings type "setCameraValues default"'''
@@ -126,8 +125,6 @@ class ImagingSourceCameraServer:
 					self.set_values[i] = self.default_values[i]
 					return 'Property update failed. Error when updating: '+str(prop['identifier'])
 		return str(pro)+' value updated'
-		
-
 
 	def cmd_starDistanceFromCenter(self, the_command):
 		'''This checks the position of the brighest star in shot with reference to the center of the frame and
@@ -159,7 +156,6 @@ class ImagingSourceCameraServer:
 		return [dArcsecN, dArcsecE] 
 		# ^ This returns the distance between the central pixel and the brightest star in arcseconds in the North and East directions		
 		
-
 	def cmd_orientationCapture(self, the_command):  # need to have some define settings for this perhaps who knows
 		'''This will take the photos for camera orientation and automatically name them so that another function 
 		can calculate the orientation easily. For the base photograph type the command "base", to take the 
@@ -200,8 +196,6 @@ class ImagingSourceCameraServer:
 		bright_star_info = self.analyseImage(filename+'.fits', 'focus_output.txt')
 		sharpness_value = bright_star_info[3]
 		return sharpness_value
-		
-
 
 	def cmd_calculateCameraOrientation(self, the_command):
 		'''This does the maths for the camera orientation. In this we treat the x axis as the North axis'''
@@ -299,7 +293,6 @@ class ImagingSourceCameraServer:
 		return 'Magnitude correction calibrated'
 
 
-
 #*********************************** End of user commands ***********************************#
 
 	def capture_images(self, base_filename, upperlimit):
@@ -340,14 +333,12 @@ class ImagingSourceCameraServer:
 		brightest_star_info = self.find_brightest_star(outfile)
 		return brightest_star_info
 
-
 	def is_float_try(self, stringtry):
 		try:
 			float(stringtry)
 			return True
 		except ValueError:
 			return False
-
 
 	def find_brightest_star(self, readinfile):
 		try: starfile = open(readinfile)
@@ -366,7 +357,6 @@ class ImagingSourceCameraServer:
 					ypixel = float(linetemp[1])
 					starsharp = float(linetemp[3])
 		return [starmag, xpixel, ypixel, starsharp]
-	
 
 	def check_if_file_exists(self, filename):
 		#i = 0 # counter to stop this going on forever

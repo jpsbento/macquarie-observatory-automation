@@ -4,9 +4,6 @@
 
 import serial
 import sys
-#if sys.version_info[0] >= 3:
-#	bin = "{0:#0b}".format
-#	from functools import reduce
 import select
 import string
 from datetime import datetime
@@ -65,7 +62,6 @@ class WeatherstationServer:
 		return self.slitvariable
 
 
-
 #************************* End of user commands ********************************#
 
 #Background task that reads data from the weather station and records it to a file
@@ -83,8 +79,6 @@ class WeatherstationServer:
 		self.rain = float(self.data[7])/10.0  #Non calibrated value, normal range of about 0 to 30
 		self.alertstate = self.data[10]
 		alertdigit = int(self.alertstate, 16)
-		#print self.alertstate
-		#print alertdigit
 
 		#Initally set the alert variable to 0 (= Unsafe)
 		cloudvariable = 0 #this will be set to 1 if it is clear
@@ -106,21 +100,11 @@ class WeatherstationServer:
 		elif ((alertdigit >> 4) & 1): message += ' light,'
 		else: message += ' very light,'
 
-		if ((alertdigit >> 7) & 1): message += ' energised, safe for dome to open.' #I think this relay unsafe business
-		else: message += ' not energised.'				#is whether it is safe to observe
-									#it's triggered by certain factors
+		if ((alertdigit >> 7) & 1): message += ' energised, safe for dome to open.'
+		else: message += ' not energised.'					
 
-
-		#When the electronics for the slits is actually in place we can send the slits this value at a regular interval
-		#to tell it whether it is safe to stay open or not. If at any point the slits lose contact with the weather-station
-		#they should be configured to automatically close.
 		self.slitvariable = cloudvariable*rainvariable*lightvariable #if = 1, it's safe for slits to be open! Unsafe otherwise.
-
-		#print message
-		#print str(cloudvariable)+' '+str(rainvariable)+' '+str(lightvariable)+' '+str(self.slitvariable)
-		#print str(self.sequence)+" "+str(self.tempair)+" "+str(self.tempsky)+" "+str(self.clarity)+" "+str(self.light)+" "+str(self.rain)+" "+str(self.alertstate)
 		self.log(message)
-
 		return
 
 	#definition to log the output, stores all data in a file

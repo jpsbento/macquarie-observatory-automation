@@ -5,17 +5,13 @@ import os
 import client_socket
 import time
 
-
 class UberServer:
-
- 	
+	
 	# A list of the telescopes we have, comment out all but the telescope you wish to connect with:
 	#telescope_type = 'bisquemount'
 	telescope_type = 'meademount'
 
-
 	# We set clients, one for each device we are talking to
-
 	labjack_client = client_socket.ClientSocket("labjack",telescope_type) #23456 <- port number
 	telescope_client = client_socket.ClientSocket("telescope",telescope_type)  #23458 <- port number
 	weatherstation_client = client_socket.ClientSocket("weatherstation",telescope_type) #23457 <- port number
@@ -23,14 +19,11 @@ class UberServer:
 
 	dome_tracking = False
 
-
 #***************************** A list of user commands *****************************#
-
 
 	def cmd_finishSession(self,the_command):
 		'''Close the slits, home the dome, home the telescope, put telescope in sleep mode.'''
 		# actual stuffs for this to come
-
 
 	def cmd_labjack(self,the_command):
 		'''A user can still access the low level commands from the labjack using this command. ie
@@ -42,7 +35,6 @@ class UberServer:
 			response = self.labjack_client.send_command(command_for_labjack)
 			return str(response)
 		else: return 'To get a list of commands for the labjack type "labjack help".'
-
 
 	def cmd_telescope(self,the_command):
 		'''A user can still access the low level commands from the telescope using this command. ie
@@ -77,7 +69,6 @@ class UberServer:
 			return str(response)
 		else: return 'To get a list of commands for the imaging source camera type "imagingsourcecamera help".'
 
-
 	def cmd_setDomeTracking(self,the_command):
 		'''Can set the dome tracking to be on or off'''
 		commands = str.split(the_command)
@@ -88,7 +79,6 @@ class UberServer:
 		if commands[1] == 'on': self.dome_tracking = True
 		elif commands[1] == 'off': self.dome_tracking = False
 		else: return 'Invalid input, on/off expected.'
-
 
 	def cmd_orientateCamera(self, the_command):
 		'''This will control the camera and the telescope to get the camera orientation.'''
@@ -101,7 +91,6 @@ class UberServer:
 		self.imagingsourcecamera_client.send_command('orientationCapture east 1') # Should add some responses here to keep track
 		response = self.imagingsourcecamera_client.send_command('calculateCameraOrientation')
 		return response
-
 
 	def cmd_centerStar(self, the_command):
 		'''This pulls together commands from the camera server and the telescope server so we can
@@ -149,7 +138,6 @@ class UberServer:
 
 #***************************** End of User Commands *****************************#
 
-
 	def dome_tracking(self,command):
 		'''This will slew the dome to the azimuth of the telescope automatically if dome
 		tracking is turned on.'''
@@ -171,10 +159,8 @@ class UberServer:
 	# We have a potential confusion in the above function as the labjack will output it's azimuth in its coordinate
 	# system, not the telescope's
 
-
 	def waiting_messages(self): # I don't think this will work...
 		self.labjack_client.waiting_messages()
-
 
 	def monitor_slits(self):
 		'''This will be a background task that monitors the output from the weatherstation and will decide whether

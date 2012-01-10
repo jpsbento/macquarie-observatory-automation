@@ -34,7 +34,7 @@ class MeademountServer:
 
 #************************************************ USER COMMANDS FOR TELESCOPE ************************************************#
 
-#************************************************ Most useful commands ************************************************#		
+#**************************************************** Most useful commands ***************************************************#		
 
 	def cmd_getRA(self,the_command):
 		'''Returns the current right ascension of the telescope.'''
@@ -94,7 +94,6 @@ class MeademountServer:
 		responseSlew = self.cmd_slewObjectCoord('slewObjectCoord')
 		return responseSlew
 
-
 	def cmd_slewToAzAlt(self,the_command):
 		'''Point the telescope at a specific Altitude and Azimuth, input Alt first then Az.'''
 		commands = str.split(the_command)
@@ -107,8 +106,6 @@ class MeademountServer:
 		responseSlew = self.cmd_slewObjectCoord('slew_ObjectCoord')
 		return responseSlew
 
-
-	#Here have a jog command perhaps
 	def cmd_jog(self,the_command):
 		'''Give it a distance to move and a direction, ie N S E or W and the telescope will move
 		by that amount. ie type "jog N 1" to jog the telescope north by 1 arcmin'''
@@ -144,8 +141,6 @@ class MeademountServer:
 			return responseSlew
 		else: return 'ERROR'
 
-
-
 	def cmd_s(self,the_command):
 		'''Stops all motion of the telescope.'''
 		ser.write(':Q#')
@@ -154,8 +149,6 @@ class MeademountServer:
 		ser.write(':Qe#')
 		ser.write(':Q#')
 		return 'Telescope movement stopped.'
-
-
 
 	def cmd_setFocus(self,the_command):
 		''''out' starts focus out, 'in' starts focus in, 'stop' stops focus
@@ -210,7 +203,6 @@ class MeademountServer:
 		ser.write(':GC#')
 		return ser.readline()
 
-
 	def cmd_setCalanderDate(self,the_command): #need to check output
 		'''Sets the calendar date. Please input in form: MM/DD/YY ie 08/25/89.'''
 		commands = str.split(the_command)
@@ -227,12 +219,10 @@ class MeademountServer:
 			else: return "ERROR, incorrect input length."
 		else: return "ERROR, incorrect input length"
 
-
 	def cmd_getDistBars(self,the_command):
 		'''Gets te distance 'bars' string.'''
 		ser.write(':D#')
 		return ser.readline()
-
 
 	def cmd_setFan(self,the_command):
 		'''Turns the fan on ('on') and off ('off') or returns the
@@ -251,16 +241,12 @@ class MeademountServer:
 			else: return 'ERROR, invalid input'
 		else: return 'ERROR, invalid input length'
 
-
-
-
 	def cmd_fieldOperation(self,the_command):
 		'''Performs a FIELD operation returning a string containing
 		the number of objects in the field and the object that is
 		closest to the center of the field.'''
 		ser.write(':Lf#')
 		return ser.readline()
-
 
 	def cmd_getFieldRadius(self,the_command):
 		'''Gets the field radius of the FIELD operation.'''
@@ -322,8 +308,6 @@ class MeademountServer:
 		ser.write(':Sq#')
 		return 'Stepped to next min quantity for FIND'
 
-
-
 	def cmd_getFindType(self,the_command):
 		'''Gets the "type" string for the FIND operation. A capital letter
 		means that the corresponding type is selected while a lower case
@@ -359,7 +343,6 @@ class MeademountServer:
 		ser.write(':GG#')
 		return ser.readline()
 		
-
 	def cmd_setGMToffset(self,the_command):
 		'''Sets the offset from Greenwich Mean Time. Input as sHH ie '-05' Range:
 		-24 to +24)'''
@@ -397,8 +380,6 @@ class MeademountServer:
 				ser.write(':gT#')
 				return ser.read(1024)
 		else: return 'ERROR, invalid input'
-
-
 
 	def cmd_getLimit(self,the_command):
 		'''Gets the current higher and lower limits.'''
@@ -545,7 +526,6 @@ class MeademountServer:
 			else: return 'ERROR, invalid input.'
 		else: return 'ERROR, invalid input'
 
-
 	def cmd_setObjectAlt(self,the_command): ### DO NOT DELETE
 		'''Sets object altitude (for MA command). Please input in
 		form: sDD*MM ie +10*06, or input in degrees in decimal form.'''
@@ -607,7 +587,6 @@ class MeademountServer:
 				ser.write('Sz '+str(send_Az)+'#')
 				return ser.readline()
 		else: return 'ERROR'
-
 
 	def cmd_getObjectDec(self,the_command): ### DO NOT DELETE
 		'''Gets object declination.'''
@@ -675,8 +654,6 @@ class MeademountServer:
 				return ser.readline()
 		else: return 'ERROR' # <-- tells us there is an error
 
-
-
 	def cmd_getObjectInfo(self,the_command):
 		'''Gets the current object information.'''
 		ser.write(':LI#')
@@ -729,7 +706,6 @@ class MeademountServer:
 				else: return 'ERROR, invalid input'
 			else: return 'ERROR invalid input'
 		else: return 'ERROR, incorrect input length'
-
 
 	def cmd_slewObjectCoord(self,the_command): #*** more than one output
 		'''Slews telescope to current object coordinates. 0 returned if the
@@ -960,7 +936,6 @@ class MeademountServer:
 				return 'ERROR, incorrect input, see help'
 		else: return 'ERROR, invalid input length'
 
-
 	def cmd_setStarType(self,the_command):
 		'''Sets the STAR object library type. 0 is the STAR library
 		1 is the SAO library, and 2 is the GCVS library. This operation
@@ -1069,7 +1044,6 @@ class MeademountServer:
 		ser.write(':MA#')
 		return ser.readline()
 
-
 	def cmd_startTelescopeAutomaticAlignmentSequence(self,the_command): #NEW
 		'''Starts the Telescope Automatic Alignment Sequence. Returns
 		1 when complete (can take several minutes). 0 if scope not
@@ -1098,9 +1072,6 @@ class MeademountServer:
 		'''Syncs the telescope with the current Selenographic coordinates.'''
 		ser.write(':CL#')
 		return ser.read(1024)
-		
-
-
 
 	def cmd_meademountHelp(self,the_command): #NEW
 		'''Set help text cursor to the start of the first line. '+' for
@@ -1138,7 +1109,6 @@ class MeademountServer:
 			else: return command
 		else: return command
 
-
 	def convert_AltDec(self,command): # <-- more enlightening names are required
 		'''Converts the Alt or Dec (they are given out by the meademount in the same format)
 		into easy user friendly format'''
@@ -1167,20 +1137,12 @@ class MeademountServer:
 			except Exception: return command
 		else: return command
 
-# I think we should use the Az and Alt to orient the camera, as RA and Dec move with the sky, but Alt and Az don't
-# so that way we wont accidentally get some sky movement in our camera orientation
-	
-
-
-
 	def is_float_try(self,stringtry):
 		try:
 			float(stringtry)
 			return True
 		except ValueError:
 			return False
-
-
 
 	#definition to log the output, stores all data in a file
 	def log(self,message):
