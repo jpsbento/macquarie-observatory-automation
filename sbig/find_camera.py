@@ -1,3 +1,4 @@
+#random comment
 import sbigudrv as sb
 sb.SBIGUnivDrvCommand(sb.CC_OPEN_DRIVER, None,None)
 r = sb.QueryUSBResults()
