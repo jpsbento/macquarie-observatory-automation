@@ -170,7 +170,7 @@ class MeademountServer:
 			elif commands[1] == 'slow':
 				ser.write(':FS#')
 				return 'set focus slow'
-			elif commands[1] == '1' or '2' or '3' or '4':
+			elif commands[1] == '1'commands[1] == or commands[1] == '2' or commands[1] == '3' or commands[1] == '4':
 				ser.write(':F'+commands[1]+'#')
 				return 'set focuser speed to '+commands[1]
 			else: return 'ERROR, invalid input'
@@ -190,7 +190,7 @@ class MeademountServer:
 		if len(commands) == 2:
 			temp = list(commands[1])
 			if len(temp) == 1:
-				if temp == '0' or '1' or '2':
+				if temp == '0' or temp == '1' or temp == '2':
 					ser.write(':G'+temp+'#')
 					return ser.read(1024)
 				else: return 'ERROR, invalid input'
@@ -326,7 +326,7 @@ class MeademountServer:
 		if len(commands) == 2:
 			findtype = commands[1]
 			if len(findtype) == 5:
-				if (findtype[0] == 'G' or 'g') and (findtype[1] == 'P' 'p') and (findtype[2] == 'D' or 'd') and (findtype[3] == 'C' or 'c') and (findtype[4] == 'O' or 'o'):
+				if (findtype[0] == 'G' or findtype[0] == 'g') and (findtype[1] == 'P' or findtype[1] == 'p') and (findtype[2] == 'D' or findtype[2] == 'd') and (findtype[3] == 'C' or findtype[3] == 'c') and (findtype[4] == 'O' or findtype[4] == 'o'):
 					ser.write(':Sy '+findtype+'#')
 					return ser.readline()
 				else: return 'ERROR, invalid input'
@@ -351,7 +351,7 @@ class MeademountServer:
 			offset = commands[1]
 			temp = list(offset)
 			if (len(offset) == 3):
-				if temp[0] == '-' or '+':
+				if temp[0] == '-' or temp[0] == '+':
 					if temp[1].isdigit() and temp[2].isdigit():
 						ser.write(':SG '+offset+'#')
 						return ser.readline()
@@ -395,7 +395,7 @@ class MeademountServer:
 		limits type 'setLimit 50 20' typing the higher limit first.'''
 		commands = str.split(the_command)
 		if len(commands) == 3:
-			if (commands[1] == 'higher' or 'lower') and commands[2].isdigit():
+			if (commands[1] == 'higher' or commands[1] == 'lower') and commands[2].isdigit():
 				if commands[1] == 'higher':
 					ser.write('Sh '+str(commands[2])+'#')
 					return ser.readline()
@@ -451,7 +451,7 @@ class MeademountServer:
 		time type: 'setMagLim 15.2 5.5' writing the brighter limit first.'''
 		commands = str.split(the_command)
 		if len(commands) == 3:
-			if commands[1] == 'bright' or 'faint':
+			if commands[1] == 'bright' or commands[1] == 'faint':
 				lim = commands[2]
 				temp = list(commands[2])
 				if self.is_float_try(lim):
@@ -480,7 +480,7 @@ class MeademountServer:
 		if (len(commands) ==2):
 	
 			if int(commands[1]):
-				if int(commands[1]) < 2 or int(commands[1] > 4):
+				if int(commands[1]) < 2 or int(commands[1]) > 4:
 					return 'ERROR, value not in range'
 				else:
 					N = int(commands[1])
@@ -532,7 +532,7 @@ class MeademountServer:
 		commands = str.split(the_command)
 		if (len(commands) == 2):
 			Alt = commands[1]
-			if len(Alt) == 6 and Alt[0] == '+' or '-' and (Alt[3] == chr(223) or '*'):
+			if len(Alt) == 6 and Alt[0] == '+' or Alt[0] == '-' and (Alt[3] == chr(223) or Alt[3] == '*'):
 				try: 
 					float(Alt[1]+Alt[2]+Alt[4]+Alt[5])
 					ser.write(':Sa '+Alt+'#')
@@ -566,7 +566,7 @@ class MeademountServer:
 		commands = str.split(the_command)
 		if (len(commands) == 2):
 			Az = commands[1]
-			if len(Az) == 6 and (Az[3] == chr(223) or '*'):
+			if len(Az) == 6 and (Az[3] == chr(223) or Az[3] == '*'):
 				try: 
 					float(Az[0]+Az[1]+Az[2]+Az[4]+Az[5])
 					ser.write(':Sz '+Az+'#')
@@ -598,7 +598,7 @@ class MeademountServer:
 		commands = str.split(the_command)
 		if (len(commands) == 2):
 			DEC = commands[1]
-			if len(DEC) == 9 and (DEC[0] == '+' or '-') and (DEC[3] == chr(223) or '*'):
+			if len(DEC) == 9 and (DEC[0] == '+' or DEC[0] == '-') and (DEC[3] == chr(223) or DEC[3] == '*'):
 				try: 
 					int(DEC[1]+DEC[2]+DEC[4]+DEC[5])
 					ser.write(':Sd '+DEC+'#')
@@ -800,7 +800,7 @@ class MeademountServer:
 		if len(commands) == 2:
 			lat = commands[1]
 			sign = '+'
-			if len(lat) == 6 and lat[0] == '-' or '+' and lat[3] == '.':
+			if (len(lat) == 6 and lat[0] == '-') or (lat[0] '+' and lat[3] == '.'):
 				try: 
 					int(lat[1]+lat[2]+lat[4]+lat[5])
 					ser.write(':St '+lat+'#')
@@ -820,7 +820,7 @@ class MeademountServer:
 		commands = str.split(the_command)
 		if (len(commands) == 2):
 			lon = commands[1]
-			if len(lon) == 6 and (lon[3] == chr(223) or '*'):
+			if len(lon) == 6 and (lon[3] == chr(223) or lon[3] == '*'):
 				try: 
 					int(lon[0]+lon[1]+lon[2]+lon[4]+lon[5])
 					ser.write(':Sg '+lon+'#')
@@ -843,10 +843,10 @@ class MeademountServer:
 			smalllim = ser.readline()
 			return 'large size limit: '+str(largelim)+', small size limit: '+str(smalllim)
 		elif len(commands) == 2:
-			if commands[1] == 'large' or 'Large':
+			if commands[1] == 'large':
 				ser.write(':Gl#')
 				return ser.readline()
-			elif commands[1] == 'small' or 'Small':
+			elif commands[1] == 'small':
 				ser.write(':Gs#')
 				return ser.readline()
 			else: return 'ERROR, invalid input.'
@@ -902,7 +902,7 @@ class MeademountServer:
 		if len(commands) == 2:
 			libtype = commands[1]
 			if len(libtype) == 1 and libtype.isdigit():
-				if int(libtype) == 0 or 1 or 2:
+				if int(libtype) == 0 or int(libtype) == 1 or int(libtype) == 2:
 					ser.write(':Lo '+libtype+'#')
 					return ser.readline()
 				else: return 'ERROR, invalid input'
@@ -945,7 +945,7 @@ class MeademountServer:
 		if len(commands) == 2:
 			libtype = commands[1]
 			if len(libtype) == 1 and libtype.isdigit():
-				if int(libtype) == 0 or  1 or 2:
+				if int(libtype) == 0 or int(libtype) == 1 or int(libtype) == 2:
 					ser.write(':Ls '+libtype+'#')
 					return ser.readline()
 				else: return 'ERROR, invalid input'
@@ -1113,7 +1113,7 @@ class MeademountServer:
 		'''Converts the Alt or Dec (they are given out by the meademount in the same format)
 		into easy user friendly format'''
 		if len(str.split(command)) == 1 and len(command) == 10:
-			if command[0] == '+' or '-':
+			if command[0] == '+' or command[0] == '-':
 				try:
 					degrees = int(command[1]+command[2])
 					minutes = int(command[4]+command[5])

@@ -174,12 +174,12 @@ class BisqueMountServer:
 		operation, motion will be terminated.'''
 		commands = str.split(the_command)
 		if len(commands) == 2:
-			if commands[1] == 'in' or 'In':
+			if commands[1] == 'in':
 				ser.write('i')
 				message = ser.read(1)
 				if message[-1] == 'r': return 'Motor or encoder not working'
 				else: return message
-			elif commands[1] == 'out' or 'Out':
+			elif commands[1] == 'out':
 				ser.write('o')
 				message = ser.read(1)
 				if message[-1] == 'r': return 'Motor or encoder not working'
@@ -463,8 +463,8 @@ class BisqueMountServer:
 		dRaRate = 0.0 #initally set ra tracking rate to 0
 		dDecRate = 0.0 #initally set dec tracking rate to 0
 		if len(commands) == 5:
-			if commands[1] == 'on' or 'On': tracking = 1 #turn tracking on
-			if commands[2] == 'no' or 'No': currentrates = 0 #use the current rates input by user
+			if commands[1] == 'on': tracking = 1 #turn tracking on
+			if commands[2] == 'no': currentrates = 0 #use the current rates input by user
 			if self.is_float_try(commands[3]) and self.is_float_try(commands[4]):
 				dRaRate = commands[3]
 				dDecRate = commands[4]
