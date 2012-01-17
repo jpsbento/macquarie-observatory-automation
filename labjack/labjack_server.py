@@ -24,6 +24,8 @@ LJ.configIO(NumberOfTimersEnabled = 2, EnableCounter0 = 1)
 LJ.getFeedback(u3.Timer0Config(8), u3.Timer1Config(8)) #Sets up the dome tracking wheel
 DAC0_REGISTER = 5000  # clockwise movement
 DAC1_REGISTER = 5002  # anticlockwise movement
+LJ.writeRegister(DAC0_REGISTER, 2) # command to stop movement
+LJ.writeRegister(DAC1_REGISTER, 2)
 
 
 #***********************************************************************#
@@ -56,6 +58,8 @@ class LabjackServer:
 	domeAngleOffset = 0 	 	      	# This is the angle between the line joining the center of the telescope and the center 
 					      	# of the dome, and the line joining the telescope to the point on the dome the telescopes 
 						# is pointing, when the dome is pointing North. Not actually 0, it needs to be measured.
+
+	homing = False
 
 
 #********************** a wee diagram to clear up the dome variables: **********************#
@@ -163,16 +167,32 @@ class LabjackServer:
 			return 'Dome motion stopped'
 		elif self.dome_moving == True:
 			return "Dome moving, input only available when the dome is stationary."
+		elif len(commands) == 2 and commands[1] == 'home':
+			self.dome_relays("clockwise")
+			#temp_home = self.home_sensor_count
+			self.homing = True
+			#while homing:
+				#print 'home sensor count: '+str(self.home_sensor_count)
+				#print 'temp count: '+str(temp_home)
+				#print 'raw output: '+str( (LJ.getFeedback( u3.Counter0() ))[0] )
+				#if temp_home != self.home_sensor_count:
+				#	homing = False
+				#	self.dome_relays("stop")
+			#return 'Dome is homed'
+			return 'dome is homing'
 		elif len(commands) == 2:
 			user_command = commands[1]
 			counts_to_move_temp = self.analyse_dome_command(user_command)
+			print str(counts_to_move_temp)
 			try: counts_to_move_temp = int(counts_to_move_temp)
 			except Exception: return 'ERROR'
 
-			self.dome_moving = True #This will tell background task 'dome_location' to call task 'dome_moving'
 			self.counts_at_start = self.total_counts
+			self.dome_moving = True #This will tell background task 'dome_location' to call task 'dome_moving'
 			self.counts_to_move = counts_to_move_temp
-			if self.counts_to_move == 0: return 'Dome already at given azimuth'
+			if self.counts_to_move == 0: 
+				self.dome_moving = False
+				return 'Dome already at given azimuth'
 			elif self.counts_to_move > 0: 
 				self.dome_relays("clockwise")
 			elif self.counts_to_move < 0: 
@@ -198,14 +218,17 @@ class LabjackServer:
 		raw_wheel_output = LJ.getFeedback(u3.QuadratureInputTimer()) #This will constantly update the current position of the dome
 
 		self.total_counts = int(raw_wheel_output[-1])
+		#print 'total counts: '+str(self.total_counts)
+		#print 'counts at last home: '+str(self.total_count_at_last_home)
 		current_position_temp = self.total_counts - self.total_count_at_last_home  # what is our relative distance to home?
-
+		#print 'current position temp: '+str(current_position_temp)
 		if current_position_temp < 0: current_position_temp = int(360*self.counts_per_degree) - abs(current_position_temp)
 
 		self.current_position = current_position_temp
-	
+		#print 'current position: '+str(self.current_position)
+		#print '\n'
  		if self.dome_moving == True:
-			#counts_to_move
+
 			if self.counts_to_move <= 0:
 				if self.total_counts <= self.counts_at_start + self.counts_to_move:
 					self.dome_relays("stop")
@@ -287,14 +310,14 @@ class LabjackServer:
 		commands = str.split(command)
 		if len(commands) != 1: return 'ERROR'
 		if commands[0] == 'clockwise': 
-			LJ.writeRegister(DAC1_REGISTER, 0)
-			LJ.writeRegister(DAC0_REGISTER, 5) # command to move dome clockwise
+			LJ.writeRegister(DAC1_REGISTER, 2)
+			LJ.writeRegister(DAC0_REGISTER, 0) # command to move dome clockwise
 		elif commands[0] == 'anticlockwise': 
-			LJ.writeRegister(DAC0_REGISTER, 0)
-			LJ.writeRegister(DAC1_REGISTER, 5) # command to move dome anticlockwise
+			LJ.writeRegister(DAC0_REGISTER, 2)
+			LJ.writeRegister(DAC1_REGISTER, 0) # command to move dome anticlockwise
 		elif commands[0] == 'stop':
-			LJ.writeRegister(DAC0_REGISTER, 0) # command to stop movement
-			LJ.writeRegister(DAC1_REGISTER, 0)
+			LJ.writeRegister(DAC0_REGISTER, 2) # command to stop movement
+			LJ.writeRegister(DAC1_REGISTER, 2)
 		else: return 'ERROR'
 
 
@@ -302,13 +325,18 @@ class LabjackServer:
 	def home_tracker(self):
 		'''Return the number of times the dome home sensor has been pressed.'''
  		home_output = int(str( (LJ.getFeedback( u3.Counter0() ))[0] ))
+		#print self.home_sensor_count
 		if home_output != self.home_sensor_count:  # We've hit home!
+			if self.homing:
+				self.dome_relays("stop")
+				self.homing = False
 			self.home_sensor_count = home_output
 			self.total_count_at_last_home = self.total_counts # We have a new count as our zero reference point
 
 
 	def analyse_dome_command(self,command):
-		if command[0] == '+' or '-': #user has asked to move a certain amount from where we are now
+		if str(command)[0] == '+' or str(command)[0] == '-': #user has asked to move a certain amount from where we are now
+
 			try: dome_command_temp = float(command)
 			except Exception: return 'ERROR'
 			while dome_command_temp > 180: dome_command_temp -= 360
@@ -319,13 +347,16 @@ class LabjackServer:
 		else:
 			try: dome_command_temp = float(command)
 			except Exception: return 'ERROR'
-			if self.dome_correction_enabled: dome_command_temp = self.azimuth_telescope_to_dome(dome_command_temp)
+			#if self.dome_correction_enabled: dome_command_temp = self.azimuth_telescope_to_dome(dome_command_temp)
 			if dome_command_temp == 'ERROR': return 'ERROR'
 			while dome_command_temp > 360: dome_command_temp -= 360
 			while dome_command_temp < 0: dome_command_temp += 360
 			counts_to_move = int(dome_command_temp*self.counts_per_degree) - self.current_position
-			while counts_to_move > 180*self.counts_per_degree: counts_to_move = counts_to_move - int(360*self.counts_per_degree)
-			while counts_to_move < -180*self.counts_per_degree: counts_to_move = counts_to_move + int(360*self.counts_per_degree)
+			#print 'current position: '+str(self.current_position)
+			#print 'dome command: '+str(dome_command_temp*self.counts_per_degree)
+			#print 'counts to move: '+str(counts_to_move)
+			while counts_to_move > 180*self.counts_per_degree: counts_to_move = int(counts_to_move - 360*self.counts_per_degree)
+			while counts_to_move < -180*self.counts_per_degree: counts_to_move = int(counts_to_move + 360*self.counts_per_degree)
 			return str(counts_to_move)
 
 
