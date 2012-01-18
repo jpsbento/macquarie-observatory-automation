@@ -6,8 +6,8 @@ sys.path.append('..')
 import server_socket
 import find_port
 f = find_port.FindPort()
-Port = f.findPort('sbig')
+#Port = f.findPort('sbig')
 sb=sbigudrv_server.SBigUDrv()
-ss=server_socket.ServerSocket(Port, 'sbigudrv', sb)	
+ss=server_socket.ServerSocket(23460, 'sbigudrv', sb)	
 ss.run()
 ss.close()
