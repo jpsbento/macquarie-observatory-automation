@@ -27,6 +27,13 @@ DAC1_REGISTER = 5002  # anticlockwise movement
 LJ.writeRegister(DAC0_REGISTER, 2) # command to stop movement
 LJ.writeRegister(DAC1_REGISTER, 2)
 
+# ^ This is required to make sure the dome does not start moving when we start the code.
+# With the current set up, absoultely no voltage does not move the relays, but the labjack is not
+# sensitive enough to give out no voltage at all, there is always a small amount and this is enough
+# for the dome to start moving. If we give it too much ie 2 volts, the dome will stop moving.
+# So for now, setting the DAC reigster to zero is to activate movement, and setting them to 2 
+# halts movement
+
 
 #***********************************************************************#
 #2) Now define our main class, the LabjackServer.
@@ -311,7 +318,7 @@ class LabjackServer:
 		if len(commands) != 1: return 'ERROR'
 		if commands[0] == 'clockwise': 
 			LJ.writeRegister(DAC1_REGISTER, 2)
-			LJ.writeRegister(DAC0_REGISTER, 0) # command to move dome clockwise
+			LJ.writeRegister(DAC0_REGISTER, 0) # command to move dome clockwise, possibly change to 0.5
 		elif commands[0] == 'anticlockwise': 
 			LJ.writeRegister(DAC0_REGISTER, 2)
 			LJ.writeRegister(DAC1_REGISTER, 0) # command to move dome anticlockwise
