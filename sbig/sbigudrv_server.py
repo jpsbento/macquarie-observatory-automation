@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import pyfits
 import time
 import ctypes
+import os
 
 #the following lines establish a link with the camera via the USB port, these run 
 #automatically when sbigudrv_main is excecuted
@@ -158,9 +159,7 @@ class SBigUDrv:
 		try: checkCommand2 = float(test)
 		except Exception: return 'invalid input, second input must be open or closed'
 		shutter = str(commands[2])
-		
-		# !!! End any existing exposure !!!! TODO
-	
+
 	        #Get CCD Parameters, this is required for later during readout
 		p = sb.GetCCDInfoParams()
 		p.request = 0
@@ -204,6 +203,8 @@ class SBigUDrv:
 		p.left=0
 		p.height=height
 		p.widht=width
+		width = 3326
+		height = 2504
 		result = sb.SBIGUnivDrvCommand(sb.CC_START_READOUT,p,None)
 		#Set aside some memory to store the array
 		im = np.zeros([width,height],dtype='ushort')
@@ -232,14 +233,44 @@ class SBigUDrv:
 			dir = ''
 		else:
 			dir ='images/'
-                #gets end time
+		fullpath = dir + filename +'.fits'
+                
+		#checks existing files and offers overwrite or rename if present
+		presence = os.path.exists(fullpath)
+		if presence == True:
+			print 'file already exists, would you like to overwrite existing file? (yes/no)'
+			selection = raw_input()
+			while selection != 'yes' and selection != 'no' and selection != 'n' and selection !='y':
+				print 'please enter yes or no, note if you do choose to not\
+					 overwrite you will be promted to enter an alternate file name'
+				selection = raw_input()
+			if selection == 'yes' or selection == 'y':
+				os.remove(dir + filename +'.fits')
+			elif selection == 'no' or selection == 'n':
+				print 'please enter a new filename, if an identical filename is entered you will be notified'
+				
+				#offers a new name (or directory for input)
+				fileinput2 = raw_input()
+				filename2= fileInput.partition('.fits')[0]
+				if '/' in filename: 
+					dir2 = ''
+				else:
+					dir2 ='images/'
+				#checks to see if the new filename is identical to original input and corrects if neccessary
+				while dir2 + filename2 +'.fits' == fullpath:
+					print 'file name identical, please select another name'
+					filename2 = raw_input()
+				
+				fullpath = dir2 + filename2 +'.fits'
+				
+		#gets end time
 		endTime = time.localtime()
 		
-		#sets up fits header
+		#sets up fits header		
 
 		#saves image as fits file
 		hdu = pyfits.PrimaryHDU(im)
-		hdu.writeto(dir+filename+'.fits')
+		hdu.writeto(fullpath)
 
 		return 'Exposure Complete: ' + str(result)
 		
