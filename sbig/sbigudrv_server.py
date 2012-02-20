@@ -203,6 +203,8 @@ class SBigUDrv:
 		p.left=0
 		p.height=height
 		p.widht=width
+		# NOTE: WHEN USING THE LAB CAMERA THESE ARE THE WIDTHS 
+		#AND HEIGHTS, FOR THE CAMERA IN THE OBSERVATORY COMMENT OUT THE NEXT 2 LINES
 		width = 3326
 		height = 2504
 		result = sb.SBIGUnivDrvCommand(sb.CC_START_READOUT,p,None)
@@ -224,6 +226,7 @@ class SBigUDrv:
 		p = sb.EndReadoutParams()
 		p.ccd=0
 		sb.SBIGUnivDrvCommand(sb.CC_END_READOUT,p,None)
+		im = np.transpose(im)
 		plt.imshow(im)
 		#sets up file name
 		fileInput = str(commands[3])  
@@ -231,6 +234,23 @@ class SBigUDrv:
 		#allows other directories to be defined in filename
 		if '/' in filename: 
 			dir = ''
+			#tests to see if file exists to prevent crash
+			path = filename +'.fits'
+			existTest=os.path.split(path)[0]
+			existTestOutcome = os.path.exists(existTest)
+			while existTestOutcome == False:
+				print 'the directory specified does not exist, remove any / to save to\
+				 sbig/images/input or check the directory and retry\n input directory/filename:'
+				filename = raw_input()
+				if '/' in filename:
+					dir = ''
+					existTest=os.path.split(filename)[0]
+					existTestOutcome = os.path.exists(existTest)
+				else:
+					dir ='images/'
+					existTestOutcome = True
+					
+			
 		else:
 			dir ='images/'
 		fullpath = dir + filename +'.fits'
@@ -264,12 +284,13 @@ class SBigUDrv:
 				fullpath = dir2 + filename2 +'.fits'
 				
 		#gets end time
-		endTime = time.localtime()
-		
-		#sets up fits header		
+		endTime = time.localtime()	
 
 		#saves image as fits file
 		hdu = pyfits.PrimaryHDU(im)
+		#sets up fits header, this is an example, the actual start exposure and end exposure
+		#times are stored in the code but are not written to the header below, as of yet
+		hdu.header.update('EXPTIME', 10.3, comment='The frame exposure time')		
 		hdu.writeto(fullpath)
 
 		return 'Exposure Complete: ' + str(result)
