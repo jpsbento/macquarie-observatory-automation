@@ -1,7 +1,0 @@
-closeLink
-establishLink
-getCCDParams
-setTemperature
-checkTemperature
-disableRegulation
-exposeAndWait
