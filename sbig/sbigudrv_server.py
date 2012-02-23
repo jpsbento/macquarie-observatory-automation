@@ -77,6 +77,8 @@ class SBigUDrv:
 					print 'file name identical, please select another name'
 					filename2 = raw_input()
 					self.checkDir(filename2)
+				#used in the focus cmd, set to false to prevent file name changes causing errors
+				self.presencePrior = False
 	
 	def cmd_closeLink(self,the_command):
 		#turns of the temperature regualtion, if not already done, before closing the lin
@@ -264,8 +266,8 @@ class SBigUDrv:
 		p.widht=width
 		# NOTE: WHEN USING THE LAB CAMERA THESE ARE THE WIDTHS 
 		#AND HEIGHTS, FOR THE CAMERA IN THE OBSERVATORY COMMENT OUT THE NEXT 2 LINES
-		width = 3326
-		height = 2504
+		#width = 3326
+		#height = 2504
 		result = sb.SBIGUnivDrvCommand(sb.CC_START_READOUT,p,None)
 		#Set aside some memory to store the array
 		im = np.zeros([width,height],dtype='ushort')
@@ -317,57 +319,19 @@ class SBigUDrv:
 			#strips .fits off the end (if present) to prevent confusion in the code later 
 			filename= fileInput.partition('.fits')[0]
 			#tests to see if the specified directory exists, if no directory specified defaults to save in directory focusCal			
-			if '/' in filename: 
-				dir = ''
-				path = filename +'.fits'
-				#grabs the section before /
-				existTest=os.path.split(path)[0]
-				existTestOutcome = os.path.exists(existTest)
-				#while the directory input does not exist prompt for another direcotry
-				while existTestOutcome == False:
-					print 'the directory specified does not exist, remove any / to save to\
-					 sbig/focusCal or check the directory and retry\n input directory/filenameroot:'
-					filename = raw_input()
-					if '/' in filename:
-						dir = ''
-						existTest=os.path.split(filename)[0]
-						existTestOutcome = os.path.exists(existTest)
-					#returns to defualt directory if the / is dropped
-					else:
-						dir ='focusCal/'
-						existTestOutcome = True
-
-				fullpath = str(dir + filename)
-
-			#Tests to see if the root file has already been saved, if it has prompt for another name or delete
-				presence = os.path.exists(fullpath+'Dark.fits')
-				if presence == True:
-					print 'files already exists with this root name, would you like to overwrite existing file? (yes/no)'
-					selection = raw_input()
-					while selection != 'yes' and selection != 'no' and selection != 'n' and selection !='y':
-						print 'please enter yes or no, note if you do choose to not\
-					 	overwrite you will be promted to enter an alternate file name'
-						selection = raw_input()
-					if selection == 'yes' or selection == 'y':
-						os.remove(fullpath +'Dark.fits')
-						os.remove(fullpath +'Focus1.fits')
-						os.remove(fullpath +'Focus2.fits')
-						os.remove(fullpath +'Focus3.fits')
-						os.remove(fullpath +'Focus4.fits')
-					elif selection == 'no' or selection == 'n':
-						print 'please enter a new root filename, if an identical root filename is entered you will be notified'
-				
-						#offers a new name (or directory for input)
-						fileinput2 = raw_input()
-						filename2= fileInput.partition('.fits')[0]
-						if '/' in filename2: 
-							dir2 = ''
-						else:
-							dir2 ='focusCal/'
-						#checks to see if the new filename is identical to original input and corrects if neccessary
-						while dir2 + filename2 +'Dark.fits' == fullpath:
-							print 'file name identical, please select another name'
-							filename2 = raw_input()
+			self.checkDir(filename)
+			#Tests to see if the root file has already been saved, if it has prompt for another name or delete, since there are multiple files with each 
+			#root name the existance of the dark file is checked, then self.checkFile is called, if the dark file is removed (overwritten) the second check
+			#will be false and all files with that root will be removed.
+			self.presencePrior = os.path.exists(self.fullpath+'Dark.fits')
+			self.checkFile(self.fullpath)
+			presencePost = os.path.ecists(self.fullpath+'Dark.fits')
+			if self.presencePrior = True and presencePost = False:
+				os.remove(self.fullpath+'Focus1.fits')
+				os.remove(self.fullpath+'Focus2.fits')
+				os.remove(self.fullpath+'Focus3.fits')
+				os.remove(self.fullpath+'Focus4.fits')
+				os.remove(self.fullpath+'Focus5.fits')
 
 			#Once the directory is varified and the filename checked for duplicates the dark image is 
 				
