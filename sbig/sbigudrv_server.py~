@@ -23,6 +23,64 @@ r = sb.EstablishLinkResults()
 sb.SBIGUnivDrvCommand(sb.CC_ESTABLISH_LINK,p,r)
 
 class SBigUDrv:
+	#FUNCTIONS: the following two functions are used in the imaging process, they relate to filenames and prevet crashes 
+	#when there are typos in directories or	duplicate filenames
+	
+	#Checks to see if directory is specified, if it exists and then prompts to reinput if there is an issue.
+	def checkDir(self,directory_to_check):
+		if '/' in directory_to_check: 
+			self.dir = ''
+			path = directory_to_check +'.fits'
+			#splits the address at the last /
+			existTestVal=os.path.split(path)[0]
+			existTestOutcome = os.path.exists(existTestVal)
+			while existTestOutcome == False:
+				print 'the directory specified does not exist, remove any / to save to\
+				 sbig/images/ or check the directory and retry\n input directory/filename:'
+				directory_to_check = raw_input()
+				directory_to_check = directory_to_check.partition('.fits')[0]
+				if '/' in directory_to_check:
+					self.dir = ''
+					existTestVal=os.path.split(directory_to_check)[0]
+					existTestOutcome = os.path.exists(existTestVal)
+				
+				else:
+					self.dir =self.defualt_dir
+					existTestOutcome = True
+								
+		else:
+			self.dir =self.defualt_dir
+	
+		self.fullpath = self.dir +  directory_to_check + '.fits'
+
+	#Checks to see if the filename given exists and prompts for overight or rename if it does
+	def checkFile (self,file_to_check):
+		presence = os.path.exists(file_to_check)
+		if presence == True:
+			print 'file already exists, would you like to overwrite existing file? (yes/no)'
+			selection = raw_input()
+			while selection != 'yes' and selection != 'no' and selection != 'n' and selection !='y':
+				print 'please enter yes or no, note if you do choose to not\
+					 overwrite you will be promted to enter an alternate file name'
+				selection = raw_input()
+			if selection == 'yes' or selection == 'y':
+				os.remove(file_to_check)
+			elif selection == 'no' or selection == 'n':
+				print 'please enter a new filename, if an identical filename is entered you will be notified'
+			
+				#offers a new name (or directory for input)
+				fileInput2 = raw_input()
+				filename2= fileInput2.partition('.fits')[0]
+				original = self.fullpath
+				self.checkDir(filename2)
+				#checks to see if the new filename is identical to original input and corrects if neccessary
+				while self.fullpath == original:
+					print 'file name identical, please select another name'
+					filename2 = raw_input()
+					self.checkDir(filename2)
+				#used in the focus cmd, set to false to prevent file name changes causing errors
+				self.presencePrior = False
+	
 	def cmd_closeLink(self,the_command):
 		#turns of the temperature regualtion, if not already done, before closing the lin
 		b = sb.SetTemperatureRegulationParams()
@@ -145,6 +203,8 @@ class SBigUDrv:
 		    + str(a.ccdSetpoint) + ', CCD set point (C) = ' + str(setPointC)+'\n current CCD temp (A/D) = '\
 		    + str(a.ccdThermistor) + ', current CCD temp (C)' + str(TempC_round)+ '\n'
 
+
+	#Captures an image
 	def cmd_exposeAndWait(self,command):
 		# This function takes a full frame image and waits for the image to be read out
 		# prior to exiting.
@@ -201,6 +261,8 @@ class SBigUDrv:
 		#entire height and width
 		p.top=0
 		p.left=0
+		#NOTE: FOR THE CAMERA IN THE LAB HEIGHT AND WIDTH NEED TO BE HARD CODED TO THE RELEVANT VALUES AS THE GETCCDPARAMS FUNCTION GIVES 
+		#ERONEOUS HEIGHTS AND WIDTHS
 		p.height=height
 		p.widht=width
 		# NOTE: WHEN USING THE LAB CAMERA THESE ARE THE WIDTHS 
@@ -231,57 +293,11 @@ class SBigUDrv:
 		#sets up file name
 		fileInput = str(commands[3])  
 		filename= fileInput.partition('.fits')[0]
-		#allows other directories to be defined in filename
-		if '/' in filename: 
-			dir = ''
-			#tests to see if file exists to prevent crash
-			path = filename +'.fits'
-			existTest=os.path.split(path)[0]
-			existTestOutcome = os.path.exists(existTest)
-			while existTestOutcome == False:
-				print 'the directory specified does not exist, remove any / to save to\
-				 sbig/images/input or check the directory and retry/n input directory/filename:'
-				filename = raw_input()
-				if '/' in filename:
-					dir = ''
-					existTest=os.path.split(filename)[0]
-					existTestOutcome = os.path.exists(existTest)
-				else:
-					dir ='images/'
-					existTestOutcome = True
-					
-			
-		else:
-			dir ='images/'
-		fullpath = dir + filename +'.fits'
-                
-		#checks existing files and offers overwrite or rename if present
-		presence = os.path.exists(fullpath)
-		if presence == True:
-			print 'file already exists, would you like to overwrite existing file? (yes/no)'
-			selection = raw_input()
-			while selection != 'yes' and selection != 'no' and selection != 'n' and selection !='y':
-				print 'please enter yes or no, note if you do choose to not\
-					 overwrite you will be promted to enter an alternate file name'
-				selection = raw_input()
-			if selection == 'yes' or selection == 'y':
-				os.remove(dir + filename +'.fits')
-			elif selection == 'no' or selection == 'n':
-				print 'please enter a new filename, if an identical filename is entered you will be notified'
-				
-				#offers a new name (or directory for input)
-				fileinput2 = raw_input()
-				filename2= fileInput.partition('.fits')[0]
-				if '/' in filename: 
-					dir2 = ''
-				else:
-					dir2 ='images/'
-				#checks to see if the new filename is identical to original input and corrects if neccessary
-				while dir2 + filename2 +'.fits' == fullpath:
-					print 'file name identical, please select another name'
-					filename2 = raw_input()
-				
-				fullpath = dir2 + filename2 +'.fits'
+		
+		#calls checking functions
+		self.defualt_dir = 'images/'		
+		self.checkDir(filename)
+		self.checkFile(self.fullpath)
 				
 		#gets end time
 		endTime = time.localtime()	
@@ -291,7 +307,41 @@ class SBigUDrv:
 		#sets up fits header, this is an example, the actual start exposure and end exposure
 		#times are stored in the code but are not written to the header below, as of yet
 		hdu.header.update('EXPTIME', 10.3, comment='The frame exposure time')		
-		hdu.writeto(fullpath)
+		hdu.writeto(self.fullpath)
 
 		return 'Exposure Complete: ' + str(result)
 		
+	def cmd_focusImages(self,command):	
+		# This function takes a dark image and a serious of images at different focai. 
+		# The user enters a root name and the iamges are saved to a focus folder with appropriate suffixes
+		commands = str.split(command)
+		if len(commands) < 2 : return 'error: enter a root filename (with optional directory address)'
+		#stores root of filename
+		fileInput = str(commands[1]) 
+		#strips .fits off the end (if present) to prevent confusion in the code later 
+		filename= fileInput.partition('.fits')[0]
+		#tests to see if the specified directory exists, if no directory specified defaults to save in directory focusCal			
+		self.defualt_dir = 'focusCal/'
+		self.checkDir(filename)
+		#Tests to see if the root file has already been saved, if it has prompt for another name or delete, since there are multiple files with each 
+		#root name the existance of the dark file is checked, then self.checkFile is called, if the dark file is removed (overwritten) the second check
+		#will be false and all files with that root will be removed.
+		fullpathTest= self.fullpath.partition('.fits')[0]
+		self.presencePrior = os.path.exists(fullpathTest+'Dark.fits')
+		self.checkFile(fullpathTest + 'Dark.fits')
+		presencePost = os.path.exists(fullpathTest+'Dark.fits')
+		fullpathTest2= self.fullpath.partition('.fits')[0]
+		if self.presencePrior == True and presencePost == False:
+			os.remove(fullpathTest2+'Focus1.fits')
+			os.remove(fullpathTest2+'Focus2.fits')
+			os.remove(fullpathTest2+'Focus3.fits')
+			os.remove(fullpathTest2+'Focus4.fits')
+			os.remove(fullpathTest2+'Focus5.fits')
+
+		#Once the directory is varified and the filename checked for duplicates the dark image is 
+			
+					
+		#take dark image
+		#take images a multiple foccai (5?)
+		#conduct dark subtraction 
+		#analyse focus

@@ -45,11 +45,11 @@ class SBigUDrv:
 					existTestOutcome = os.path.exists(existTestVal)
 				
 				else:
-					self.dir ='images/'
+					self.dir =self.defualt_dir
 					existTestOutcome = True
 								
 		else:
-			self.dir ='images/'
+			self.dir =self.defualt_dir
 	
 		self.fullpath = self.dir +  directory_to_check + '.fits'
 
@@ -71,9 +71,10 @@ class SBigUDrv:
 				#offers a new name (or directory for input)
 				fileInput2 = raw_input()
 				filename2= fileInput2.partition('.fits')[0]
+				original = self.fullpath
 				self.checkDir(filename2)
 				#checks to see if the new filename is identical to original input and corrects if neccessary
-				while self.dir+filename2 +'.fits' == self.fullpath:
+				while self.fullpath == original:
 					print 'file name identical, please select another name'
 					filename2 = raw_input()
 					self.checkDir(filename2)
@@ -266,8 +267,8 @@ class SBigUDrv:
 		p.widht=width
 		# NOTE: WHEN USING THE LAB CAMERA THESE ARE THE WIDTHS 
 		#AND HEIGHTS, FOR THE CAMERA IN THE OBSERVATORY COMMENT OUT THE NEXT 2 LINES
-		#width = 3326
-		#height = 2504
+		width = 3326
+		height = 2504
 		result = sb.SBIGUnivDrvCommand(sb.CC_START_READOUT,p,None)
 		#Set aside some memory to store the array
 		im = np.zeros([width,height],dtype='ushort')
@@ -293,7 +294,8 @@ class SBigUDrv:
 		fileInput = str(commands[3])  
 		filename= fileInput.partition('.fits')[0]
 		
-		#calls checking functions		
+		#calls checking functions
+		self.defualt_dir = 'images/'		
 		self.checkDir(filename)
 		self.checkFile(self.fullpath)
 				
@@ -309,34 +311,37 @@ class SBigUDrv:
 
 		return 'Exposure Complete: ' + str(result)
 		
-		def cmd_focusImages(self,command):	
-			# This function takes a dark image and a serious of images at different focai. 
-			# The user enters a root name and the iamges are saved to a focus folder with appropriate suffixes
-			commands = str.split(command)
-			if len(commands) < 2 : return 'error: enter a root filename (with optional directory address)'
-			#stores root of filename
-			fileInput = str(commands[1]) 
-			#strips .fits off the end (if present) to prevent confusion in the code later 
-			filename= fileInput.partition('.fits')[0]
-			#tests to see if the specified directory exists, if no directory specified defaults to save in directory focusCal			
-			self.checkDir(filename)
-			#Tests to see if the root file has already been saved, if it has prompt for another name or delete, since there are multiple files with each 
-			#root name the existance of the dark file is checked, then self.checkFile is called, if the dark file is removed (overwritten) the second check
-			#will be false and all files with that root will be removed.
-			self.presencePrior = os.path.exists(self.fullpath+'Dark.fits')
-			self.checkFile(self.fullpath)
-			presencePost = os.path.ecists(self.fullpath+'Dark.fits')
-			if self.presencePrior = True and presencePost = False:
-				os.remove(self.fullpath+'Focus1.fits')
-				os.remove(self.fullpath+'Focus2.fits')
-				os.remove(self.fullpath+'Focus3.fits')
-				os.remove(self.fullpath+'Focus4.fits')
-				os.remove(self.fullpath+'Focus5.fits')
+	def cmd_focusImages(self,command):	
+		# This function takes a dark image and a serious of images at different focai. 
+		# The user enters a root name and the iamges are saved to a focus folder with appropriate suffixes
+		commands = str.split(command)
+		if len(commands) < 2 : return 'error: enter a root filename (with optional directory address)'
+		#stores root of filename
+		fileInput = str(commands[1]) 
+		#strips .fits off the end (if present) to prevent confusion in the code later 
+		filename= fileInput.partition('.fits')[0]
+		#tests to see if the specified directory exists, if no directory specified defaults to save in directory focusCal			
+		self.defualt_dir = 'focusCal/'
+		self.checkDir(filename)
+		#Tests to see if the root file has already been saved, if it has prompt for another name or delete, since there are multiple files with each 
+		#root name the existance of the dark file is checked, then self.checkFile is called, if the dark file is removed (overwritten) the second check
+		#will be false and all files with that root will be removed.
+		fullpathTest= self.fullpath.partition('.fits')[0]
+		self.presencePrior = os.path.exists(fullpathTest+'Dark.fits')
+		self.checkFile(fullpathTest + 'Dark.fits')
+		presencePost = os.path.exists(fullpathTest+'Dark.fits')
+		fullpathTest2= self.fullpath.partition('.fits')[0]
+		if self.presencePrior == True and presencePost == False:
+			os.remove(fullpathTest2+'Focus1.fits')
+			os.remove(fullpathTest2+'Focus2.fits')
+			os.remove(fullpathTest2+'Focus3.fits')
+			os.remove(fullpathTest2+'Focus4.fits')
+			os.remove(fullpathTest2+'Focus5.fits')
 
-			#Once the directory is varified and the filename checked for duplicates the dark image is 
-				
-						
-			#take dark image
-			#take images a multiple foccai (5?)
-			#conduct dark subtraction 
-			#analyse focus
+		#Once the directory is varified and the filename checked for duplicates the dark image is 
+			
+					
+		#take dark image
+		#take images a multiple foccai (5?)
+		#conduct dark subtraction 
+		#analyse focus
