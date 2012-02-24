@@ -81,6 +81,96 @@ class SBigUDrv:
 				#used in the focus cmd, set to false to prevent file name changes causing errors
 				self.presencePrior = False
 	
+	#command that takes an image
+	def capture(self,exposureTime,shutter,fileInput):	
+		#Get CCD Parameters, this is required for later during readout
+		p = sb.GetCCDInfoParams()
+		p.request = 0
+		r = sb.GetCCDInfoResults0()
+		sb.SBIGUnivDrvCommand(sb.CC_GET_CCD_INFO,p,r)
+		width = r.readoutInfo[0].width
+		height = r.readoutInfo[0].height
+		#Start the Exposure
+		startTime = time.localtime()
+		p = sb.StartExposureParams()
+		p.ccd = 0
+		p.exposureTime = int(exposureTime * 100)
+		# anti blooming gate, currently untouched (ABG shut off)
+		p.abgState = 0 
+
+		#sets up file name
+		filename= fileInput.partition('.fits')[0]
+		#calls checking functions	
+		self.checkDir(filename)
+		self.checkFile(self.fullpath)
+
+		#sets the shutter to open or closed.
+		print ' shutter: ' + str(shutter) + '\n file: ' + str(self.fullpath) + '\n exposure: ' + str(exposureTime) + ' seconds' 
+		if shutter == 'open': shutter_status = 1
+		elif shutter == 'closed':shutter_status = 2
+		p.openShutter = shutter_status
+		sb.SBIGUnivDrvCommand(sb.CC_START_EXPOSURE,p,None)
+		p = sb.QueryCommandStatusParams()
+		p.command = sb.CC_START_EXPOSURE
+		r = sb.QueryCommandStatusResults()
+		r.status = 0
+		#Wait for the exposure to end
+		while (r.status & 1) == 0:
+			sb.SBIGUnivDrvCommand(sb.CC_QUERY_COMMAND_STATUS,p,r)
+			time.sleep(0.1)
+		p = sb.EndExposureParams()
+		p.ccd=0
+		result = sb.SBIGUnivDrvCommand(sb.CC_END_EXPOSURE,p,None)
+		#Readout the CCD
+		#Start Readout
+		p = sb.StartReadoutParams()
+		p.ccd=0
+                #No binning
+		p.readoutMode=0
+		#specifies region to read out, starting top left and moving over
+		#entire height and width
+		p.top=0
+		p.left=0
+		#NOTE: FOR THE CAMERA IN THE LAB HEIGHT AND WIDTH NEED TO BE HARD CODED TO THE RELEVANT VALUES AS THE GETCCDPARAMS FUNCTION GIVES 
+		#ERONEOUS HEIGHTS AND WIDTHS
+		p.height=height
+		p.widht=width
+		# NOTE: WHEN USING THE LAB CAMERA THESE ARE THE WIDTHS 
+		#AND HEIGHTS, FOR THE CAMERA IN THE OBSERVATORY COMMENT OUT THE NEXT 2 LINES
+		width = 3326
+		height = 2504
+		result = sb.SBIGUnivDrvCommand(sb.CC_START_READOUT,p,None)
+		#Set aside some memory to store the array
+		im = np.zeros([width,height],dtype='ushort')
+		line = np.zeros([width],dtype='ushort')
+		p = sb.ReadoutLineParams()
+		p.ccd = 0
+		p.readoutMode=0
+		p.pixelStart=0
+		p.pixelLength=width
+		#readout line by line
+		for i in range(0,height):
+			sb.SBIGUnivDrvCommand(sb.CC_READOUT_LINE,p,line)
+			im[:,i]=line
+		#end readout
+		p = sb.EndReadoutParams()
+		p.ccd=0
+		sb.SBIGUnivDrvCommand(sb.CC_END_READOUT,p,None)
+		im = np.transpose(im)
+		plt.imshow(im)
+				
+		#gets end time
+		endTime = time.localtime()	
+
+		#saves image as fits file
+		hdu = pyfits.PrimaryHDU(im)
+		#sets up fits header, this is an example, the actual start exposure and end exposure
+		#times are stored in the code but are not written to the header below, as of yet
+		hdu.header.update('EXPTIME', 10.3, comment='The frame exposure time')		
+		hdu.writeto(self.fullpath)
+
+
+	
 	def cmd_closeLink(self,the_command):
 		#turns of the temperature regualtion, if not already done, before closing the lin
 		b = sb.SetTemperatureRegulationParams()
@@ -219,97 +309,10 @@ class SBigUDrv:
 		try: checkCommand2 = float(test)
 		except Exception: return 'invalid input, second input must be open or closed'
 		shutter = str(commands[2])
-
-	        #Get CCD Parameters, this is required for later during readout
-		p = sb.GetCCDInfoParams()
-		p.request = 0
-		r = sb.GetCCDInfoResults0()
-		sb.SBIGUnivDrvCommand(sb.CC_GET_CCD_INFO,p,r)
-		width = r.readoutInfo[0].width
-		height = r.readoutInfo[0].height
-		#Start the Exposure
-		startTime = time.localtime()
-		p = sb.StartExposureParams()
-		p.ccd = 0
-		p.exposureTime = int(exposureTime * 100)
-		# anti blooming gate, currently untouched (ABG shut off)
-		p.abgState = 0 
-		#sets the shutter to open or closed.
-		print ' shutter ' + str(shutter) + '\n exposure: ' + str(exposureTime) + ' seconds' 
-		if shutter == 'open': shutter_status = 1
-		elif shutter == 'closed':shutter_status = 2
-		p.openShutter = shutter_status
-		sb.SBIGUnivDrvCommand(sb.CC_START_EXPOSURE,p,None)
-		p = sb.QueryCommandStatusParams()
-		p.command = sb.CC_START_EXPOSURE
-		r = sb.QueryCommandStatusResults()
-		r.status = 0
-		#Wait for the exposure to end
-		while (r.status & 1) == 0:
-			sb.SBIGUnivDrvCommand(sb.CC_QUERY_COMMAND_STATUS,p,r)
-			time.sleep(0.1)
-		p = sb.EndExposureParams()
-		p.ccd=0
-		result = sb.SBIGUnivDrvCommand(sb.CC_END_EXPOSURE,p,None)
-		#Readout the CCD
-		#Start Readout
-		p = sb.StartReadoutParams()
-		p.ccd=0
-                #No binning
-		p.readoutMode=0
-		#specifies region to read out, starting top left and moving over
-		#entire height and width
-		p.top=0
-		p.left=0
-		#NOTE: FOR THE CAMERA IN THE LAB HEIGHT AND WIDTH NEED TO BE HARD CODED TO THE RELEVANT VALUES AS THE GETCCDPARAMS FUNCTION GIVES 
-		#ERONEOUS HEIGHTS AND WIDTHS
-		p.height=height
-		p.widht=width
-		# NOTE: WHEN USING THE LAB CAMERA THESE ARE THE WIDTHS 
-		#AND HEIGHTS, FOR THE CAMERA IN THE OBSERVATORY COMMENT OUT THE NEXT 2 LINES
-		width = 3326
-		height = 2504
-		result = sb.SBIGUnivDrvCommand(sb.CC_START_READOUT,p,None)
-		#Set aside some memory to store the array
-		im = np.zeros([width,height],dtype='ushort')
-		line = np.zeros([width],dtype='ushort')
-		p = sb.ReadoutLineParams()
-		p.ccd = 0
-		p.readoutMode=0
-		p.pixelStart=0
-		p.pixelLength=width
-		#readout line by line
-		for i in range(0,height):
-			sb.SBIGUnivDrvCommand(sb.CC_READOUT_LINE,p,line)
-			im[:,i]=line
-		#	if  (i == 10): 
-			#	print line
-		#end readout
-		p = sb.EndReadoutParams()
-		p.ccd=0
-		sb.SBIGUnivDrvCommand(sb.CC_END_READOUT,p,None)
-		im = np.transpose(im)
-		plt.imshow(im)
-		#sets up file name
-		fileInput = str(commands[3])  
-		filename= fileInput.partition('.fits')[0]
-		
-		#calls checking functions
-		self.defualt_dir = 'images/'		
-		self.checkDir(filename)
-		self.checkFile(self.fullpath)
-				
-		#gets end time
-		endTime = time.localtime()	
-
-		#saves image as fits file
-		hdu = pyfits.PrimaryHDU(im)
-		#sets up fits header, this is an example, the actual start exposure and end exposure
-		#times are stored in the code but are not written to the header below, as of yet
-		hdu.header.update('EXPTIME', 10.3, comment='The frame exposure time')		
-		hdu.writeto(self.fullpath)
-
-		return 'Exposure Complete: ' + str(result)
+	        fileInput = str(commands[3])  
+		self.defualt_dir = 'images/'
+		self.capture(exposureTime,shutter,fileInput)	
+		return 'Exposure Complete'
 		
 	def cmd_focusImages(self,command):	
 		# This function takes a dark image and a serious of images at different focai. 
@@ -338,10 +341,16 @@ class SBigUDrv:
 			os.remove(fullpathTest2+'Focus4.fits')
 			os.remove(fullpathTest2+'Focus5.fits')
 
-		#Once the directory is varified and the filename checked for duplicates the dark image is 
-			
-					
-		#take dark image
-		#take images a multiple foccai (5?)
+		#Once the directory is varified and the filename checked for duplicates the dark image is taken
+		self.capture(0.1,'closed',fileInput+'Dark.fits')	
+				
+		#Now 5 images at varying focai are captured			
+		self.capture(0.1,'open',fileInput+'Focus1.fits')	
+		self.capture(0.1,'open',fileInput+'Focus2.fits')	
+		self.capture(0.1,'open',fileInput+'Focus3.fits')	
+		self.capture(0.1,'open',fileInput+'Focus4.fits')	
+		self.capture(0.1,'open',fileInput+'Focus5.fits')
+
+		#NEED TO CHANGE FOCUS BETWEEN IMAGE CAPTURES
 		#conduct dark subtraction 
-		#analyse focus
+		#analyse focus using iraf tools
