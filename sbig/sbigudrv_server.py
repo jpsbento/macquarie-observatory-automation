@@ -137,8 +137,8 @@ class SBigUDrv:
 		p.widht=width
 		# NOTE: WHEN USING THE LAB CAMERA THESE ARE THE WIDTHS 
 		#AND HEIGHTS, FOR THE CAMERA IN THE OBSERVATORY COMMENT OUT THE NEXT 2 LINES
-		width = 3326
-		height = 2504
+		#width = 3326
+		#height = 2504
 		result = sb.SBIGUnivDrvCommand(sb.CC_START_READOUT,p,None)
 		#Set aside some memory to store the array
 		im = np.zeros([width,height],dtype='ushort')
@@ -313,6 +313,10 @@ class SBigUDrv:
 		self.defualt_dir = 'images/'
 		self.capture(exposureTime,shutter,fileInput)	
 		return 'Exposure Complete'
+
+	def cmd_focusCalculate(self,command):
+		#This function will return the best focus position interpolating between images 1,2,3,4 and 5
+		return str(2.0)
 		
 	def cmd_focusImages(self,command):	
 		# This function takes a dark image and a serious of images at different focai. 

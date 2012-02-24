@@ -5,4 +5,5 @@ setTemperature
 checkTemperature
 disableRegulation
 exposeAndWait
+focusCalculate
 focusImages

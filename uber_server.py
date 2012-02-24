@@ -8,14 +8,15 @@ import time
 class UberServer:
 	
 	# A list of the telescopes we have, comment out all but the telescope you wish to connect with:
-	#telescope_type = 'bisquemount'
-	telescope_type = 'meademount'
+	telescope_type = 'bisquemount'
+	#telescope_type = 'meademount'
 
 	# We set clients, one for each device we are talking to
 	labjack_client = client_socket.ClientSocket("labjack",telescope_type) #23456 <- port number
 	telescope_client = client_socket.ClientSocket("telescope",telescope_type)  #23458 <- port number
 	weatherstation_client = client_socket.ClientSocket("weatherstation",telescope_type) #23457 <- port number
-	imagingsourcecamera_client = client_socket.ClientSocket("imagingsourcecamera",telescope_type) #23459 <- port number
+	acqcamera_client = client_socket.ClientSocket("imagingsourcecamera",telescope_type) #23459 <- port number
+	camera_client = client_socket.ClientSocket("sbig",telescope_type) #23460 <- port number
 
 	dome_tracking = False
 
@@ -58,16 +59,27 @@ class UberServer:
 			return str(response)
 		else: return 'To get a list of commands for the weatherstation type "weatherstation help".'
 
-	def cmd_imagingsourcecamera(self,the_command):
+	def cmd_camera(self,the_command):
 		'''A user can still access the low level commands from the imaging source camera using this command. ie
-		type 'imagingsourcecamera help' to get all the available commands for the imaging source camera server.'''
+		type 'camera help' to get all the available commands for the imaging source camera server.'''
 		commands = str.split(the_command)
 		if len(commands) > 1:
 			del commands[0]
-			command_for_imagingsourcecamera = ' '.join(commands)
-			response = self.imagingsourcecamera_client.send_command(command_for_imagingsourcecamera)
+			command_for_camera = ' '.join(commands)
+			response = self.camera_client.send_command(command_for_camera)
 			return str(response)
-		else: return 'To get a list of commands for the imaging source camera type "imagingsourcecamera help".'
+		else: return 'To get a list of commands for the camera type "camera help".'
+
+	def cmd_acqcamera(self,the_command):
+		'''A user can still access the low level commands from the imaging source camera using this command. ie
+		type 'acqcamera help' to get all the available commands for the imaging source camera server.'''
+		commands = str.split(the_command)
+		if len(commands) > 1:
+			del commands[0]
+			command_for_acqcamera = ' '.join(commands)
+			response = self.acqcamera_client.send_command(command_for_acqcamera)
+			return str(response)
+		else: return 'To get a list of commands for the acqcamera type "acqcamera help".'
 
 	def cmd_setDomeTracking(self,the_command):
 		'''Can set the dome tracking to be on or off'''
@@ -82,22 +94,22 @@ class UberServer:
 
 	def cmd_orientateCamera(self, the_command):
 		'''This will control the camera and the telescope to get the camera orientation.'''
-		self.imagingsourcecamera_client.send_command('orientationCapture base')
+		self.acqcamera_client.send_command('orientationCapture base')
 		jog_response = self.telescope_client.send_command('jog N 1')  # jogs the telescope 1 arcsec (or arcmin??) north
 		if jog_response == 'ERROR': return 'ERROR in telescope movement.'
-		self.imagingsourcecamera_client.send_command('orientationCapture north 1')
+		self.acqcamera_client.send_command('orientationCapture north 1')
 		jog_response = self.telescope_client.send_command('jog E 1')
 		if jog_response == 'ERROR': return 'ERROR in telescope movement'
-		self.imagingsourcecamera_client.send_command('orientationCapture east 1') # Should add some responses here to keep track
-		response = self.imagingsourcecamera_client.send_command('calculateCameraOrientation')
+		self.acqcamera_client.send_command('orientationCapture east 1') # Should add some responses here to keep track
+		response = self.acqcamera_client.send_command('calculateCameraOrientation')
 		return response
 
 	def cmd_centerStar(self, the_command):
 		'''This pulls together commands from the camera server and the telescope server so we can
 		center and focus a bright star with just one call to this command. It is recommended that you 
 		focus the star before attemping to center it for more accurate results'''
-		imagingsourcecamera_client.send_command('captureImages centering_image 1')
-		response = imagingsourcecamera_client.send_command('starDistanceFromCenter centering_image')
+		acqcamera_client.send_command('captureImages centering_image 1')
+		response = acqcamera_client.send_command('starDistanceFromCenter centering_image')
 		try: dNorth, dEast = response
 		except Exception: "Error with star centering"
 
@@ -121,18 +133,42 @@ class UberServer:
 		move_focus_amount = 100
 		sharp_value = 0
 		focusing = True
-		imagingsourcecamera_client.send_command("focusCapture")
-		old_sharp_value = telescope_client.send_command("focusGoToPosition "+str(int(position)+move_focus_amount))
+		camera_client.send_command("focusCapture")
+		old_sharp_value = self.telescope_client.send_command("focusGoToPosition "+str(int(position)+move_focus_amount))
 		while move_focus_amount != 0:
-			focusposition = telescope_client.send_command("focusReadPosition")
+			focusposition = self.telescope_client.send_command("focusReadPosition")
 			try: focusposition = int(focusposition)
 			except Exception: return 'ERROR'
 			# need to get the sharpness
-			telescope_client.send_command("focusGoToPosition "+str(int(position)+move_focus_amount))
-			sharp_value = imagingsourcecamera_client.send_command("focusCapture")
+			self.telescope_client.send_command("focusGoToPosition "+str(int(position)+move_focus_amount))
+			sharp_value = camera_client.send_command("focusCapture")
 			# as the star becomes more in focus, the sharp_value decreases, so if it increases
 			# we are moving the focuser the wrong way
 			if sharp_value >= old_sharp_value: move_focus_amount = (move_focus_amount*-1)/2
+		return str(focusposition) # return the best focus position
+				
+	def cmd_focusIRAF(self, the_command):
+		'''This pulls together commands from the telescope servers and the camera server to focus a bright star using IRAF.'''
+		move_focus_amount = 100
+		#It is really complex if we start at a position less than 200...
+		focusposition = self.telescope_client.send_command("focusReadPosition")
+		focusposition = str.split(focusposition)
+		focusposition = focusposition[0]
+		try: focusposition = int(focusposition)
+		except Exception: return 'ERROR 1 parsing focus value'
+		if focusposition < 2*move_focus_amount:
+			return 'ERROR 2 parsing focus value'
+		for fnum in range(1,6):
+			self.telescope_client.send_command("focusGoToPosition " + str(focusposition + (fnum-3)*move_focus_amount))
+			self.camera_client.send_command("exposeAndWait 0.5 open focus" + str(fnum) + ".fits")
+		bestimage = self.camera_client.send_command("focusCalculate")
+		bestimage = str.split(bestimage)
+		bestimage = bestimage[0]
+		print "Best Interpolated Image from images 1-5 is: " + bestimage
+		try: bestimage = float(bestimage)
+		except Exception: return 'ERROR parsing best focus'
+		focusposition = int(focusposition + (bestimage-3)*move_focus_amount)
+	        self.telescope_client.send_command("focusGoToPosition " + str(focusposition))
 		return str(focusposition) # return the best focus position
 				
 

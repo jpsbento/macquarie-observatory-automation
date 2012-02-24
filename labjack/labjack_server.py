@@ -20,12 +20,15 @@ import math
 #   this.
 LJ=u3.U3()
 LJPROBE=ei1050.EI1050(LJ, enablePinNum=0, dataPinNum=1, clockPinNum=2) #Sets up the humidity probe
-LJ.configIO(NumberOfTimersEnabled = 2, EnableCounter0 = 1)
+LJ.configIO(NumberOfTimersEnabled = 2, EnableCounter0 = 1, TimerCounterPinOffset=8)
 LJ.getFeedback(u3.Timer0Config(8), u3.Timer1Config(8)) #Sets up the dome tracking wheel
-DAC0_REGISTER = 5000  # clockwise movement
-DAC1_REGISTER = 5002  # anticlockwise movement
-LJ.writeRegister(DAC0_REGISTER, 2) # command to stop movement
-LJ.writeRegister(DAC1_REGISTER, 2)
+#DAC0_REGISTER = 5000  # clockwise movement
+#DAC1_REGISTER = 5002  # anticlockwise movement
+#LJ.writeRegister(DAC0_REGISTER, 2) # command to stop movement
+#LJ.writeRegister(DAC1_REGISTER, 2)
+LJ.setFIOState(u3.FIO7, state=0) #command to close slits. A good starting point.
+LJ.setFIOState(u3.FIO4, state=1) #command to stop movement
+LJ.setFIOState(u3.FIO5, state=1) #command to stop movement
 
 # ^ This is required to make sure the dome does not start moving when we start the code.
 # With the current set up, absoultely no voltage does not move the relays, but the labjack is not
@@ -167,7 +170,7 @@ class LabjackServer:
 		commands=str.split(the_command)
 
 		if len(commands) == 2 and commands[1] == 'location':
-			return str(self.current_position/self.counts_per_degree)
+			return str(self.current_position/self.counts_per_degree)+' total counts: '+str(self.total_counts)+' num homes: '+str(self.home_sensor_count)
 		elif len(commands) == 2 and commands[1] == 'stop':
 			self.dome_relays("stop")
 			self.dome_moving = False
@@ -214,8 +217,12 @@ class LabjackServer:
 		'''Command to open and close the slits.'''
 		commands = str.split(the_command)
 		if len(commands) != 2: return 'ERROR'
-		if commands[1] == 'open': return 'slits open'
-		elif commands[2] == 'close': return 'slits closed'
+		if commands[1] == 'open':
+			LJ.setFIOState(u3.FIO7, state=1)
+			return 'slits open'
+		elif commands[1] == 'close':
+			LJ.setFIOState(u3.FIO7, state=0)			
+			return 'slits closed'
 		else: return 'ERROR'
 
                 
@@ -224,7 +231,7 @@ class LabjackServer:
 	def dome_location(self):
 		raw_wheel_output = LJ.getFeedback(u3.QuadratureInputTimer()) #This will constantly update the current position of the dome
 
-		self.total_counts = int(raw_wheel_output[-1])
+		self.total_counts = -int(raw_wheel_output[-1])
 		#print 'total counts: '+str(self.total_counts)
 		#print 'counts at last home: '+str(self.total_count_at_last_home)
 		current_position_temp = self.total_counts - self.total_count_at_last_home  # what is our relative distance to home?
@@ -317,28 +324,35 @@ class LabjackServer:
 		commands = str.split(command)
 		if len(commands) != 1: return 'ERROR'
 		if commands[0] == 'clockwise': 
-			LJ.writeRegister(DAC1_REGISTER, 2)
-			LJ.writeRegister(DAC0_REGISTER, 0) # command to move dome clockwise, possibly change to 0.5
+			LJ.setFIOState(u3.FIO4, state=0) 
+			LJ.setFIOState(u3.FIO5, state=1)
+#			LJ.writeRegister(DAC1_REGISTER, 2)
+#			LJ.writeRegister(DAC0_REGISTER, 0) # command to move dome clockwise, possibly change to 0.5
 		elif commands[0] == 'anticlockwise': 
-			LJ.writeRegister(DAC0_REGISTER, 2)
-			LJ.writeRegister(DAC1_REGISTER, 0) # command to move dome anticlockwise
+			LJ.setFIOState(u3.FIO4, state=1) 
+			LJ.setFIOState(u3.FIO5, state=0)
+#			LJ.writeRegister(DAC0_REGISTER, 2)
+#			LJ.writeRegister(DAC1_REGISTER, 0) # command to move dome anticlockwise
 		elif commands[0] == 'stop':
-			LJ.writeRegister(DAC0_REGISTER, 2) # command to stop movement
-			LJ.writeRegister(DAC1_REGISTER, 2)
+			LJ.setFIOState(u3.FIO4, state=1) 
+			LJ.setFIOState(u3.FIO5, state=1)
+#			LJ.writeRegister(DAC0_REGISTER, 2) # command to stop movement
+#			LJ.writeRegister(DAC1_REGISTER, 2)
 		else: return 'ERROR'
 
 
 
 	def home_tracker(self):
 		'''Return the number of times the dome home sensor has been pressed.'''
- 		home_output = int(str( (LJ.getFeedback( u3.Counter0() ))[0] ))
+ 		#home_output = int(str( (LJ.getFeedback( u3.Counter0() ))[0] ))
 		#print self.home_sensor_count
-		if home_output != self.home_sensor_count:  # We've hit home!
+		if int(str( (LJ.getFeedback( u3.Counter0() ))[0] )) != self.home_sensor_count:  # We've hit home!
+			self.home_sensor_count = int(str( (LJ.getFeedback( u3.Counter0() ))[0] ))
+			self.total_count_at_last_home = self.total_counts # We have a new count as our zero reference point
 			if self.homing:
 				self.dome_relays("stop")
 				self.homing = False
-			self.home_sensor_count = home_output
-			self.total_count_at_last_home = self.total_counts # We have a new count as our zero reference point
+
 
 
 	def analyse_dome_command(self,command):
