@@ -47,7 +47,7 @@ class LabjackServer:
 	dome_moving = False     	    	# A variable to keep track of whether the dome is moving due to a remote user command
 
 	counts_per_degree = 11.83 	   	# how many counts from the wheel encoder there is to a degree
-	slitoffset = 53.83*counts_per_degree 	# The position, in counts, of the slits when the home switch is activated
+	slitoffset = int(53.83*counts_per_degree)    # The position, in degrees, of the slits when the home switch is activated
 
 
 	total_counts = 0		     	# The total number of counts since we started the program, raw output from wheel
@@ -109,8 +109,7 @@ class LabjackServer:
 # can accumulate after many revolutions. This homing sensor is at an arbitrary point on the domes circumference, so when
 # it is activated, it does not necessarily mean that the dome is at 0 degrees, so we need to know what azimuth the dome
 # is at when the homing sensor is activated and be sure to reset the dome position to this azimuth. In the code this angle
-# is called the 'slitoffset' and is recorded in labjack counts.
-
+# is called the 'slitoffset' and is recorded in counts.
 
 #*************************************** List of user commands ***************************************#
 
@@ -174,21 +173,22 @@ class LabjackServer:
 		elif len(commands) == 2 and commands[1] == 'stop':
 			self.dome_relays("stop")
 			self.dome_moving = False
+			self.homing = False
 			return 'Dome motion stopped'
 		elif self.dome_moving == True:
 			return "Dome moving, input only available when the dome is stationary."
 		elif len(commands) == 2 and commands[1] == 'home':
 			self.dome_relays("clockwise")
-			#temp_home = self.home_sensor_count
+			self.temp_home = self.home_sensor_count
 			self.homing = True
-			#while homing:
-				#print 'home sensor count: '+str(self.home_sensor_count)
-				#print 'temp count: '+str(temp_home)
-				#print 'raw output: '+str( (LJ.getFeedback( u3.Counter0() ))[0] )
-				#if temp_home != self.home_sensor_count:
-				#	homing = False
-				#	self.dome_relays("stop")
-			#return 'Dome is homed'
+#			while self.homing:
+#				print 'home sensor count: '+str(self.home_sensor_count)
+#				print 'temp count: '+str(self.temp_home)
+#				print 'raw output: '+str( (LJ.getFeedback( u3.Counter0() ))[0] )
+#				if self.temp_home != self.home_sensor_count:
+#					self.homing = False
+#					self.dome_relays("stop")
+#					return 'Dome is homed'
 			return 'dome is homing'
 		elif len(commands) == 2:
 			user_command = commands[1]
@@ -234,9 +234,9 @@ class LabjackServer:
 		self.total_counts = -int(raw_wheel_output[-1])
 		#print 'total counts: '+str(self.total_counts)
 		#print 'counts at last home: '+str(self.total_count_at_last_home)
-		current_position_temp = self.total_counts - self.total_count_at_last_home  # what is our relative distance to home?
+		current_position_temp = self.total_counts - self.total_count_at_last_home + self.slitoffset # what is our relative distance to home?
 		#print 'current position temp: '+str(current_position_temp)
-		if current_position_temp < 0: current_position_temp = int(360*self.counts_per_degree) - abs(current_position_temp)
+		if current_position_temp < 0: current_position_temp = int(360*self.counts_per_degree) + current_position_temp
 
 		self.current_position = current_position_temp
 		#print 'current position: '+str(self.current_position)
@@ -369,7 +369,7 @@ class LabjackServer:
 			try: dome_command_temp = float(command)
 			except Exception: return 'ERROR'
 			#if self.dome_correction_enabled: dome_command_temp = self.azimuth_telescope_to_dome(dome_command_temp)
-			if dome_command_temp == 'ERROR': return 'ERROR'
+			if dome_command_temp == 'ERROR': return 'ERROR' #MJI: Why is this needed?
 			while dome_command_temp > 360: dome_command_temp -= 360
 			while dome_command_temp < 0: dome_command_temp += 360
 			counts_to_move = int(dome_command_temp*self.counts_per_degree) - self.current_position
