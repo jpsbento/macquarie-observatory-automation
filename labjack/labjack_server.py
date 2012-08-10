@@ -10,6 +10,7 @@ import string
 import u3
 import ei1050
 import math
+import time
 
 #***********************************************************************#
 #2) Set up the labjack. As the LJ and LJPROBE are declared in the global
@@ -70,7 +71,8 @@ class LabjackServer:
 						# is pointing, when the dome is pointing North. Not actually 0, it needs to be measured.
 
 	homing = False
-
+	watchdog_last_time = time.time()        # The watchdog timer.
+	watchdog_max_delta = 1000                # more than this time between communications means there is a problem
 
 #********************** a wee diagram to clear up the dome variables: **********************#
 #
@@ -217,6 +219,7 @@ class LabjackServer:
 		'''Command to open and close the slits.'''
 		commands = str.split(the_command)
 		if len(commands) != 2: return 'ERROR'
+		self.watchdog_last_time = time.time()
 		if commands[1] == 'open':
 			LJ.setFIOState(u3.FIO7, state=1)
 			return 'slits open'
@@ -224,6 +227,11 @@ class LabjackServer:
 			LJ.setFIOState(u3.FIO7, state=0)			
 			return 'slits closed'
 		else: return 'ERROR'
+
+	def cmd_ok(self, the_command):
+		"Let the labjack know that all is OK and the slits can stay open"
+		self.watchdog_last_time = time.time()
+		return 'Watchdog timer reset.'
 
                 
 #******************************* End of user commands ********************************#              
@@ -380,5 +388,8 @@ class LabjackServer:
 			while counts_to_move < -180*self.counts_per_degree: counts_to_move = int(counts_to_move + 360*self.counts_per_degree)
 			return str(counts_to_move)
 
-
-
+	def watchdog_timer(self):
+		if (math.fabs(time.time() - self.watchdog_last_time) > self.watchdog_max_delta):
+			    self.cmd_slits('slits close')
+			    self.watchdog_last_time = time.time()
+		            print 'ERROR: No active communications. Slits closing.'

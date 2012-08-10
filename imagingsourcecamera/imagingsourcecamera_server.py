@@ -302,6 +302,14 @@ class ImagingSourceCameraServer:
 		try: int(upperlimit)
 		except Exception: return False
 
+# plt.draw()
+# dev.start_capture()
+# imgbuf = dev.wait_buffer( 10 ) 
+# b = bytearray(imgbuf.to_string())
+# a = np.array(b)
+# a = a.reshape(480,640)
+# im = np.array(bytearray(imgbuf.tostring())).reshape(480,640)
+# dev.stop_capture
 		self.dev.start_capture()
 		imgbuf = self.dev.wait_buffer( 10 ) 
 		for i in range( 0, upperlimit ):
@@ -314,7 +322,9 @@ class ImagingSourceCameraServer:
 			else: filename = base_filename
 			rgbbuf = imgbuf.convert( 'RGB3' )
 			dummy = rgbbuf.save( filename+'.raw' ) # saves it in RGB3 raw image format
-			Image.open( filename+'.raw' ).save( filename+'.jpg' ) # saves as a jpeg
+			img = Image.open( filename+'.raw' )
+			img.show()
+			img.save( filename+'.jpg' ) # saves as a jpeg
 			os.system("convert -depth 8 -size 640x480+17 "+ filename+'.raw' +" "+ filename+'.fits') # saves as a fits file
 		self.dev.stop_capture()
 		return True

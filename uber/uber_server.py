@@ -19,6 +19,7 @@ class UberServer:
 	camera_client = client_socket.ClientSocket("sbig",telescope_type) #23460 <- port number
 
 	dome_tracking = False
+	override_wx = False
 
 #***************************** A list of user commands *****************************#
 
@@ -171,6 +172,12 @@ class UberServer:
 	        self.telescope_client.send_command("focusGoToPosition " + str(focusposition))
 		return str(focusposition) # return the best focus position
 				
+	def cmd_override_wx(self, the_command):
+		commands=str.split(the_command)
+		if len(commands) == 2 and (commands[1] == 'off' or commands[1]=='0'):
+			self.override_wx=False
+		else: self.override_wx=True
+		return str(self.override_wx)
 
 #***************************** End of User Commands *****************************#
 
@@ -201,10 +208,13 @@ class UberServer:
 	def monitor_slits(self):
 		'''This will be a background task that monitors the output from the weatherstation and will decide whether
 		it is safe to keep the slits open or not'''
-		weather = weatherstation_client.send_command('safe')
-		if not weather:
-			response = labjack_client.send_command('slits close')
-			print response  # Need to find a way to send this over sockets so the user knows
+		if not self.override_wx:
+			weather = self.weatherstation_client.send_command('safe')
+			if not "1" in weather:
+				response = self.labjack_client.send_command('slits close')
 
+	def watchdog_slits(self):
+		self.labjack_client.send_command('ok')		
+		
 
 
