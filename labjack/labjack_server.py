@@ -233,7 +233,18 @@ class LabjackServer:
 		self.watchdog_last_time = time.time()
 		return 'Watchdog timer reset.'
 
-                
+ 	def cmd_BackLED(self, the_command):
+		'''Command to control IR LED backfeed.'''
+		commands = str.split(the_command)
+		if len(commands) != 2: return 'ERROR'
+		if commands[1] == 'on':
+			LJ.setFIOState(u3.FIO7, state=1) waiting to install to define port			
+			return 'LED on'
+		elif commands[1] == 'off':
+			# LJ.setFIOState(u3.FIO7, state=0) waiting to install to define port			
+			return 'LED off'
+		else: return 'ERROR'               
+		
 #******************************* End of user commands ********************************#              
 
 	def dome_location(self):
