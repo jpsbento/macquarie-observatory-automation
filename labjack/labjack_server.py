@@ -238,7 +238,7 @@ class LabjackServer:
 		commands = str.split(the_command)
 		if len(commands) != 2: return 'ERROR'
 		if commands[1] == 'on':
-			LJ.setFIOState(u3.FIO7, state=1) waiting to install to define port			
+		#	LJ.setFIOState(u3.FIO7, state=1) waiting to install to define port			
 			return 'LED on'
 		elif commands[1] == 'off':
 			# LJ.setFIOState(u3.FIO7, state=0) waiting to install to define port			
