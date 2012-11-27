@@ -1,0 +1,9 @@
+humidity
+temperature
+ljtemp
+status
+numHomes
+domeCorrection
+dome
+slits
+ok

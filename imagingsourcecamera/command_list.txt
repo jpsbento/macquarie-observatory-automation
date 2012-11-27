@@ -1,0 +1,7 @@
+captureImages
+setCameraValues
+starDistanceFromCenter
+orientationCapture
+focusCapture
+calculateCameraOrientation
+calibrateMagnitude
