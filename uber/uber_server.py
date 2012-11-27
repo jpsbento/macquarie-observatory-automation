@@ -85,7 +85,7 @@ class UberServer:
 	def cmd_setDomeTracking(self,the_command):
 		'''Can set the dome tracking to be on or off'''
 		commands = str.split(the_command)
-		if len(commands) == 1:
+		if len(command) == 1:
 			if self.dome_tracking: return 'Dome tracking enabled.'
 			else: return 'Dome tracking disabled.'
 		elif len(commands) != 2: return 'Invalid input'
