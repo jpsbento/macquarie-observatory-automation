@@ -16,7 +16,7 @@ import binascii
 #Open port connected to the mount
 ser = serial.Serial('/dev/ttyUSB0',9600, timeout = 100) # non blocking serial port, will wait
 						        # for ten seconds find the address
-print ser.portstr       # check which port was really used
+print ser.portstr       # check which port was rea3lly used
                         # we open a serial port to talk to the focuser
 
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # This client_socket is to communicate with the windows machine

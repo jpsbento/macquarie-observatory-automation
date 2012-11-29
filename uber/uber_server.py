@@ -85,6 +85,7 @@ class UberServer:
 	def cmd_setDomeTracking(self,the_command):
 		'''Can set the dome tracking to be on or off'''
 		commands = str.split(the_command)
+		#print 'dometracking?',self.dome_tracking
 		if len(commands) == 1:
 			if self.dome_tracking: return 'Dome tracking enabled.'
 			else: return 'Dome tracking disabled.'
@@ -181,23 +182,25 @@ class UberServer:
 
 #***************************** End of User Commands *****************************#
 
-	def dome_tracking(self,command):
+	def dome_tracking(self):
 		'''This will slew the dome to the azimuth of the telescope automatically if dome
 		tracking is turned on.'''
 		#set this as a background task when setting up uber_main
 		if self.dome_tracking:
-			telescopeAzimuth = self.telescope_client.send_command('getAzimuth')
-			domeAzimuth = self.labjack_client.send_command('dome location')
-			labjack_split = str.split(labjack_response)
-			dome_current_azimuth = labjack_split[3]
+			telescopeAzimuth = str.split(self.telescope_client.send_command('getAzimuth'))[0]
+			domeAzimuth = str.split(self.labjack_client.send_command('dome location'))[0]
+			#print telescopeAzimuth, domeAzimuth
+			#labjack_split = str.split(labjack_response)
+			#dome_current_azimuth = str.split(domeAzimuth)[3]
 			try: 
 				float(telescopeAzimuth)
-				float(domeAzimuth)
 			except Exception: 
 				self.dome_tracking = False
 				return 'Error with Azimuth output from telescope, dome tracking switched off'
-			if abs(float(domeAzimuth) - float(dome_current_azimuth)) > 4:
-				dome_response = self.dome_client.send_command('moveDome '+str(domeAzimuth))
+			try: float(domeAzimuth)
+			except Exception: return 'problems!'
+			if abs(float(domeAzimuth) - float(telescopeAzimuth)) > 4:
+				self.labjack_client.send_command('dome '+str(telescopeAzimuth))
 
 	# We have a potential confusion in the above function as the labjack will output it's azimuth in its coordinate
 	# system, not the telescope's
