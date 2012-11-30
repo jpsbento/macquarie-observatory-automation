@@ -85,7 +85,6 @@ class UberServer:
 	def cmd_setDomeTracking(self,the_command):
 		'''Can set the dome tracking to be on or off'''
 		commands = str.split(the_command)
-		#print 'dometracking?',self.dome_tracking
 		if len(commands) == 1:
 			if self.dome_tracking: return 'Dome tracking enabled.'
 			else: return 'Dome tracking disabled.'
@@ -198,7 +197,7 @@ class UberServer:
 				self.dome_tracking = False
 				return 'Error with Azimuth output from telescope, dome tracking switched off'
 			try: float(domeAzimuth)
-			except Exception: return 'problems!'
+			except Exception: return 'Dome Azimuth not as expected.'
 			if abs(float(domeAzimuth) - float(telescopeAzimuth)) > 4:
 				self.labjack_client.send_command('dome '+str(telescopeAzimuth))
 
@@ -212,10 +211,17 @@ class UberServer:
 		'''This will be a background task that monitors the output from the weatherstation and will decide whether
 		it is safe to keep the slits open or not'''
 		if not self.override_wx:
-			weather = self.weatherstation_client.send_command('safe')
+			try: weather = self.weatherstation_client.send_command('safe')
+			except Exception: 
+				response = self.labjack_client.send_command('slits close')
+				print 'ERROR: Communication with the WeatherStation failed. Closing Slits for safety.'
 			if not "1" in weather:
 				response = self.labjack_client.send_command('slits close')
+				print 'Weather not suitable for observing. Closing Slits.'
+			else:
+				self.labjack_client.send_command('ok')
 
+	#This may not be necessary anymore. Anyways, looks like a pretty stupid function to have. Might as well replace any function call with the only line in it! I'm just leaving it here for now just in case something else is calling it, in case the program breaks.
 	def watchdog_slits(self):
 		self.labjack_client.send_command('ok')		
 		

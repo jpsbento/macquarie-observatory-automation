@@ -171,7 +171,10 @@ class LabjackServer:
 		commands=str.split(the_command)
 
 		if len(commands) == 2 and commands[1] == 'location':
-			return str(self.current_position/self.counts_per_degree)+' total counts: '+str(self.total_counts)+' num homes: '+str(self.home_sensor_count)
+			if not self.dome_correction_enabled:
+				return str(self.current_position/self.counts_per_degree)+' total counts: '+str(self.total_counts)+' num homes: '+str(self.home_sensor_count)
+			else:
+				return self.azimuth_dome_to_telescope(str(self.current_position/self.counts_per_degree))+' total counts: '+str(self.total_counts)+' num homes: '+str(self.home_sensor_count)
 		elif len(commands) == 2 and commands[1] == 'stop':
 			self.dome_relays("stop")
 			self.dome_moving = False
@@ -183,15 +186,14 @@ class LabjackServer:
 			self.dome_relays("clockwise")
 			self.temp_home = self.home_sensor_count
 			self.homing = True
-#			while self.homing:
-#				print 'home sensor count: '+str(self.home_sensor_count)
-#				print 'temp count: '+str(self.temp_home)
-#				print 'raw output: '+str( (LJ.getFeedback( u3.Counter0() ))[0] )
-#				if self.temp_home != self.home_sensor_count:
-#					self.homing = False
-#					self.dome_relays("stop")
-#					return 'Dome is homed'
-			return 'dome is homing'
+			while self.homing:
+				print 'home sensor count: '+str(self.home_sensor_count)
+				print 'temp count: '+str(self.temp_home)
+				print 'raw output: '+str( (LJ.getFeedback( u3.Counter0() ))[0] )
+				if self.temp_home != self.home_sensor_count:
+					self.homing = False
+					self.dome_relays("stop")
+					return 'Dome is homed'
 		elif len(commands) == 2:
 			user_command = commands[1]
 			counts_to_move_temp = self.analyse_dome_command(user_command)
@@ -231,7 +233,7 @@ class LabjackServer:
 	def cmd_ok(self, the_command):
 		"Let the labjack know that all is OK and the slits can stay open"
 		self.watchdog_last_time = time.time()
-		return 'Watchdog timer reset.'
+		#return 'Watchdog timer reset.'
 
  	def cmd_BackLED(self, the_command):
 		'''Command to control IR LED backfeed.'''
@@ -387,8 +389,7 @@ class LabjackServer:
 		else:
 			try: dome_command_temp = float(command)
 			except Exception: return 'ERROR'
-			#if self.dome_correction_enabled: dome_command_temp = self.azimuth_telescope_to_dome(dome_command_temp)
-			if dome_command_temp == 'ERROR': return 'ERROR' #MJI: Why is this needed?
+			if self.dome_correction_enabled: dome_command_temp = self.azimuth_telescope_to_dome(dome_command_temp)
 			while dome_command_temp > 360: dome_command_temp -= 360
 			while dome_command_temp < 0: dome_command_temp += 360
 			counts_to_move = int(dome_command_temp*self.counts_per_degree) - self.current_position
