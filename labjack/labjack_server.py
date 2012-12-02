@@ -184,16 +184,17 @@ class LabjackServer:
 			return "Dome moving, input only available when the dome is stationary."
 		elif len(commands) == 2 and commands[1] == 'home':
 			self.dome_relays("clockwise")
-			self.temp_home = self.home_sensor_count
+#			self.temp_home = self.home_sensor_count
 			self.homing = True
-			while self.homing:
-				print 'home sensor count: '+str(self.home_sensor_count)
-				print 'temp count: '+str(self.temp_home)
-				print 'raw output: '+str( (LJ.getFeedback( u3.Counter0() ))[0] )
-				if self.temp_home != self.home_sensor_count:
-					self.homing = False
-					self.dome_relays("stop")
-					return 'Dome is homed'
+#			while self.homing:
+#				print 'home sensor count: '+str(self.home_sensor_count)
+#				print 'temp count: '+str(self.temp_home)
+#				print 'raw output: '+str( (LJ.getFeedback( u3.Counter0() ))[0] )
+#				if self.temp_home != self.home_sensor_count:
+#					self.homing = False
+#					self.dome_relays("stop")
+#					return 'Dome is homed'
+			print 'Dome Homing'
 		elif len(commands) == 2:
 			user_command = commands[1]
 			counts_to_move_temp = self.analyse_dome_command(user_command)
