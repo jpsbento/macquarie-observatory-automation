@@ -46,6 +46,7 @@ class LabjackServer:
 #Some properties relating to the relative encoder:
 
 	dome_moving = False     	    	# A variable to keep track of whether the dome is moving due to a remote user command
+	slits_open = False
 
 	counts_per_degree = 11.83 	   	# how many counts from the wheel encoder there is to a degree
 	slitoffset = int(53.83*counts_per_degree)    # The position, in degrees, of the slits when the home switch is activated
@@ -194,7 +195,7 @@ class LabjackServer:
 #					self.homing = False
 #					self.dome_relays("stop")
 #					return 'Dome is homed'
-			print 'Dome Homing'
+			return 'Dome Homing'
 		elif len(commands) == 2:
 			user_command = commands[1]
 			counts_to_move_temp = self.analyse_dome_command(user_command)
@@ -225,16 +226,18 @@ class LabjackServer:
 		self.watchdog_last_time = time.time()
 		if commands[1] == 'open':
 			LJ.setFIOState(u3.FIO7, state=1)
+			self.slits_open = True
 			return 'slits open'
 		elif commands[1] == 'close':
 			LJ.setFIOState(u3.FIO7, state=0)			
+			self.slits_open=False
 			return 'slits closed'
 		else: return 'ERROR'
 
 	def cmd_ok(self, the_command):
 		"Let the labjack know that all is OK and the slits can stay open"
 		self.watchdog_last_time = time.time()
-		#return 'Watchdog timer reset.'
+		return 'Watchdog timer reset.'
 
  	def cmd_BackLED(self, the_command):
 		'''Command to control IR LED backfeed.'''
@@ -402,7 +405,7 @@ class LabjackServer:
 			return str(counts_to_move)
 
 	def watchdog_timer(self):
-		if (math.fabs(time.time() - self.watchdog_last_time) > self.watchdog_max_delta):
+		if (math.fabs(time.time() - self.watchdog_last_time) > self.watchdog_max_delta) and (self.slits_open==True):
 			    self.cmd_slits('slits close')
 			    self.watchdog_last_time = time.time()
 		            print 'ERROR: No active communications. Slits closing.'

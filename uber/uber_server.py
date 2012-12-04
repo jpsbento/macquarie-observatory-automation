@@ -87,7 +87,7 @@ class UberServer:
 		commands = str.split(the_command)
 		if len(commands) == 1:
 			if self.dome_tracking: return 'Dome tracking enabled.'
-			else: return 'Dome tracking disabled.'
+			else: return 'Dome tracking disabled.' 
 		elif len(commands) != 2: return 'Invalid input'
 		if commands[1] == 'on': self.dome_tracking = True
 		elif commands[1] == 'off': self.dome_tracking = False
@@ -217,7 +217,7 @@ class UberServer:
 				print 'ERROR: Communication with the WeatherStation failed. Closing Slits for safety.'
 			if not "1" in weather:
 				response = self.labjack_client.send_command('slits close')
-				print 'Weather not suitable for observing. Closing Slits.'
+				#print 'Weather not suitable for observing. Closing Slits.'
 			else:
 				self.labjack_client.send_command('ok')
 
