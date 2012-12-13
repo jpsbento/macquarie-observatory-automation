@@ -49,7 +49,7 @@ class LabjackServer:
 	slits_open = False
 
 	counts_per_degree = 11.83 	   	# how many counts from the wheel encoder there is to a degree
-	slitoffset = int(53.83*counts_per_degree)    # The position, in degrees, of the slits when the home switch is activated
+	slitoffset = int(63.83*counts_per_degree)    # The position, in degrees, of the slits when the home switch is activated
 
 
 	total_counts = 0		     	# The total number of counts since we started the program, raw output from wheel
@@ -65,15 +65,15 @@ class LabjackServer:
 	dome_correction_enabled = 0  	      	# This sets whether we want the azimuth of the dome to be corrected for the telescope.
 				              	# In general with will be set to 1, for basic testing it's easiest if it's set to 0
 
-	domeRadius = 1 		 	     	# Specify the radius of the dome in meters
-	domeTelescopeDistance = 0 	      	# The distance in meters between the center of the dome and the telescope
-	domeAngleOffset = 0 	 	      	# This is the angle between the line joining the center of the telescope and the center 
+	domeRadius = 2 		 	     	# Specify the radius of the dome in meters
+	domeTelescopeDistance = 0.57 	      	# The distance in meters between the center of the dome and the telescope
+	domeAngleOffset = 100 	 	      	# This is the angle between the line joining the center of the telescope and the center 
 					      	# of the dome, and the line joining the telescope to the point on the dome the telescopes 
 						# is pointing, when the dome is pointing North. Not actually 0, it needs to be measured.
 
 	homing = False
 	watchdog_last_time = time.time()        # The watchdog timer.
-	watchdog_max_delta = 1000                # more than this time between communications means there is a problem
+	watchdog_max_delta = 1000000                # more than this time between communications means there is a problem
 
 #********************** a wee diagram to clear up the dome variables: **********************#
 #
@@ -175,6 +175,8 @@ class LabjackServer:
 			if not self.dome_correction_enabled:
 				return str(self.current_position/self.counts_per_degree)+' total counts: '+str(self.total_counts)+' num homes: '+str(self.home_sensor_count)
 			else:
+				print 'current location on dome coordinates: '+str(self.current_position/self.counts_per_degree)
+				print 'current location on telescope coordinates: '+self.azimuth_dome_to_telescope(str(self.current_position/self.counts_per_degree))
 				return self.azimuth_dome_to_telescope(str(self.current_position/self.counts_per_degree))+' total counts: '+str(self.total_counts)+' num homes: '+str(self.home_sensor_count)
 		elif len(commands) == 2 and commands[1] == 'stop':
 			self.dome_relays("stop")
@@ -299,7 +301,7 @@ class LabjackServer:
 			return str(correctedAzimuth)
 		else:
 			print 'ERROR IN AZIMUTH TELESCOPE TO DOME'
-			return telescopeAzimuth
+			return str(telescopeAzimuth)
 
 
 	def azimuth_dome_to_telescope(self,command):
@@ -314,16 +316,16 @@ class LabjackServer:
 			correctedAzimuth = domeAzimuth - math.degrees(correction)
 			while correctedAzimuth > 360: correctedAzimuth = correctedAzimuth - 360
 			while correctedAzimuth < 0: correctedAzimuth = correctedAzimuth + 360
-			return correctedAzimuth
+			return str(correctedAzimuth)
 
 		elif (domeAzimuth + self.domeAngleOffset) > 180: # and (domeAzimuth + self.domeAngleOffset) <= 360:
 			correctedAzimuth = domeAzimuth + math.degrees(correction)
 			while correctedAzimuth > 360: correctedAzimuth = correctedAzimuth - 360
 			while correctedAzimuth < 0: correctedAzimuth = correctedAzimuth + 360
-			return correctedAzimuth
+			return str(correctedAzimuth)
 		else: 
 			print 'ERROR IN AZIMUTH DOME TO TELESCOPE'
-			return domeAzimuth
+			return str(domeAzimuth)
 
 #    Diagram to help explain azimuth_dome_to_telescope function
 #   
@@ -393,7 +395,10 @@ class LabjackServer:
 		else:
 			try: dome_command_temp = float(command)
 			except Exception: return 'ERROR'
-			if self.dome_correction_enabled: dome_command_temp = self.azimuth_telescope_to_dome(dome_command_temp)
+			if self.dome_correction_enabled: 
+				print 'instructed to go to: '+command
+				print 'dome correction says: '+self.azimuth_telescope_to_dome(str(dome_command_temp))
+				dome_command_temp = float(self.azimuth_telescope_to_dome(str(dome_command_temp)))
 			while dome_command_temp > 360: dome_command_temp -= 360
 			while dome_command_temp < 0: dome_command_temp += 360
 			counts_to_move = int(dome_command_temp*self.counts_per_degree) - self.current_position

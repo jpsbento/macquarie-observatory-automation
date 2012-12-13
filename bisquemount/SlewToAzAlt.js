@@ -1,7 +1,7 @@
 /* Java Script */
 
-var TargetAz = "53.2";
-var TargetAlt = "20";
+var TargetAz = "90";
+var TargetAlt = "40";
 var Out;
 
 

@@ -181,11 +181,12 @@ class UberServer:
 
 #***************************** End of User Commands *****************************#
 
-	def dome_tracking(self):
+	def dome_track(self):
 		'''This will slew the dome to the azimuth of the telescope automatically if dome
 		tracking is turned on.'''
 		#set this as a background task when setting up uber_main
 		if self.dome_tracking:
+			#print 'Dome_track is alive!'
 			telescopeAzimuth = str.split(self.telescope_client.send_command('getAzimuth'))[0]
 			domeAzimuth = str.split(self.labjack_client.send_command('dome location'))[0]
 			#print telescopeAzimuth, domeAzimuth
@@ -197,12 +198,13 @@ class UberServer:
 				self.dome_tracking = False
 				return 'Error with Azimuth output from telescope, dome tracking switched off'
 			try: float(domeAzimuth)
-			except Exception: return 'Dome Azimuth not as expected.'
+			except Exception: 
+				self.dome_tracking = False
+				return 'Dome Azimuth not as expected.'
 			if abs(float(domeAzimuth) - float(telescopeAzimuth)) > 4:
+				print 'go to azimuth:'+str(telescopeAzimuth)+' because of the 4 difference'
 				self.labjack_client.send_command('dome '+str(telescopeAzimuth))
 
-	# We have a potential confusion in the above function as the labjack will output it's azimuth in its coordinate
-	# system, not the telescope's
 
 	def waiting_messages(self): # I don't think this will work...
 		self.labjack_client.waiting_messages()

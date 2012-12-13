@@ -7,6 +7,6 @@ import server_socket
 ub=uber_server.UberServer()
 ss=server_socket.ServerSocket(23555, 'Super User', ub)
 ss.add_job(ub.monitor_slits)
-ss.add_job(ub.dome_tracking)
+ss.add_job(ub.dome_track)
 ss.run()
 ss.close()
