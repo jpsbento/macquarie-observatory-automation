@@ -12,6 +12,7 @@ fs
 find
 getTargetRaDec
 mountGetRaDec
+SkyDomeGetAz
 getRA
 getDec
 mountGetAzAlt

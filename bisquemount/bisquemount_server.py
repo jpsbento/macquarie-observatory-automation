@@ -234,6 +234,12 @@ class BisqueMountServer:
 		client_socket.send(TheSkyXCommand)
 		return self.messages()
 
+	def cmd_SkyDomeGetAz(self,the_command):
+		'''Gets the current RA and Dec of the mount.'''
+		TheSkyXCommand = self.readscript('DomeGetAz.js')
+		client_socket.send(TheSkyXCommand)
+		return self.messages()
+
 	def cmd_getRA(self, the_command):
 		'''Returns just the RA of the mount with a simple number output'''
 		TheSkyXCommand = self.readscript('MountGetRaDec.js')
