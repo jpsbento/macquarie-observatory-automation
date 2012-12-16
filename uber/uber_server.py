@@ -186,24 +186,19 @@ class UberServer:
 		tracking is turned on.'''
 		#set this as a background task when setting up uber_main
 		if self.dome_tracking:
-			#print 'Dome_track is alive!'
-			telescopeAzimuth = str.split(self.telescope_client.send_command('getAzimuth'))[0]
 			domeAzimuth = str.split(self.labjack_client.send_command('dome location'))[0]
-			#print telescopeAzimuth, domeAzimuth
-			#labjack_split = str.split(labjack_response)
-			#dome_current_azimuth = str.split(domeAzimuth)[3]
-			try: 
-				float(telescopeAzimuth)
-			except Exception: 
-				self.dome_tracking = False
-				return 'Error with Azimuth output from telescope, dome tracking switched off'
+			VirtualDome = str.split(self.telescope_client.send_command('SkyDomeGetAz'))[0]
 			try: float(domeAzimuth)
 			except Exception: 
 				self.dome_tracking = False
 				return 'Dome Azimuth not as expected.'
-			if abs(float(domeAzimuth) - float(telescopeAzimuth)) > 4:
-				print 'go to azimuth:'+str(telescopeAzimuth)+' because of the 4 difference'
-				self.labjack_client.send_command('dome '+str(telescopeAzimuth))
+			try: float(VirtualDome)
+			except Exception:
+				self.dome_tracking = False
+				return 'Virtual Dome not giving out what is expected'
+			if abs(float(domeAzimuth) - float(VirtualDome)) > 3:
+				print 'go to azimuth:'+str(VirtualDome)+' because of the 3 degree difference'
+				self.labjack_client.send_command('dome '+str(VirtualDome))
 
 
 	def waiting_messages(self): # I don't think this will work...

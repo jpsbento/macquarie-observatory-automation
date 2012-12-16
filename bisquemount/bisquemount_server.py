@@ -235,7 +235,7 @@ class BisqueMountServer:
 		return self.messages()
 
 	def cmd_SkyDomeGetAz(self,the_command):
-		'''Gets the current RA and Dec of the mount.'''
+		'''Gets the current Azimuth from the virtual dome'''
 		TheSkyXCommand = self.readscript('DomeGetAz.js')
 		client_socket.send(TheSkyXCommand)
 		return self.messages()

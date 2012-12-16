@@ -61,58 +61,10 @@ class LabjackServer:
 					    	# by a positive amount, so every time the number changes, we know we've hit home.
 					     	# home_sensor_count keeps track of this change
 
-
-	dome_correction_enabled = 0  	      	# This sets whether we want the azimuth of the dome to be corrected for the telescope.
-				              	# In general with will be set to 1, for basic testing it's easiest if it's set to 0
-
-	domeRadius = 2 		 	     	# Specify the radius of the dome in meters
-	domeTelescopeDistance = 0.57 	      	# The distance in meters between the center of the dome and the telescope
-	domeAngleOffset = 100 	 	      	# This is the angle between the line joining the center of the telescope and the center 
-					      	# of the dome, and the line joining the telescope to the point on the dome the telescopes 
-						# is pointing, when the dome is pointing North. Not actually 0, it needs to be measured.
-
 	homing = False
 	watchdog_last_time = time.time()        # The watchdog timer.
 	watchdog_max_delta = 1000000                # more than this time between communications means there is a problem
 
-#********************** a wee diagram to clear up the dome variables: **********************#
-#
-# (This is a birds eye view of the dome.)
-#
-#
-#           North         /  < --- slit position for given azimuth
-#              \         /  / <--- telescope line of sight for given azimuth
-#               \       /  /
-#                \     /  /
-#                 \   /  /
-#                i \ /  /
-#    zero ----------x  o                  x = center of the dome
-#                                         o = position of telescope
-#                                         distance between o to x = domeTelescopeDistance <-- code variable above
-#                                         angle i = domeAngleOffset <-- code variable above
-#					  The dome radius has not been shown in the diagram as it's difficult to draw
-#					  circles in ascii
-#                                         
-# It is clear from the above diagram that if the telescope is not in the center of the dome
-# when the telescope and the dome are sent to the same azimuth, their line of sights will not intersect
-# and so the telescope could end up looking at the dome wall instead of out of the slits.
-# For this reason we need to calculate the angle difference between the telescope line of sight
-# and the dome slits 'line of sight' for every point on the dome circumference. This angle is what
-# is refered to in the code as the 'dome correction'. The diargram is drawn so that the north vector and the line joining
-# x and o are not parallel to keep the code general. It is mathematically easiest to calculate 
-# the dome correction angle with respect to the line joining x and o labled 'zero' on the diagram and then add on the
-# angle between North and zero, (labled i in the diagram) after the calculation. Angle i is named the domeAngleOffset in the code.
-
-
-# domeTelescopeDistance = the distance between x and o in the diagram
-# domeAngleOffset = angle i (in degrees)
-
-# In our labjack/dome set up we have a homing sensor a point on the circumference of the dome. Once every revolution
-# this homing sensor will be activated and this allows us to keep the tracking of the dome position precise as errors 
-# can accumulate after many revolutions. This homing sensor is at an arbitrary point on the domes circumference, so when
-# it is activated, it does not necessarily mean that the dome is at 0 degrees, so we need to know what azimuth the dome
-# is at when the homing sensor is activated and be sure to reset the dome position to this azimuth. In the code this angle
-# is called the 'slitoffset' and is recorded in counts.
 
 #*************************************** List of user commands ***************************************#
 
@@ -141,24 +93,6 @@ class LabjackServer:
  		#home_output = str( (LJ.getFeedback( u3.Counter0() ))[0] )
 		return str(self.home_sensor_count)
 	
-	def cmd_domeCorrection(self,the_command):
-		'''Used to turn the dome correction on or off (automatically set to on). When dome correction is on,
-		the dome will move to the azimuth given to it, but that azimuith in the reference frame of the dome.
-		This way if the telescope is at 20, a command to the dome will move to 20 with dome correction enabled
-		will ensure the telescope and dome line up.'''
-		commands = str.split(the_command)
-		if len(commands) == 1 and self.dome_correction_enabled: return 'Dome correction enabled'
-		elif len(commands) == 1 and not self.dome_correction_enabled: return 'Dome correction disabled'
-		elif len(commands) == 2:
-			if commands[1] == 'on': 
-				self.dome_correction_enabled = 1
-				return 'Dome correction now enabled'
-			elif commands[1] == 'off': 
-				self.dome_correction_enabled = 0
-				return 'Dome correction now disabled'
-			else: return 'ERROR invalid input'
-		else: return 'Invalid input'
-		
 
 	def cmd_dome(self,the_command):
                 '''Move the dome. Put a + or - before the number you input to move a certain distance
@@ -172,12 +106,7 @@ class LabjackServer:
 		commands=str.split(the_command)
 
 		if len(commands) == 2 and commands[1] == 'location':
-			if not self.dome_correction_enabled:
-				return str(self.current_position/self.counts_per_degree)+' total counts: '+str(self.total_counts)+' num homes: '+str(self.home_sensor_count)
-			else:
-				print 'current location on dome coordinates: '+str(self.current_position/self.counts_per_degree)
-				print 'current location on telescope coordinates: '+self.azimuth_dome_to_telescope(str(self.current_position/self.counts_per_degree))
-				return self.azimuth_dome_to_telescope(str(self.current_position/self.counts_per_degree))+' total counts: '+str(self.total_counts)+' num homes: '+str(self.home_sensor_count)
+			return str(self.current_position/self.counts_per_degree)+' total counts: '+str(self.total_counts)+' num homes: '+str(self.home_sensor_count)
 		elif len(commands) == 2 and commands[1] == 'stop':
 			self.dome_relays("stop")
 			self.dome_moving = False
@@ -282,70 +211,6 @@ class LabjackServer:
 				print 'ERROR IN DOME LOCATION'
 
 
-
-	def azimuth_telescope_to_dome(self,command):
-		'''This will convert the azimuth given from the telescope to a corresponding azimuth for the dome
-		so that the line of sight of the telescope is always in line with the slits.'''
-		commands = str.split(command)
-		if len(commands) != 1: return 'Error'
-		try: telescopeAzimuth = float(commands[0])
-		except Exception: return 'ERROR'
-		correction = math.asin((self.domeTelescopeDistance/self.domeRadius)*math.sin(math.radians(telescopeAzimuth + self.domeAngleOffset)))
-
-		if (telescopeAzimuth + self.domeAngleOffset) <= 180: 
-			correctedAzimuth = telescopeAzimuth + math.degrees(correction)
-			return str(correctedAzimuth)
-
-		elif (telescopeAzimuth + self.domeAngleOffset) > 180:
-			correctedAzimuth = telescopeAzimuth - math.degrees(correction)
-			return str(correctedAzimuth)
-		else:
-			print 'ERROR IN AZIMUTH TELESCOPE TO DOME'
-			return str(telescopeAzimuth)
-
-
-	def azimuth_dome_to_telescope(self,command):
-		'''Convert the azimuth of the dome into the telescopes coordinate system.'''
-		commands = str.split(command)
-		if len(commands) != 1: return 'ERROR'
-		try: domeAzimuth = float(commands[0])
-		except Exception: return 'ERROR'
-		z = math.sqrt(self.domeRadius**2+self.domeTelescopeDistance**2-2*self.domeRadius*self.domeTelescopeDistance*math.cos(math.radians(180 - domeAzimuth)))
-		correction = math.acos((self.domeTelescopeDistance**2 + self.domeRadius**2 - z**2)/(-2*z*self.domeRadius))
-		if (domeAzimuth + self.domeAngleOffset) <= 180: # and (domeAzimuth + self.domeAngleOffset) >= 0:
-			correctedAzimuth = domeAzimuth - math.degrees(correction)
-			while correctedAzimuth > 360: correctedAzimuth = correctedAzimuth - 360
-			while correctedAzimuth < 0: correctedAzimuth = correctedAzimuth + 360
-			return str(correctedAzimuth)
-
-		elif (domeAzimuth + self.domeAngleOffset) > 180: # and (domeAzimuth + self.domeAngleOffset) <= 360:
-			correctedAzimuth = domeAzimuth + math.degrees(correction)
-			while correctedAzimuth > 360: correctedAzimuth = correctedAzimuth - 360
-			while correctedAzimuth < 0: correctedAzimuth = correctedAzimuth + 360
-			return str(correctedAzimuth)
-		else: 
-			print 'ERROR IN AZIMUTH DOME TO TELESCOPE'
-			return str(domeAzimuth)
-
-#    Diagram to help explain azimuth_dome_to_telescope function
-#   
-#                        /| <----- telescope azimuth
-#                       /j|
-#          dome ---->  /  |
-#          azimuth    /   |
-#                    /    |    	Here we want to get angle j as this is the difference between the 
-#               |   /     |	dome's actual azimuth and the azimuth command sent to the telescope
-#   azimuth --> |  /      |	in the dome's coordinate system.
-#   sent to     |j/       |
-#   telescope   |/        |
-#   in domes    -----------
-#   coordinate system
-# 
-# We are just working backwards from the azimuth_telescope_to_dome function above.
-# We want to get the same angle, but we have different starting information so have
-# to use a different process.
-#
-
 	def dome_relays(self, command): # 
 		'''Move the dome clockwise, anticlockwise or stop dome motion'''
 		commands = str.split(command)
@@ -395,10 +260,6 @@ class LabjackServer:
 		else:
 			try: dome_command_temp = float(command)
 			except Exception: return 'ERROR'
-			if self.dome_correction_enabled: 
-				print 'instructed to go to: '+command
-				print 'dome correction says: '+self.azimuth_telescope_to_dome(str(dome_command_temp))
-				dome_command_temp = float(self.azimuth_telescope_to_dome(str(dome_command_temp)))
 			while dome_command_temp > 360: dome_command_temp -= 360
 			while dome_command_temp < 0: dome_command_temp += 360
 			counts_to_move = int(dome_command_temp*self.counts_per_degree) - self.current_position
