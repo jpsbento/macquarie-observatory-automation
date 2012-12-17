@@ -187,7 +187,9 @@ class UberServer:
 		#set this as a background task when setting up uber_main
 		if self.dome_tracking:
 			domeAzimuth = str.split(self.labjack_client.send_command('dome location'))[0]
-			VirtualDome = str.split(self.telescope_client.send_command('SkyDomeGetAz'))[0]
+#			print domeAzimuth
+			VirtualDome = str.split(self.telescope_client.send_command('SkyDomeGetAz'),'|')[0]
+#			print VirtualDome
 			try: float(domeAzimuth)
 			except Exception: 
 				self.dome_tracking = False
