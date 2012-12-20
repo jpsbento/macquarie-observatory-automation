@@ -198,8 +198,8 @@ class UberServer:
 			except Exception:
 				self.dome_tracking = False
 				return 'Virtual Dome not giving out what is expected'
-			if abs(float(domeAzimuth) - float(VirtualDome)) > 3:
-				print 'go to azimuth:'+str(VirtualDome)+' because of the 3 degree difference'
+			if abs(float(domeAzimuth) - float(VirtualDome)) > 4:
+				print 'go to azimuth:'+str(VirtualDome)+' because of the 4 degree difference. Dome azimuth is currently: '+str(domeAzimuth)
 				self.labjack_client.send_command('dome '+str(VirtualDome))
 
 

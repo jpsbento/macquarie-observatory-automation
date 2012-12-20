@@ -49,7 +49,7 @@ class LabjackServer:
 	slits_open = False
 
 	counts_per_degree = 11.83 	   	# how many counts from the wheel encoder there is to a degree
-	slitoffset = int(63.83*counts_per_degree)    # The position, in degrees, of the slits when the home switch is activated
+	slitoffset = int(68.83*counts_per_degree)    # The position, in degrees, of the slits when the home switch is activated
 
 
 	total_counts = 0		     	# The total number of counts since we started the program, raw output from wheel
@@ -193,7 +193,7 @@ class LabjackServer:
 		current_position_temp = self.total_counts - self.total_count_at_last_home + self.slitoffset # what is our relative distance to home?
 		#print 'current position temp: '+str(current_position_temp)
 		if current_position_temp < 0: current_position_temp = int(360*self.counts_per_degree) + current_position_temp
-
+		if current_position_temp > int(360*self.counts_per_degree): current_position_temp = current_position_temp - int(360*self.counts_per_degree)
 		self.current_position = current_position_temp
 		#print 'current position: '+str(self.current_position)
 		#print '\n'
