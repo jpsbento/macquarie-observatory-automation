@@ -9,7 +9,7 @@ import string
 from datetime import datetime
 
 #Open port 0 at "9600,8,N,1", timeout of 5 seconds
-ser = serial.Serial('/dev/ttyUSB1',9600,timeout=10)  #open first serial port
+ser = serial.Serial('/dev/ttyUSB0',9600,timeout=10)  #open first serial port
 print ser.portstr       #check which port was really used
 
 
@@ -59,7 +59,7 @@ class WeatherstationServer:
 
 	def cmd_safe(self, the_command):
 		'''Returns a 1 if it is safe to open the dome slits, and returns a zero otherwise.'''
-		return self.slitvariable
+		return str(self.slitvariable)
 
 
 #************************* End of user commands ********************************#
@@ -100,10 +100,13 @@ class WeatherstationServer:
 		elif ((alertdigit >> 4) & 1): message += ' light,'
 		else: message += ' very light,'
 
-		if ((alertdigit >> 7) & 1): message += ' energised, safe for dome to open.'
+		if ((alertdigit >> 7) & 1): message += ' energised.'
 		else: message += ' not energised.'					
 
 		self.slitvariable = cloudvariable*rainvariable*lightvariable #if = 1, it's safe for slits to be open! Unsafe otherwise.
+
+		if self.slitvariable: message+=' Safe for dome to open.'
+		else: message+=' NOT safe for dome to open.************' 
 		self.log(message)
 		return
 
