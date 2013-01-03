@@ -198,8 +198,8 @@ class UberServer:
 			except Exception:
 				self.dome_tracking = False
 				return 'Virtual Dome not giving out what is expected'
-			if abs(float(domeAzimuth) - float(VirtualDome)) > 4:
-				print 'go to azimuth:'+str(VirtualDome)+' because of the 4 degree difference. Dome azimuth is currently: '+str(domeAzimuth)
+			if abs(float(domeAzimuth) - float(VirtualDome)) > 2.5:
+				print 'go to azimuth:'+str(VirtualDome)+' because of an offset. Dome azimuth is currently: '+str(domeAzimuth)
 				self.labjack_client.send_command('dome '+str(VirtualDome))
 
 
@@ -216,7 +216,7 @@ class UberServer:
 				print 'ERROR: Communication with the WeatherStation failed. Closing Slits for safety.'
 			if not "1" in weather:
 				response = self.labjack_client.send_command('slits close')
-				#print 'Weather not suitable for observing. Closing Slits.'
+				print 'Weather not suitable for observing. Closing Slits.'
 			else:
 				self.labjack_client.send_command('ok')
 

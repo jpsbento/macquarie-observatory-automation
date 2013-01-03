@@ -63,7 +63,7 @@ class LabjackServer:
 
 	homing = False
 	watchdog_last_time = time.time()        # The watchdog timer.
-	watchdog_max_delta = 1000000                # more than this time between communications means there is a problem
+	watchdog_max_delta = 10                # more than this time between communications means there is a problem
 
 
 #*************************************** List of user commands ***************************************#
@@ -271,6 +271,8 @@ class LabjackServer:
 			return str(counts_to_move)
 
 	def watchdog_timer(self):
+		if self.slits_open:
+			print math.fabs(time.time() - self.watchdog_last_time)
 		if (math.fabs(time.time() - self.watchdog_last_time) > self.watchdog_max_delta) and (self.slits_open==True):
 			    self.cmd_slits('slits close')
 			    self.watchdog_last_time = time.time()
