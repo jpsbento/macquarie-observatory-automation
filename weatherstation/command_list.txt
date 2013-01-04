@@ -4,3 +4,4 @@ rain
 tempair
 tempsky
 status
+safe
