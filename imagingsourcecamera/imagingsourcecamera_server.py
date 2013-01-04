@@ -16,7 +16,11 @@ import socket
 
 class ImagingSourceCameraServer:
 
-	dev = unicap.Device( unicap.enumerate_devices()[0] ) # I am assuming this will be the first camera the program comes across
+	try:
+		for i in unicap.enumerate_devices():
+			if (i['model_name']=='DMx 21AU04.AS')&(i['vendor_name']==''):
+				dev = unicap.Device(i) # I am assuming this will be the camera used on the side of the telescope (old model)
+	except Exception: print 'Could not find the right camera. Check that it is connected.'
 
 	magnitude_conversion = 0 # How to convert from the magnitude iraf gives out and the actual magnitude of a star.
 				 # I *think* you just add this number (when calculated) to all Iraf mags and you're set.
