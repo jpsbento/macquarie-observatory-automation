@@ -54,9 +54,7 @@ class ImagingSourceCameraServer:
 	
 	#Put in the allowed values for each option
 	#We give an array for each variable
-	frameRateRange = range(1,241) #setting up the allowed frame rates to be in 0.25 increments 
-	for r in range(0,len(frameRateRange)):
-		frameRateRange[r] = frameRateRange[r]*0.25
+	frameRateRange = list(numpy.arange(1,60.25,step=0.25)) #setting up the allowed frame rates to be in 0.25 increments 
 	exposureAutoRange = range(0,4)
 	exposureAbsoluteRange = range(1, 36000001)
 	gammaRange = range(1, 501)
