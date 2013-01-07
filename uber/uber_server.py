@@ -21,7 +21,7 @@ class UberServer:
 	dome_tracking = False
 	override_wx = False
 	
-	weather_counts = 1
+	weather_counts = 1 #integer that gets incremented if the slits are open, the override_wx is false and the weather station returns an unsafe status. If this gets above 3, close slits (see function where this is used)
 
 #***************************** A list of user commands *****************************#
 
@@ -214,19 +214,18 @@ class UberServer:
 		try: slits_opened = self.labjack_client.send_command('slits').split()[0]
 		except Exception: print 'Could not query the status of the slits from Labjack.'
 		if (not self.override_wx) & (slits_opened=='True'):
-			print slits_opened.split()[0]
 			try: weather = self.weatherstation_client.send_command('safe')
 			except Exception: 
 				response = self.labjack_client.send_command('slits close')
 				print 'ERROR: Communication with the WeatherStation failed. Closing Slits for safety.'
 			if not "1" in weather:
-				if weather_counts > 3:
+				if self.weather_counts > 3:
 					response = self.labjack_client.send_command('slits close')
 					print 'Weather not suitable for observing. Closing Slits.'
 				else:
-					weather_counts+=1
+					self.weather_counts+=1
 			else:
-				weather_counts=1
+				self.weather_counts=1
 				self.labjack_client.send_command('ok')
 
 	#This may not be necessary anymore. Anyways, looks like a pretty stupid function to have. Might as well replace any function call with the only line in it! I'm just leaving it here for now just in case something else is calling it, in case the program breaks.

@@ -30,8 +30,8 @@ class ImagingSourceCameraServer:
 	target_ypixel = 216.0   # 480 y pixel height
 	north_move_arcsecs = 1
 	east_move_arcsecs = 1
-	oneArcsecinPixelsN = 1  # This tells us how many pixels there are to one arcsecond in the North/South direction
-	oneArcsecinPixelsE = 1  # This tells us how many pixels there are to one arcsecond in the East/West direction
+	oneArcsecinPixelsN = 1/120.  # This tells us how many pixels there are to one arcsecond in the North/South direction
+	oneArcsecinPixelsE = 1/120.  # This tells us how many pixels there are to one arcsecond in the East/West direction
 	axis_flip = 1.0
 	theta = 0 
 	transformation_matrix = [math.cos(theta), math.sin(theta), -1*math.sin(theta), math.cos(theta)]	
