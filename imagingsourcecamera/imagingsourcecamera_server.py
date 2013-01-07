@@ -84,6 +84,14 @@ class ImagingSourceCameraServer:
 		capture = self.capture_images(base_filename, upperlimit)
 		if not capture: return 'ERROR capturing images'
 		return 'Capture complete'
+
+	def cmd_brightStarCoords(self, the_command):
+		'''This takes one photo to be used to detect the brightest star and find its coordinates. '''
+		dummy = self.cmd_captureImages('captureImages guiding_test 1')
+		brightcoords = self.analyseImage('guiding_test.fits','guiding_test.txt')
+		return str(brightcoords)		
+
+
 		
 	def cmd_setCameraValues(self,the_command):
 		'''This sets up the camera with the exposure settings etc. wanted by the user. If no input is given this will list the allowed values for each of the settings, otherwise a user can set each setting individually. The properties are: \nFrameRate \nExposureAuto \nExposureAbs \nGain \nBrightness \nGamma. \nTo set a property type: setCameraValues FrameRate 3 \nTo get a list of properties type: setCameraValues show.\nTo use the default settings type "setCameraValues default"'''

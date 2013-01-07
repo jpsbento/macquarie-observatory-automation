@@ -107,6 +107,27 @@ class UberServer:
 		response = self.acqcamera_client.send_command('calculateCameraOrientation')
 		return response
 
+	def cmd_offset(self, the_command):
+		'''This pulls together commands from the camera server and the telescope server so we can
+		center and focus a bright star with just one call to this command. It is recommended that you 
+		focus the star before attemping to center it for more accurate results'''
+		x_final=375.682
+		y_final=393.282
+		commands=str.split(the_command)
+		x_init= float(commands[1])
+		y_init= float(commands[2])
+		dx=x_final-x_init #in declination
+		dy=y_final-y_init #in RA
+		dxd=dx*120/3600.#in degrees
+		dyh=dy*120/3600./15.#in hours
+		RA_init=float(str.split(self.telescope_client.send_command('getRA'))[0])
+		Dec_init=float(str.split(self.telescope_client.send_command('getDec'))[0])
+		RA_final=RA_init+dyh
+		Dec_final=Dec_init+dxd
+		dummy = self.telescope_client.send_command('slewToRaDec '+str(RA_final)+' '+str(Dec_final))
+		return 'yes!'
+		
+
 	def cmd_centerStar(self, the_command):
 		'''This pulls together commands from the camera server and the telescope server so we can
 		center and focus a bright star with just one call to this command. It is recommended that you 
