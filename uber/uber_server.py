@@ -108,24 +108,34 @@ class UberServer:
 		return response
 
 	def cmd_offset(self, the_command):
-		'''This pulls together commands from the camera server and the telescope server so we can
-		center and focus a bright star with just one call to this command. It is recommended that you 
-		focus the star before attemping to center it for more accurate results'''
+		'''This pulls together commands from the camera server and the telescope server so that we can move the telescope to a given known pixel position which corresponds to the centre of the telescope field of view'''
+		#These are the known coordinates of the centre of the telescope field of view. These need to be changed every time anything is put on the back of the telescope. 
 		x_final=375.682
 		y_final=393.282
+		#The input for this function is the current coordinates of the bright star. This perhaps should take the output of brightStarCoords instead....
 		commands=str.split(the_command)
-		x_init= float(commands[1])
-		y_init= float(commands[2])
+		try:
+			x_init= float(commands[1])
+			y_init= float(commands[2])
+		except Exception: print 'ERROR: Coordinates introduced are not floats.'
+		#This is the pixel offsets required
 		dx=x_final-x_init #in declination
 		dy=y_final-y_init #in RA
+		#Convert these into hours (in RA) and degrees (in Dec)
 		dxd=dx*120/3600.#in degrees
 		dyh=dy*120/3600./15.#in hours
-		RA_init=float(str.split(self.telescope_client.send_command('getRA'))[0])
-		Dec_init=float(str.split(self.telescope_client.send_command('getDec'))[0])
+		#Query the telescope for the current RA and Dec
+		try:
+			RA_init=float(str.split(self.telescope_client.send_command('getRA'))[0])
+			Dec_init=float(str.split(self.telescope_client.send_command('getDec'))[0])
+		except Exception: 'ERROR: RA and Dec query not successful'
+		#Calculate the new coordinates in hours (RA) and degrees (Dec)
 		RA_final=RA_init+dyh
 		Dec_final=Dec_init+dxd
-		dummy = self.telescope_client.send_command('slewToRaDec '+str(RA_final)+' '+str(Dec_final))
-		return 'yes!'
+		#Instruct the telescope to move to new coordinates
+		try:	dummy = self.telescope_client.send_command('slewToRaDec '+str(RA_final)+' '+str(Dec_final))
+		except Exception: print'ERROR: Telescope failed to move to new coordinates'
+		return 'Telescope successfully offset to new coordinates.'
 		
 
 	def cmd_centerStar(self, the_command):

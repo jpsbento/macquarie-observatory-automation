@@ -87,8 +87,13 @@ class ImagingSourceCameraServer:
 
 	def cmd_brightStarCoords(self, the_command):
 		'''This takes one photo to be used to detect the brightest star and find its coordinates. '''
-		dummy = self.cmd_captureImages('captureImages guiding_test 1')
-		brightcoords = self.analyseImage('guiding_test.fits','guiding_test.txt')
+		#capture image from the camera and save it as a fits file
+		try: dummy = self.cmd_captureImages('captureImages guiding_test 1')
+		except Exception: print 'Could not capture image'
+		#analyse the image using iraf and find the brightest star. This step requires iraf's daofind to be fully setup with stuff on eparam/
+		try: brightcoords = self.analyseImage('guiding_test.fits','guiding_test.txt')
+		except Exception: print 'Could not analyse image'
+		#return the coordinates, magnitude and sharpness
 		return str(brightcoords)		
 
 
