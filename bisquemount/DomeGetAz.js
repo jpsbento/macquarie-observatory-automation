@@ -5,7 +5,7 @@ sky6Dome.Connect();
 
 if (sky6Dome.IsConnected==0)/*Connect failed for some reason*/
 {
-	Out = "Not connected to TheSky Virtual Dome"
+    Out = "Not connected to TheSky Virtual Dome";
 }
 else
 {

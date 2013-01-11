@@ -3,7 +3,7 @@
 
 import os
 import client_socket
-import time
+import time, math
 
 class UberServer:
 	
@@ -22,6 +22,8 @@ class UberServer:
 	override_wx = False
 	
 	weather_counts = 1 #integer that gets incremented if the slits are open, the override_wx is false and the weather station returns an unsafe status. If this gets above 3, close slits (see function where this is used)
+	dome_last_sync=time.time()
+	dome_frequency = 30 #This parameters sets how often the SkyX virtual dome is told to align with the telescope pointing.
 
 #***************************** A list of user commands *****************************#
 
@@ -234,6 +236,11 @@ class UberServer:
 			if abs(float(domeAzimuth) - float(VirtualDome)) > 2.5:
 				print 'go to azimuth:'+str(VirtualDome)+' because of an offset. Dome azimuth is currently: '+str(domeAzimuth)
 				self.labjack_client.send_command('dome '+str(VirtualDome))
+			if (math.fabs(time.time() - self.dome_last_sync) > self.dome_frequency ):
+				try: ForceTrack=self.telescope_client.send_command('SkyDomeForceTrack') #Forces the virtual dome to track the telescope every self.dome_frequency seconds
+				except Exception: print 'Unable to force the virtual dome tracking'
+				self.dome_last_sync=time.time()
+				#print 'Dome Synced'
 
 
 	def waiting_messages(self): # I don't think this will work...
