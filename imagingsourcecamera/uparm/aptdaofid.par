@@ -1,4 +1,4 @@
-image,s,a,'test.fits',,,'Input image(s)'
+image,s,a,'guiding_test.fits',,,'Input image(s)'
 output,f,h,'test.txt',,,'The output coordinates list(s) (default: image.coo.?)'
 starmap,s,h,'',,,'The output density enhancement image(s)'
 skymap,s,h,'',,,'The output sky image(s)'

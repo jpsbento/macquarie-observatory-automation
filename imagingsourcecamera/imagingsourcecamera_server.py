@@ -92,7 +92,7 @@ class ImagingSourceCameraServer:
 		except Exception: print 'Could not capture image'
 		#analyse the image using iraf and find the brightest star. This step requires iraf's daofind to be fully setup with stuff on eparam/
 		try: brightcoords = self.analyseImage('guiding_test.fits','guiding_test.txt')
-		except Exception: print 'Could not analyse image'
+		except Exception: return 'Could not analyse image'
 		#return the coordinates, magnitude and sharpness
 		return str(brightcoords)		
 

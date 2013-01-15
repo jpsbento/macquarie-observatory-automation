@@ -112,8 +112,8 @@ class UberServer:
 	def cmd_offset(self, the_command):
 		'''This pulls together commands from the camera server and the telescope server so that we can move the telescope to a given known pixel position which corresponds to the centre of the telescope field of view'''
 		#These are the known coordinates of the centre of the telescope field of view. These need to be changed every time anything is put on the back of the telescope. 
-		x_final=375.682
-		y_final=393.282
+		x_final=332.81
+		y_final=223.183
 		#The input for this function is the current coordinates of the bright star. This perhaps should take the output of brightStarCoords instead....
 		commands=str.split(the_command)
 		try:
