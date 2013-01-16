@@ -16,8 +16,8 @@ class UberServer:
 	telescope_client = client_socket.ClientSocket("telescope",telescope_type)  #23458 <- port number
 	weatherstation_client = client_socket.ClientSocket("weatherstation",telescope_type) #23457 <- port number
 	acqcamera_client = client_socket.ClientSocket("imagingsourcecamera",telescope_type) #23459 <- port number
-	camera_client = client_socket.ClientSocket("sbig",telescope_type) #23460 <- port number
-
+	camera_client = client_socket.ClientSocket("sbig",telescope_type) #23460 <- port number 
+        
 	dome_tracking = False
 	override_wx = False
 	
@@ -30,6 +30,11 @@ class UberServer:
 	def cmd_finishSession(self,the_command):
 		'''Close the slits, home the dome, home the telescope, put telescope in sleep mode.'''
 		# actual stuffs for this to come
+		dummy = self.labjack_client.send_command('slits close')
+		self.dome_tracking=False
+		dummy = self.labjack_client.send_command('dome home')
+		dummy = self.telescope_client.send_command('park')
+		self.override_wx=False
 
 	def cmd_labjack(self,the_command):
 		'''A user can still access the low level commands from the labjack using this command. ie
@@ -213,6 +218,7 @@ class UberServer:
 			self.override_wx=False
 		else: self.override_wx=True
 		return str(self.override_wx)
+
 
 #***************************** End of User Commands *****************************#
 
