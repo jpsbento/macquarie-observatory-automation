@@ -1,13 +1,13 @@
 #!/usr/bin/python
 #This is the main program. It should be *very* simple.
-import imagingsourcecamera_server
+import fiberfeed_server
 import sys
 sys.path.append('..')
 import server_socket
 import find_port
 f = find_port.FindPort()
-Port = f.findPort('imagingsourcecamera')
-isc=imagingsourcecamera_server.ImagingSourceCameraServer()
-ss=server_socket.ServerSocket(Port, 'imagingsourcecamera', isc)	
+Port = f.findPort('fiberfeed')
+ff=fiberfeed_server.FiberFeedServer()
+ss=server_socket.ServerSocket(Port, 'fiberfeed', ff)	
 ss.run()
 ss.close()

@@ -28,13 +28,13 @@ def execute_command(the_command, m):
     '''Find the_command amongst the list of commands like cmd_one in module m
     
     This returns a string containing the response, or a -1 if a quit is commanded.'''
-    the_functions = dict(finishSession=m.cmd_finishSession,labjack=m.cmd_labjack,telescope=m.cmd_telescope,weatherstation=m.cmd_weatherstation,camera=m.cmd_camera,acqcamera=m.cmd_acqcamera,setDomeTracking=m.cmd_setDomeTracking,orientateCamera=m.cmd_orientateCamera,offset=m.cmd_offset,centerStar=m.cmd_centerStar,focusStar=m.cmd_focusStar,focusIRAF=m.cmd_focusIRAF,override_wx=m.cmd_override_wx)
+    the_functions = dict(finishSession=m.cmd_finishSession,labjack=m.cmd_labjack,telescope=m.cmd_telescope,weatherstation=m.cmd_weatherstation,camera=m.cmd_camera,acqcamera=m.cmd_acqcamera,fiberfeed=m.cmd_fiberfeed,setDomeTracking=m.cmd_setDomeTracking,orientateCamera=m.cmd_orientateCamera,offset=m.cmd_offset,centerStar=m.cmd_centerStar,focusStar=m.cmd_focusStar,focusIRAF=m.cmd_focusIRAF,override_wx=m.cmd_override_wx)
     commands = string.split(the_command)
     if len(commands) == 0:
         return ""
     if commands[0] == "help":
         if (len(commands) == 1):
-            return 'finishSession\nlabjack\ntelescope\nweatherstation\ncamera\nacqcamera\nsetDomeTracking\norientateCamera\noffset\ncenterStar\nfocusStar\nfocusIRAF\noverride_wx'
+            return 'finishSession\nlabjack\ntelescope\nweatherstation\ncamera\nacqcamera\nfiberfeed\nsetDomeTracking\norientateCamera\noffset\ncenterStar\nfocusStar\nfocusIRAF\noverride_wx'
         elif commands[1] in the_functions:
             td=pydoc.TextDoc()
             return td.docroutine(the_functions[commands[1]])

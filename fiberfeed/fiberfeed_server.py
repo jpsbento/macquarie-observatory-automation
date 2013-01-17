@@ -14,12 +14,13 @@ import math
 import socket
 
 
-class ImagingSourceCameraServer:
+class FiberFeedServer:
 
 	try:
 		for i in unicap.enumerate_devices():
-			if (i['model_name']=='DMx 21AU618.AS')&(i['vendor_name']==''):
-				dev = unicap.Device(i) # I am assuming this will be the camera used on the side of the telescope (old model)
+			if (i['model_name']=='DMK 21AU618.AS')&(i['vendor_name']==''):
+				dev = unicap.Device(i) # I am assuming this will be the camera on the fiberfeed
+		print dev
 	except Exception: print 'Could not find the right camera. Check that it is connected.'
 
 	magnitude_conversion = 0 # How to convert from the magnitude iraf gives out and the actual magnitude of a star.

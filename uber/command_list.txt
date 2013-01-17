@@ -4,6 +4,7 @@ telescope
 weatherstation
 camera
 acqcamera
+fiberfeed
 setDomeTracking
 orientateCamera
 offset

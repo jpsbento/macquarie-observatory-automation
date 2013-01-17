@@ -92,6 +92,17 @@ class UberServer:
 			return str(response)
 		else: return 'To get a list of commands for the acqcamera type "acqcamera help".'
 
+	def cmd_fiberfeed(self,the_command):
+		'''A user can still access the low level commands from the fiber feed imaging source camera using this command. ie
+		type 'fiberfeed help' to get all the available commands for the imaging source camera server.'''
+		commands = str.split(the_command)
+		if len(commands) > 1:
+			del commands[0]
+			command_for_fiberfeed = ' '.join(commands)
+			response = self.fiberfeed_client.send_command(command_for_fiberfeed)
+			return str(response)
+		else: return 'To get a list of commands for the fiberfeed type "fiberfeed help".'
+
 	def cmd_setDomeTracking(self,the_command):
 		'''Can set the dome tracking to be on or off'''
 		commands = str.split(the_command)
