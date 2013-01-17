@@ -1,0 +1,8 @@
+captureImages
+brightStarCoords
+setCameraValues
+starDistanceFromCenter
+orientationCapture
+focusCapture
+calculateCameraOrientation
+calibrateMagnitude

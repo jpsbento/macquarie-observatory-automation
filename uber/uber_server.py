@@ -17,6 +17,7 @@ class UberServer:
 	weatherstation_client = client_socket.ClientSocket("weatherstation",telescope_type) #23457 <- port number
 	acqcamera_client = client_socket.ClientSocket("imagingsourcecamera",telescope_type) #23459 <- port number
 	camera_client = client_socket.ClientSocket("sbig",telescope_type) #23460 <- port number 
+	fiberfeed_client = client_socket.ClientSocket("fiberfeed",telescope_type) #23459 <- port number
         
 	dome_tracking = False
 	override_wx = False
