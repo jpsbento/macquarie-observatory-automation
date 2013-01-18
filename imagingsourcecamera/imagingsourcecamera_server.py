@@ -27,7 +27,8 @@ class ImagingSourceCameraServer:
 	
 	# The central pixel coordinates
 	target_xpixel = 326.0   # 640 x pixel width
-	target_ypixel = 216.0   # 480 y pixel height
+	target_ypixel = 216.0   #
+ 480 y pixel height
 	north_move_arcsecs = 1
 	east_move_arcsecs = 1
 	oneArcsecinPixelsN = 1/120.  # This tells us how many pixels there are to one arcsecond in the North/South direction
@@ -131,7 +132,7 @@ class ImagingSourceCameraServer:
 			elif pro == 'Gain' and float(commands[2]) in self.allowed_range[3]: self.set_values[3] = int(commands[2])
 			elif pro == 'Brightness' and float(commands[2]) in self.allowed_range[4]: self.set_values[4] = int(commands[2])
 			elif pro == 'Gamma' and float(commands[2]) in self.allowed_range[5]: self.set_values[5] = int(commands[2])
-			else: return 'Invalid input, type "setCameraValues show" for a list of allowed inputs and ranges'
+			else: return 'Invalid input, type "setCameraValues show" for a list of current values and ranges'
 			for i in range(0,len(self.properties)-1):
 				prop = self.dev.get_property( self.properties[i] )
 				prop['value'] = float(self.set_values[i])
@@ -139,7 +140,10 @@ class ImagingSourceCameraServer:
 				except Exception: 
 					self.set_values[i] = self.default_values[i]
 					return 'Property update failed. Error when updating: '+str(prop['identifier'])
-		return str(pro)+' value updated'
+			return str(pro)+' value updated'
+
+		else: return 'Invalid command. Type "setCameraValues" for a list of allowed inputs and ranges'
+		
 
 	def cmd_starDistanceFromCenter(self, the_command):
 		'''This checks the position of the brighest star in shot with reference to the center of the frame and
