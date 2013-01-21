@@ -1,5 +1,6 @@
 captureImages
 brightStarCoords
+adjustExposure
 setCameraValues
 starDistanceFromCenter
 orientationCapture

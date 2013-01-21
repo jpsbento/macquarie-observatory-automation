@@ -27,8 +27,7 @@ class ImagingSourceCameraServer:
 	
 	# The central pixel coordinates
 	target_xpixel = 326.0   # 640 x pixel width
-	target_ypixel = 216.0   #
- 480 y pixel height
+	target_ypixel = 216.0   # 480 y pixel height
 	north_move_arcsecs = 1
 	east_move_arcsecs = 1
 	oneArcsecinPixelsN = 1/120.  # This tells us how many pixels there are to one arcsecond in the North/South direction
@@ -98,6 +97,26 @@ class ImagingSourceCameraServer:
 		return str(brightcoords)		
 
 
+	def cmd_adjustExposure(self, the_command):
+		'''This function will adjust the exposure time of the camera until the brightest pixel is between a given range, close to the 8 bit resolution maximum of the imagingsource cameras (255)'''
+		max_pix=0
+		print 'Adjusting exposure time'
+		while (max_pix < 200)|(max_pix>255):
+			try: dummy = self.cmd_captureImages('captureImages exposure_test 2')
+			except Exception: print 'Could not capture image'
+			im=pyfits.getdata('exposure_test_1.fits')
+			max_pix=im.max()
+			if max_pix < 200:
+				prop = self.dev.get_property('Exposure (Absolute)')
+				prop['value']+=50
+				print 'Exposure=',prop['value'],'ms'
+				self.dev.set_property( prop )
+			if max_pix > 255:
+				prop = self.dev.get_property('Exposure (Absolute)')
+				prop['value']-=50
+				print 'Exposure=',prop['value'],'ms'
+				self.dev.set_property( prop )
+		return 'Finished adjusting exposure'
 		
 	def cmd_setCameraValues(self,the_command):
 		'''This sets up the camera with the exposure settings etc. wanted by the user. If no input is given this will list the allowed values for each of the settings, otherwise a user can set each setting individually. The properties are: \nFrameRate \nExposureAuto \nExposureAbs \nGain \nBrightness \nGamma. \nTo set a property type: setCameraValues FrameRate 3 \nTo get a list of properties type: setCameraValues show.\nTo use the default settings type "setCameraValues default"'''
