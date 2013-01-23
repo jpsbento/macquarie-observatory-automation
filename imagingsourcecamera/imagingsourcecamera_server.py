@@ -102,10 +102,11 @@ class ImagingSourceCameraServer:
 		max_pix=0
 		print 'Adjusting exposure time'
 		while (max_pix < 200)|(max_pix>255):
-			try: dummy = self.cmd_captureImages('captureImages exposure_test 2')
+			try: dummy = self.cmd_captureImages('captureImages exposure_adjust 2')
 			except Exception: print 'Could not capture image'
-			im=pyfits.getdata('exposure_test_1.fits')
+			im=pyfits.getdata('exposure_adjust_1.fits')
 			max_pix=im.max()
+			print 'max_pix=',max_pix
 			if max_pix < 200:
 				prop = self.dev.get_property('Exposure (Absolute)')
 				prop['value']+=50
