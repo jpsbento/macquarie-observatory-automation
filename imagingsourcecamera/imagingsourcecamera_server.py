@@ -45,7 +45,7 @@ class ImagingSourceCameraServer:
 	
 	#Store the default camera settings here
 	frameRateDefault = 30.0
-	exposureAutoDefault = 3
+	exposureAutoDefault = 1
 	exposureAbsoluteDefault = 333
 	gainDefault = 1023
 	brightnessDefault = 0
@@ -67,28 +67,36 @@ class ImagingSourceCameraServer:
 	allowed_range = [frameRateRange, exposureAutoRange, exposureAbsoluteRange, gainRange, brightnessRange, gammaRange]
 	default_values = [frameRateDefault, exposureAutoDefault, exposureAbsoluteDefault, gainDefault, brightnessDefault, gammaDefault]
 	# We initially have the values to set as being the default values (some values unicap gave)
-	
 
+	image_chop=False
+	
 #******************************* The main camera commands ***********************************#
 
 	def cmd_captureImages(self, the_command):
 		'''This takes the photos to be used for science. Input the name of the images to capture (images will then be
 		numbered: ie filename1.fits filename2.fits) and the number of images to capture. Note: when specifying a filename
-		you do not need to include the extention: ie input "filename" not "filename.fits"'''
+		you do not need to include the extention: ie input "filename" not "filename.fits". Optional input is to force the routine to not show the images once it has taken them. Just add 'no' at the end of the call. '''
 		commands = str.split(the_command)
-		if len(commands) != 3: return 'Please input number of images to capture.'
+		if len(commands) < 3: return 'Please input number of images to capture.'
 		try: int(commands[2])
 		except Exception: return 'Invalid number.'
 		upperlimit = int(commands[2])
 		base_filename = commands[1]
-		capture = self.capture_images(base_filename, upperlimit)
-		if not capture: return 'ERROR capturing images'
+		if len(commands)==3:
+			capture = self.capture_images(base_filename, upperlimit)
+			if not capture: return 'ERROR capturing images'
+		if (len(commands)==4):
+			if (commands[3]=='no'):
+				capture = self.capture_images(base_filename, upperlimit,show=False)
+				if not capture: return 'ERROR capturing images'
+			else:
+				return 'Type "no" for no image display. Otherwise, leave empty.'
 		return 'Capture complete'
 
 	def cmd_brightStarCoords(self, the_command):
 		'''This takes one photo to be used to detect the brightest star and find its coordinates. '''
 		#capture image from the camera and save it as a fits file
-		try: dummy = self.cmd_captureImages('captureImages guiding_test 1')
+		try: dummy = self.cmd_captureImages('captureImages guiding_test 1 no')
 		except Exception: print 'Could not capture image'
 		#analyse the image using iraf and find the brightest star. This step requires iraf's daofind to be fully setup with stuff on eparam/
 		try: brightcoords = self.analyseImage('guiding_test.fits','guiding_test.txt')
@@ -101,22 +109,32 @@ class ImagingSourceCameraServer:
 		'''This function will adjust the exposure time of the camera until the brightest pixel is between a given range, close to the 8 bit resolution maximum of the imagingsource cameras (255)'''
 		max_pix=0
 		print 'Adjusting exposure time'
-		while (max_pix < 200)|(max_pix>255):
-			try: dummy = self.cmd_captureImages('captureImages exposure_adjust 2')
+		while (max_pix < 200)|(max_pix>245):
+			try: dummy = self.cmd_captureImages('captureImages exposure_adjust 5 no')
 			except Exception: print 'Could not capture image'
-			im=pyfits.getdata('exposure_adjust_1.fits')
+			im=pyfits.getdata('exposure_adjust_4.fits')
 			max_pix=im.max()
 			print 'max_pix=',max_pix
 			if max_pix < 200:
 				prop = self.dev.get_property('Exposure (Absolute)')
-				prop['value']+=50
-				print 'Exposure=',prop['value'],'ms'
-				self.dev.set_property( prop )
-			if max_pix > 255:
+				if prop['value'] < 10000:
+					if max_pix < 100:
+						prop['value']+=100
+					else: 
+						prop['value']+=10
+					print 'Exposure=',prop['value']*10**(-4),'s'
+					self.dev.set_property( prop )
+					self.set_values[2]=prop['value']
+				else: 
+					return 'Exposure too big already, maybe there is no star in the field...'
+			if max_pix > 245:
 				prop = self.dev.get_property('Exposure (Absolute)')
-				prop['value']-=50
-				print 'Exposure=',prop['value'],'ms'
-				self.dev.set_property( prop )
+				if prop['value']> 51:
+					prop['value']-=50
+					print 'Exposure=',prop['value'],'ms'
+					self.dev.set_property( prop )
+					self.set_values[2]=prop['value']
+				else: return 'Exposure too short to reduce. Maybe this is too bright?'
 		return 'Finished adjusting exposure'
 		
 	def cmd_setCameraValues(self,the_command):
@@ -136,8 +154,9 @@ class ImagingSourceCameraServer:
 		elif len(commands) == 2 and commands[1] == 'default':
 			for i in range(0,len(self.properties)-1):
 				prop = self.dev.get_property( self.properties[i] )
-				prop['value'] = float(self.set_values[i])
+				prop['value'] = float(self.default_values[i])
 				self.dev.set_property( prop )
+				self.set_values=self.default_values
 			return 'Default settings used for all properties.'
 
 		elif len(commands) == 3:
@@ -331,10 +350,19 @@ class ImagingSourceCameraServer:
 		self.magnitude_conversion = float(star_magnitude) - float(star_magnitude_IRAF)
 		return 'Magnitude correction calibrated'
 
+	def cmd_Chop(self, the_command):
+		'''Changes the value of self.image_chop such that, if it is True, any time an image taken from the camera is analysed, only a scetion in the middle is considered. This is mostly for the purposes of adjusting the exposure and looking for bright stars.'''
+		commands = str.split(the_command)
+		if len(commands)==1: return 'Image chop is set to '+str(self.image_chop)
+		elif len(commands)==2 and commands[1]=='on': self.image_chop=True
+		elif len(commands)==2 and commands[1]=='off': self.image_chop=False
+		else: return 'Incorrect usage of function. Activate chopping of images using "on" or "off".'
+		return 'Image chop status set to '+str(self.image_chop)
+
 
 #*********************************** End of user commands ***********************************#
 
-	def capture_images(self, base_filename, upperlimit):
+	def capture_images(self, base_filename, upperlimit,show=True):
 		'''This takes the photos to be used for science. Input the name of the images to capture (images will then be
 		numbered: ie filename1.fits filename2.fits) and the number of images to capture. Note: when specifying a filename
 		you do not need to include the extention: ie input "filename" not "filename.fits"'''
@@ -362,9 +390,15 @@ class ImagingSourceCameraServer:
 			rgbbuf = imgbuf.convert( 'RGB3' )
 			dummy = rgbbuf.save( filename+'.raw' ) # saves it in RGB3 raw image format
 			img = Image.open( filename+'.raw' )
-			img.show()
+			if show==True:
+				img.show()
 			img.save( filename+'.jpg' ) # saves as a jpeg
 			os.system("convert -depth 8 -size 640x480+17 "+ filename+'.raw' +" "+ filename+'.fits') # saves as a fits file
+			if self.image_chop:
+				im_temp=pyfits.getdata(filename+'.fits')
+				im=self.chop(im_temp)
+				os.system('rm '+filename+'.fits')
+				pyfits.writeto(filename+'.fits',im)
 		self.dev.stop_capture()
 		return True
 
@@ -413,4 +447,10 @@ class ImagingSourceCameraServer:
 		return filename
 
 
-
+	def chop(self,im):
+		'''Function that will return a section of the image that we are interested in. This will just chop off a box of width 'width' centred at middle_x,middle_y'''
+		middle_y=240
+		middle_x=320
+		width=60
+		return im[middle_y-width/2:middle_y+width/2,middle_x-width/2:middle_x+width/2]
+	
