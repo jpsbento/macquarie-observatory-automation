@@ -8,3 +8,4 @@ focusCapture
 calculateCameraOrientation
 calibrateMagnitude
 Chop
+imageCube

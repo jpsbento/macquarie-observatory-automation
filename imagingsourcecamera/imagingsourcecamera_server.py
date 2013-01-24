@@ -96,10 +96,10 @@ class ImagingSourceCameraServer:
 	def cmd_brightStarCoords(self, the_command):
 		'''This takes one photo to be used to detect the brightest star and find its coordinates. '''
 		#capture image from the camera and save it as a fits file
-		try: dummy = self.cmd_captureImages('captureImages guiding_test 1 no')
-		except Exception: print 'Could not capture image'
+		try: dummy = self.cmd_imageCube('imageCube guiding_test')
+		except Exception: print 'Could not capture images'
 		#analyse the image using iraf and find the brightest star. This step requires iraf's daofind to be fully setup with stuff on eparam/
-		try: brightcoords = self.analyseImage('guiding_test.fits','guiding_test.txt')
+		try: brightcoords = self.analyseImage('program_images/guiding_test.fits','program_images/guiding_test.txt')
 		except Exception: return 'Could not analyse image'
 		#return the coordinates, magnitude and sharpness
 		return str(brightcoords)		
@@ -131,6 +131,11 @@ class ImagingSourceCameraServer:
 				prop = self.dev.get_property('Exposure (Absolute)')
 				if prop['value']> 51:
 					prop['value']-=50
+					print 'Exposure=',prop['value'],'ms'
+					self.dev.set_property( prop )
+					self.set_values[2]=prop['value']
+				elif prop['value']<51 and prop['value']>2: 
+					prop['value']-=1
 					print 'Exposure=',prop['value'],'ms'
 					self.dev.set_property( prop )
 					self.set_values[2]=prop['value']
@@ -348,6 +353,7 @@ class ImagingSourceCameraServer:
 		except Exception: return 'ERROR reading daofind output'
 
 		self.magnitude_conversion = float(star_magnitude) - float(star_magnitude_IRAF)
+		print magnitude_conversion
 		return 'Magnitude correction calibrated'
 
 	def cmd_Chop(self, the_command):
@@ -365,14 +371,16 @@ class ImagingSourceCameraServer:
 		if len(commands) != 2: return 'Please just specify the name of the final image'
 		#make upperlimit images and average combine them.
 		upperlimit = 10
-		base_filename = 'program_images/'+commands[1]
-		capture = self.capture_images(base_filename, upperlimit)
+		base_filename = commands[1]
+		print 'Starting to capture images'
+		capture = self.capture_images('program_images/'+base_filename, upperlimit,show=False)
 		if not capture: return 'ERROR capturing images'
+		print 'Finished capturing images'
 		self.check_if_file_exists('program_images/'+base_filename+'.fits')
 		self.check_if_file_exists('program_images/inlist')
 		iraf.images(_doprint=0)
-		os.system('ls program_images/'+base_filename+'_* > program_images/inlist')
-		try: iraf.imcombine(input='@program_images/inlist', output=base_filename+'.fits', combine='average',reject='none',outtype='integer', scale='none', zero='none', weight='none')
+		os.system('ls program_images/'+base_filename+'_*.fits > inlist')
+		try: iraf.imcombine(input='@inlist', output='program_images/'+base_filename+'.fits', combine='average',reject='none',outtype='integer', scale='none', zero='none', weight='none')
 		except Exception: return 'Could not combine images'
 		return 'Final image created. It is image program_images/'+base_filename+'.fits'
 
