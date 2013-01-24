@@ -359,6 +359,22 @@ class ImagingSourceCameraServer:
 		else: return 'Incorrect usage of function. Activate chopping of images using "on" or "off".'
 		return 'Image chop status set to '+str(self.image_chop)
 
+	def cmd_imageCube(self, the_command):
+		'''This function can be used to pull a series of images from the camera and coadd them in a simple way. This is slightly better process for measuring the position of a star for the purposes of guiding. In essence, this will take 10 images, average them and create a master image for analysis to be perfomed on.'''
+		commands = str.split(the_command)
+		if len(commands) != 2: return 'Please just specify the name of the final image'
+		#make upperlimit images and average combine them.
+		upperlimit = 10
+		base_filename = 'program_images/'+commands[1]
+		capture = self.capture_images(base_filename, upperlimit)
+		if not capture: return 'ERROR capturing images'
+		self.check_if_file_exists('program_images/'+base_filename+'.fits')
+		self.check_if_file_exists('program_images/inlist')
+		iraf.images(_doprint=0)
+		os.system('ls program_images/'+base_filename+'_* > program_images/inlist')
+		try: iraf.imcombine(input='@program_images/inlist', output=base_filename+'.fits', combine='average',reject='none',outtype='integer', scale='none', zero='none', weight='none')
+		except Exception: return 'Could not combine images'
+		return 'Final image created. It is image program_images/'+base_filename+'.fits'
 
 #*********************************** End of user commands ***********************************#
 
