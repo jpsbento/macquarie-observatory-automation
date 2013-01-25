@@ -1,9 +1,8 @@
 /* Java Script */
 
-var TargetAz = "235";
-var TargetAlt = "00";
+var dJog = "amountJog";
+var dDirection = "direction";
 var Out;
-
 
 
 sky6RASCOMTele.Connect();
@@ -16,8 +15,7 @@ if (sky6RASCOMTele.IsConnected==0)//Connect failed for some reason
 }
 else
 {
-	sky6RASCOMTele.Asynchronous = true;
-	sky6RASCOMTele.SlewToAzAlt(TargetAz, TargetAlt,"");
+	sky6RASCOMTele.Jog(dJog, dDirection);
 	Out  = "OK";
 }
 

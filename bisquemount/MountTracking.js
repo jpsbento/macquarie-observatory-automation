@@ -12,7 +12,7 @@ if (sky6RASCOMTele.IsConnected==0)//Connect failed for some reason
 }
 else
 {
-	sky6RASCOMTele.SetTracking(1,1,0,0);
+	sky6RASCOMTele.SetTracking(0,1,0,0);
 	Out = "TheSkyX Build " + Application.build + cr;
 	Out += "RA Rate = " +sky6RASCOMTele.dRaTrackingRate + cr;
 	Out += "Dec Rate = " + sky6RASCOMTele.dDecTrackingRate + cr; 

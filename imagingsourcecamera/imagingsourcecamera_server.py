@@ -28,10 +28,10 @@ class ImagingSourceCameraServer:
 	# The central pixel coordinates
 	target_xpixel = 326.0   # 640 x pixel width
 	target_ypixel = 216.0   # 480 y pixel height
-	north_move_arcsecs = 1
-	east_move_arcsecs = 1
-	oneArcsecinPixelsN = 1/120.  # This tells us how many pixels there are to one arcsecond in the North/South direction
-	oneArcsecinPixelsE = 1/120.  # This tells us how many pixels there are to one arcsecond in the East/West direction
+	north_move_arcmins = 1
+	east_move_arcmins = 1
+	oneArcmininPixelsN = 1/2.  # This tells us how many pixels there are to one arcsecond in the North/South direction
+	oneArcmininPixelsE = 1/2.  # This tells us how many pixels there are to one arcsecond in the East/West direction
 	axis_flip = 1.0
 	theta = 0 
 	transformation_matrix = [math.cos(theta), math.sin(theta), -1*math.sin(theta), math.cos(theta)]	
@@ -214,9 +214,9 @@ class ImagingSourceCameraServer:
 		#Need to convert distance into coordinates for the telescope orientation
 
 		# we should have it in RA Dec
-		dArcsecN = translated_x*self.oneArcsecinPixelsN
-		dArcsecE = translated_y*self.oneArcsecinPixelsE*-1.0 # Now we convert where to move a positive is a move East
-		return [dArcsecN, dArcsecE] 
+		dArcminN = translated_x*self.oneArcmininPixelsN
+		dArcminE = translated_y*self.oneArcmininPixelsE*-1.0 # Now we convert where to move a positive is a move East
+		return str([dArcminN, dArcminE])
 		# ^ This returns the distance between the central pixel and the brightest star in arcseconds in the North and East directions		
 		
 	def cmd_orientationCapture(self, the_command):  # need to have some define settings for this perhaps who knows
@@ -231,14 +231,14 @@ class ImagingSourceCameraServer:
 		elif len(commands) == 3:
 			if commands[1] == 'North' and self.is_float_try(commands[2]):
 				image_name = 'north_orientation'
-				self.north_move_arcsecs = float(commands[2])
+				self.north_move_arcmins = float(commands[2])
 			elif commands[1] == 'East' and self.is_float_try(commands[2]):
 				image_name = 'east_orientation'
-				self.east_move_arcsecs = float(commands[2])
+				self.east_move_arcmins = float(commands[2])
 			else: return 'ERROR see help'
 		else: return 'Invalid input'
 
-		capture = self.capture_images(image_name, 1)
+		capture = self.capture_images('program_images/'+image_name,1,show=False)
 		if not capture: return 'ERROR capturing image'
 
 		return str(commands[1])+' image captured.' # change this to a number perhaps for ease when automating
@@ -262,32 +262,36 @@ class ImagingSourceCameraServer:
 
 	def cmd_calculateCameraOrientation(self, the_command):
 		'''This does the maths for the camera orientation. In this we treat the x axis as the North axis'''
-		base_star_info = self.analyseImage('base_orientation.fits','base_orientation.txt')
-		north_star_info = self.analyseImage('north_orientation.fits','north_orientation.txt')
-		east_star_info = self.analyseImage('east_orientation.fits','east_orientation.txt')
+		base_star_info = self.analyseImage('program_images/base_orientation.fits','program_images/base_orientation.txt')
+		north_star_info = self.analyseImage('program_images/north_orientation.fits','program_images/north_orientation.txt')
+		east_star_info = self.analyseImage('program_images/east_orientation.fits','program_images/east_orientation.txt')
 		if base_star_info == 0 or north_star_info == 0 or east_star_info == 0:
 			return 'Orientation photos need to be taken'
 		#brightest_star_info = self.find_brightest_star(outfile) # need to account for error here
 									 # also what if brighter star comes into field of view?
 		#star_sharp = float(brightest_star_info[3])    # We will use this to check the focus of the star
-		base_xpixel_pos = float(base_star_info[0])    # x pixel position of the brightest star
-		base_ypixel_pos = float(base_star_info[1])    # y pixel position of the brightest star
+		base_xpixel_pos = float(base_star_info[1])    # x pixel position of the brightest star
+		base_ypixel_pos = float(base_star_info[2])    # y pixel position of the brightest star
 		#base_star_mag = float(brightest_star_info[2]) # We use this to identify the brightest star
-		north_xpixel_pos = float(north_star_info[0])
-		north_ypixel_pos = float(north_star_info[1])
+		north_xpixel_pos = float(north_star_info[1])
+		north_ypixel_pos = float(north_star_info[2])
 		#north_star_mag = float(north_star_info[2])
-		east_xpixel_pos = float(east_star_info[0])  # The east move is to determine if we need a swap or not
-		east_ypixel_pos = float(east_star_info[1])
+		east_xpixel_pos = float(east_star_info[1])  # The east move is to determine if we need a swap or not
+		east_ypixel_pos = float(east_star_info[2])
 		#east_star_mag = float(east_star_info[2])
+
+		print 'base position= ',base_star_info
+		print 'north position= ',north_star_info
+		print 'east position= ',east_star_info
 
 		vector_movedN = [base_xpixel_pos - north_xpixel_pos, base_ypixel_pos - north_ypixel_pos]
 		if vector_movedN[0] == 0:
-			self.oneArcsecinPixelN = vector_movedN[1]/self.north_move_arcsecs
+			self.oneArcsecinPixelN = vector_movedN[1]/self.north_move_arcmins
 		elif vector_movedN[1] == 0:
-			self.oneArcsecinPixelN = vector_movedN[0]/self.north_move_arcsecs
+			self.oneArcsecinPixelN = vector_movedN[0]/self.north_move_arcmins
 		else:
 			hypotenuseN = math.hypot(vector_movedN[0], vector_movedN[1]) # this is number of pixels moved for E/W
-			self.oneArcsecinPixelsN = hypotenuseN/self.north_move_arcsecs
+			self.oneArcmininPixelsN = hypotenuseN/self.north_move_arcmins
 
 		if vector_movedN[0] == 0 and vector_movedN[1] > 0: self.theta == math.pi/2.0
 		elif vector_movedN[0] == 0 and vector_movedN[1] < 0: self.theta == 3.0*math.pi/2.0
@@ -307,12 +311,12 @@ class ImagingSourceCameraServer:
 
 		vector_movedE = [north_xpixel_pos - east_xpixel_pos, north_ypixel_pos - east_ypixel_pos]
 		if vector_movedE[0] == 0:
-			self.oneArcsecinPixelE = vector_movedE[1]/self.east_move_arcsecs
+			self.oneArcsecinPixelE = vector_movedE[1]/self.east_move_arcmins
 		elif vector_movedE[1] == 0:
-			self.oneArcsecinPixelE = vector_movedE[0]/self.east_move_arcsecs
+			self.oneArcsecinPixelE = vector_movedE[0]/self.east_move_arcmins
 		else:
 			hypotenuseE = math.hypot(vector_movedE[0], vector_movedE[1]) # this is number of pixels moved for E/W
-			self.oneArcsecinPixelsE = hypotenuseE/self.east_move_arcsecs
+			self.oneArcmininPixelsE = hypotenuseE/self.east_move_arcmins
 
 		translated_y =  self.transformation_matrix[2]*vector_movedE[0] + self.transformation_matrix[3]*vector_movedE[1]
 		if translated_y <= 0: self.axis_flip = 1 # because positive is west, negative is east

@@ -329,23 +329,22 @@ class BisqueMountServer:
 	def cmd_jog(self,the_command):
 		'''Jogs the telescope by a given amount (specified in arcminutes) in a given direction.
 		Please input jog direction first and jog amount second. The directions that can be used are: 
-		North, South, East, West, Up, Down, Left, Right. Please input direction using first letter 
-		only ie: N, S, E, W, U, D, L, R.'''
+		North, South, East, West, Up, Down, Left, Right. '''
 		commands = str.split(the_command)
-		allowed_directions = ['N','S','E','W','U','D','L','R']
+		allowed_directions = ['North','South','East','West','Up','Down','Left','Right']
 		if len(commands) == 3:
 			dJog = commands[2]
 			dDirection = commands[1]
-			linestoreplace = ['var dJog = "amountJog";\n','var dDirection = "direction";\n']
+			linestoreplace = ['var dJog = "amountJog";\r\n','var dDirection = "direction";\r\n']
 			newlines = ['var dJog = "'+dJog+'";\r\n','var dDirection = "'+dDirection+'";\r\n']
 			if self.is_float_try(dJog) and dDirection in allowed_directions:
 				if self.editscript('Jog.template', 'Jog.js', linestoreplace,newlines):
 					script = self.readscript('Jog.js')
 					client_socket.send(script)
 					return self.messages()
-				else: return 'ERROR'
-			else: return 'ERROR'
-		else: return 'ERROR'
+				else: return 'ERROR: Could not change the template script for Jog.'
+			else: return 'ERROR: Either amount not a float or direction not in allowed directions.'
+		else: return 'ERROR: Please input the direction and the amount in arcmins.'
 		
 
 	def cmd_park(self,the_command):
