@@ -297,7 +297,7 @@ class ImagingSourceCameraServer:
 		elif vector_movedN[0] == 0 and vector_movedN[1] < 0: self.theta == 3.0*math.pi/2.0
 		elif vector_movedN[1] == 0 and vector_movedN[0] > 0: self.theta == 0
 		elif vector_movedN[1] == 0 and vector_movedN[0] < 0: self.theta == math.pi
-		else: self.theta = math.tan(abs(vector_movedN[1]/vector_movedN[0]))
+		else: self.theta = math.atan(abs(vector_movedN[1]/vector_movedN[0]))
 		print str(self.theta)
 
 		if vector_movedN[0] < 0 and vector_movedN[1] < 0: self.theta = math.pi+ self.theta
