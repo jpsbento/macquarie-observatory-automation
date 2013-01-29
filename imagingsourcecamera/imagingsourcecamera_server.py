@@ -26,8 +26,8 @@ class ImagingSourceCameraServer:
 				 # I *think* you just add this number (when calculated) to all Iraf mags and you're set.
 	
 	# The central pixel coordinates
-	target_xpixel = 326.0   # 640 x pixel width
-	target_ypixel = 216.0   # 480 y pixel height
+	target_xpixel = 320.0   # 640 x pixel width
+	target_ypixel = 240.0   # 480 y pixel height
 	north_move_arcmins = 1
 	east_move_arcmins = 1
 	oneArcmininPixelsN = 1/2.  # This tells us how many pixels there are to one arcsecond in the North/South direction
@@ -108,7 +108,7 @@ class ImagingSourceCameraServer:
 	def cmd_adjustExposure(self, the_command):
 		'''This function will adjust the exposure time of the camera until the brightest pixel is between a given range, close to the 8 bit resolution maximum of the imagingsource cameras (255)'''
 		max_pix=0
-		print 'Adjusting exposure time'
+		print 'Adjusting exposure time. Please wait.'
 		while (max_pix < 200)|(max_pix>245):
 			try: dummy = self.cmd_captureImages('captureImages exposure_adjust 5 no')
 			except Exception: print 'Could not capture image'
@@ -200,24 +200,26 @@ class ImagingSourceCameraServer:
 		dDec = 0
 		dAz = 0
 		brightest_star_info = self.analyseImage(filename+'.fits', filename+'.txt') 
+		if not brightest_star_info: return 'No star found to measure distance to'
 		star_sharp = float(brightest_star_info[3])  # We will use this to check the focus of the star
-		star_mag = float(brightest_star_info[2])    # We use this to identify the brightest star
-		xpixel_pos = float(brightest_star_info[0])  # x pixel position of the brightest star
-		ypixel_pos = float(brightest_star_info[1])  # y pixel position of the brightest star
+		star_mag = float(brightest_star_info[0])    # We use this to identify the brightest star
+		xpixel_pos = float(brightest_star_info[1])  # x pixel position of the brightest star
+		ypixel_pos = float(brightest_star_info[2])  # y pixel position of the brightest star
 		# Find distance from the center of the image
 		x_distance = float(self.target_xpixel) - xpixel_pos # The position of the star relative to the central pixel
 		y_distance = float(self.target_ypixel) - ypixel_pos
 		vector_to_move = [x_distance, y_distance]
-		translated_x = self.transformation_matrix[0]*x_distance + self.transformation_matrix[1]*y_distance
-		translated_y =  (self.transformation_matrix[2]*x_distance + self.transformation_matrix[3]*y_distance)*self.axis_flip
+		print vector_to_move 
+		translated_N = self.transformation_matrix[0]*x_distance + self.transformation_matrix[1]*y_distance
+		translated_E =  (self.transformation_matrix[2]*x_distance + self.transformation_matrix[3]*y_distance)*self.axis_flip
 
 		#Need to convert distance into coordinates for the telescope orientation
 
 		# we should have it in RA Dec
-		dArcminN = translated_x*self.oneArcmininPixelsN
-		dArcminE = translated_y*self.oneArcmininPixelsE*-1.0 # Now we convert where to move a positive is a move East
+		dArcminN = translated_N*self.oneArcmininPixelsN
+		dArcminE = translated_E*self.oneArcmininPixelsE # Now we convert where to move a positive is a move East
 		return str([dArcminN, dArcminE])
-		# ^ This returns the distance between the central pixel and the brightest star in arcseconds in the North and East directions		
+		# ^ This returns the distance between the central pixel and the brightest star in arcmins in the North and East directions		
 		
 	def cmd_orientationCapture(self, the_command):  # need to have some define settings for this perhaps who knows
 		'''This will take the photos for camera orientation and automatically name them so that another function 
@@ -261,67 +263,61 @@ class ImagingSourceCameraServer:
 		return sharpness_value
 
 	def cmd_calculateCameraOrientation(self, the_command):
-		'''This does the maths for the camera orientation. In this we treat the x axis as the North axis'''
+		'''This does the maths for the camera orientation. Theta is the angle between the positive x axis of the camera and the North direction'''
 		base_star_info = self.analyseImage('program_images/base_orientation.fits','program_images/base_orientation.txt')
 		north_star_info = self.analyseImage('program_images/north_orientation.fits','program_images/north_orientation.txt')
 		east_star_info = self.analyseImage('program_images/east_orientation.fits','program_images/east_orientation.txt')
 		if base_star_info == 0 or north_star_info == 0 or east_star_info == 0:
-			return 'Orientation photos need to be taken'
+			return 'Orientation photos need to be taken or no stars detected.'
 		#brightest_star_info = self.find_brightest_star(outfile) # need to account for error here
 									 # also what if brighter star comes into field of view?
 		#star_sharp = float(brightest_star_info[3])    # We will use this to check the focus of the star
-		base_xpixel_pos = float(base_star_info[1])    # x pixel position of the brightest star
-		base_ypixel_pos = float(base_star_info[2])    # y pixel position of the brightest star
-		#base_star_mag = float(brightest_star_info[2]) # We use this to identify the brightest star
-		north_xpixel_pos = float(north_star_info[1])
-		north_ypixel_pos = float(north_star_info[2])
-		#north_star_mag = float(north_star_info[2])
-		east_xpixel_pos = float(east_star_info[1])  # The east move is to determine if we need a swap or not
-		east_ypixel_pos = float(east_star_info[2])
-		#east_star_mag = float(east_star_info[2])
+		
+		try:
+			base_xpixel_pos = float(base_star_info[1])    # x pixel position of the brightest star
+			base_ypixel_pos = float(base_star_info[2])    # y pixel position of the brightest star
+			#base_star_mag = float(brightest_star_info[2]) # We use this to identify the brightest star
+			north_xpixel_pos = float(north_star_info[1])
+			north_ypixel_pos = float(north_star_info[2])
+			#north_star_mag = float(north_star_info[2])
+			east_xpixel_pos = float(east_star_info[1])  # The east move is to determine if we need a swap or not
+			east_ypixel_pos = float(east_star_info[2])
+			#east_star_mag = float(east_star_info[2])
+		except Exception: return 'For some reason, could not convert pixel positions to floats...'
 
 		print 'base position= ',base_star_info
 		print 'north position= ',north_star_info
 		print 'east position= ',east_star_info
 
-		vector_movedN = [base_xpixel_pos - north_xpixel_pos, base_ypixel_pos - north_ypixel_pos]
-		if vector_movedN[0] == 0:
-			self.oneArcsecinPixelN = vector_movedN[1]/self.north_move_arcmins
-		elif vector_movedN[1] == 0:
-			self.oneArcsecinPixelN = vector_movedN[0]/self.north_move_arcmins
-		else:
-			hypotenuseN = math.hypot(vector_movedN[0], vector_movedN[1]) # this is number of pixels moved for E/W
-			self.oneArcmininPixelsN = hypotenuseN/self.north_move_arcmins
+		vector_movedN = [north_xpixel_pos - base_xpixel_pos, north_ypixel_pos - base_ypixel_pos]
+		print 'vector_movedN ',vector_movedN
+		hypotenuseN = math.hypot(vector_movedN[0], vector_movedN[1]) # this is number of pixels moved whilst moving North
+		self.oneArcmininPixelsN = hypotenuseN/self.north_move_arcmins
+		print 'hypotenuseN ',hypotenuseN, ' oneArcmininPixelsN', self.oneArcmininPixelsN
 
-		if vector_movedN[0] == 0 and vector_movedN[1] > 0: self.theta == math.pi/2.0
-		elif vector_movedN[0] == 0 and vector_movedN[1] < 0: self.theta == 3.0*math.pi/2.0
-		elif vector_movedN[1] == 0 and vector_movedN[0] > 0: self.theta == 0
-		elif vector_movedN[1] == 0 and vector_movedN[0] < 0: self.theta == math.pi
-		else: self.theta = math.atan(abs(vector_movedN[1]/vector_movedN[0]))
-		print str(self.theta)
+		if vector_movedN[0] == 0 and vector_movedN[1] > 0: self.theta = math.pi/2.0
+		elif vector_movedN[0] == 0 and vector_movedN[1] < 0: self.theta = 3.0*math.pi/2.0
+		elif vector_movedN[1] == 0 and vector_movedN[0] > 0: self.theta = 0
+		elif vector_movedN[1] == 0 and vector_movedN[0] < 0: self.theta = math.pi
+		else: self.theta = math.atan(vector_movedN[1]/vector_movedN[0])
+#		print str(self.theta)
 
-		if vector_movedN[0] < 0 and vector_movedN[1] < 0: self.theta = math.pi+ self.theta
-		elif vector_movedN[0] < 0 and vector_movedN[1] > 0: self.theta = math.pi - self.theta
-		elif vector_movedN[0] > 0 and vector_movedN[1] < 0: self.theta = 2*math.pi - self.theta
-		elif vector_movedN[0] > 0 and vector_movedN[1] > 0: pass # All good nothing to do
-		print str(self.theta)
+		if vector_movedN[0] < 0: self.theta = math.pi+ self.theta
+		print 'angle=',str(self.theta)
 
 		# Need to recalculate the transformation matrix:
 		self.transformation_matrix = [math.cos(self.theta), math.sin(self.theta), -1*math.sin(self.theta), math.cos(self.theta)]	
-
-		vector_movedE = [north_xpixel_pos - east_xpixel_pos, north_ypixel_pos - east_ypixel_pos]
-		if vector_movedE[0] == 0:
-			self.oneArcsecinPixelE = vector_movedE[1]/self.east_move_arcmins
-		elif vector_movedE[1] == 0:
-			self.oneArcsecinPixelE = vector_movedE[0]/self.east_move_arcmins
-		else:
-			hypotenuseE = math.hypot(vector_movedE[0], vector_movedE[1]) # this is number of pixels moved for E/W
-			self.oneArcmininPixelsE = hypotenuseE/self.east_move_arcmins
+		print self.transformation_matrix
+		vector_movedE = [east_xpixel_pos - north_xpixel_pos, east_ypixel_pos - north_ypixel_pos]
+		print 'vector_movedE ',vector_movedE
+		hypotenuseE = math.hypot(vector_movedE[0], vector_movedE[1]) # this is number of pixels moved for E/W
+		self.oneArcmininPixelsE = hypotenuseE/self.east_move_arcmins
+		print 'hypotenuseE ',hypotenuseE, ' oneArcmininPixelsE', self.oneArcmininPixelsE
 
 		translated_y =  self.transformation_matrix[2]*vector_movedE[0] + self.transformation_matrix[3]*vector_movedE[1]
-		if translated_y <= 0: self.axis_flip = 1 # because positive is west, negative is east
-		elif translated_y > 0: self.axis_flip = -1
-		else: 'Oops' # pointess error as we really can't get here
+		print translated_y
+		if translated_y <= 0: self.axis_flip = -1 # because positive is west, negative is east
+		else: self.axis_flip = 1
 		return 'Orientation complete '+str(self.theta)
 
 		#  The above camera orientation command uses the following definition for the axis' with all rotations
@@ -453,7 +449,7 @@ class ImagingSourceCameraServer:
 
 	def find_brightest_star(self, readinfile):
 		try: starfile = open(readinfile)
-		except Exception: return 'ERROR' # <-- change this to returning a number
+		except Exception: return 'ERROR; Unable to open file' # <-- change this to returning a number
 		startemp = starfile.readlines()
 		brighteststar = 50
 		xpixel = 0
@@ -467,7 +463,8 @@ class ImagingSourceCameraServer:
 					xpixel = float(linetemp[0])
 					ypixel = float(linetemp[1])
 					starsharp = float(linetemp[3])
-		return [starmag, xpixel, ypixel, starsharp]
+		try: return [starmag, xpixel, ypixel, starsharp]
+		except Exception: return 0
 
 	def check_if_file_exists(self, filename):
 		#i = 0 # counter to stop this going on forever

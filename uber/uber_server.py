@@ -119,8 +119,12 @@ class UberServer:
 		self.acqcamera_client.send_command('orientationCapture base')
 		jog_response = self.telescope_client.send_command('jog North 10')  # jogs the telescope 1 arcsec (or arcmin??) north
 		if jog_response == 'ERROR': return 'ERROR in telescope movement.'
+		print 'sleeping 5 seconds'
+		time.sleep(5)
 		self.acqcamera_client.send_command('orientationCapture North 10')
 		jog_response = self.telescope_client.send_command('jog East 10')
+		print 'sleeping 5 seconds'
+		time.sleep(5)
 		if jog_response == 'ERROR': return 'ERROR in telescope movement'
 		self.acqcamera_client.send_command('orientationCapture East 10') # Should add some responses here to keep track
 		response = self.acqcamera_client.send_command('calculateCameraOrientation')
