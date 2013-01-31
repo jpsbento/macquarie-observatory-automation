@@ -216,8 +216,8 @@ class ImagingSourceCameraServer:
 		#Need to convert distance into coordinates for the telescope orientation
 
 		# we should have it in RA Dec
-		dArcminN = translated_N*self.oneArcmininPixelsN
-		dArcminE = translated_E*self.oneArcmininPixelsE # Now we convert where to move a positive is a move East
+		dArcminN = translated_N/self.oneArcmininPixelsN
+		dArcminE = translated_E/self.oneArcmininPixelsE # Now we convert where to move a positive is a move East
 		return str([dArcminN, dArcminE])
 		# ^ This returns the distance between the central pixel and the brightest star in arcmins in the North and East directions		
 		
@@ -240,10 +240,9 @@ class ImagingSourceCameraServer:
 			else: return 'ERROR see help'
 		else: return 'Invalid input'
 
-		capture = self.capture_images('program_images/'+image_name,1,show=False)
-		if not capture: return 'ERROR capturing image'
-
-		return str(commands[1])+' image captured.' # change this to a number perhaps for ease when automating
+		capture = self.cmd_imageCube('imageCube '+image_name)
+		if not 'Final image created' in capture: return 'ERROR capturing image'
+		else: return str(commands[1])+' image captured.' # change this to a number perhaps for ease when automating
 
 	def cmd_focusCapture(self,the_command):
 		'''This will capture the images to be used for focusing an image. When calling this image you need
@@ -384,6 +383,31 @@ class ImagingSourceCameraServer:
 		except Exception: return 'Could not combine images'
 		return 'Final image created. It is image program_images/'+base_filename+'.fits'
 
+	def cmd_defineCenter(self, the_command):
+		'''This function can be used to define the pixel coordinates that coincide with the optical axis of the telescope (or where we want the guide star to be at all times).'''
+		commands=str.split(the_command)
+		if len(commands) != 3: return 'Please specify the x and y coordinates as separate values'
+		try: 
+			new_x=float(commands[1])
+			new_y=float(commands[2])
+		except Exception: return 'ERROR: invalid coordinate format. They must be floats'
+		self.target_xpixel=new_x
+		self.target_ypixel=new_y
+		return 'Central coordinates updated'
+
+	def cmd_centerIsHere(self, the_command):
+		'''This function can be used to define the pixel coordinates that coincide with the optical axis of the telescope (or where we want the guide star to be at all times) by taking images and working out where the bright star is. Very similar to cmd_defineCenter, but takes the images as well and defines the bright star coordinates as the central coords.'''
+		commands=str.split(the_command)
+		if len(commands) != 1: return 'no input needed for this function'
+		dummy=self.cmd_imageCube('imageCube central')
+		star_info = self.analyseImage('program_images/central.fits', 'program_images/central.txt') # put in these parameters
+		try: 
+			new_x=float(star_info[1])
+			new_y=float(star_info[2])
+		except Exception: return 'Finding brightest star failed'
+		dummy=self.cmd_defineCenter('defineCenter '+str(new_x)+' '+str(new_y))
+		return 'Finished updating central coordinates'
+
 #*********************************** End of user commands ***********************************#
 
 	def capture_images(self, base_filename, upperlimit,show=True):
@@ -458,11 +482,12 @@ class ImagingSourceCameraServer:
 			if lines[0][0] != '#': #don't want the comments
 				linetemp = str.split(lines)
 				#print linetemp
-				if 1: #float(linetemp[2]) < brighteststar:
-					starmag = 1 #float(linetemp[2])
+				if float(linetemp[2]) < brighteststar:
+					starmag = float(linetemp[2])
 					xpixel = float(linetemp[0])
 					ypixel = float(linetemp[1])
 					starsharp = float(linetemp[3])
+					brighteststar=starmag
 		try: return [starmag, xpixel, ypixel, starsharp]
 		except Exception: return 0
 

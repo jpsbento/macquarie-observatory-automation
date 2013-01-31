@@ -9,3 +9,5 @@ calculateCameraOrientation
 calibrateMagnitude
 Chop
 imageCube
+defineCenter
+centerIsHere

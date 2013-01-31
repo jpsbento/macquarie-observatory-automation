@@ -2,7 +2,7 @@
 #K USER       = phy-admin               name       %-23s     
 #K HOST       = IT-4278                 computer   %-23s     
 #K DATE       = 2013-01-31              yyyy-mm-dd %-23s     
-#K TIME       = 22:24:54                hh:mm:ss   %-23s     
+#K TIME       = 22:31:24                hh:mm:ss   %-23s     
 #K PACKAGE    = apphot                  name       %-23s     
 #K TASK       = daofind                 name       %-23s     
 #
@@ -23,7 +23,7 @@
 #K CCDREAD    = ""                      keyword    %-23s     
 #K READNOISE  = 0.                      e-         %-23.7g   
 #
-#K IMAGE      = north_orientation.fits  imagename  %-23s     
+#K IMAGE      = test.fits               imagename  %-23s     
 #K FWHMPSF    = 200.                    scaleunit  %-23.7g   
 #K THRESHOLD  = 8.                      sigma      %-23.7g   
 #K NSIGMA     = 1.5                     sigma      %-23.7g   
@@ -39,4 +39,4 @@
 #U pixels    pixels    #        #           #           #           #          \
 #F %-13.3f   %-10.3f   %-9.3f   %-12.3f     %-12.3f     %-12.3f     %-6d       \
 #
-   312.992   223.024   -2.354   0.971       0.014       0.018       1     
+   328.964   222.864   -2.167   0.944       0.044       0.069       1     
