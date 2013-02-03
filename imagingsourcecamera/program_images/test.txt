@@ -2,7 +2,7 @@
 #K USER       = phy-admin               name       %-23s     
 #K HOST       = IT-4278                 computer   %-23s     
 #K DATE       = 2013-01-31              yyyy-mm-dd %-23s     
-#K TIME       = 22:31:24                hh:mm:ss   %-23s     
+#K TIME       = 23:53:10                hh:mm:ss   %-23s     
 #K PACKAGE    = apphot                  name       %-23s     
 #K TASK       = daofind                 name       %-23s     
 #
@@ -39,4 +39,5 @@
 #U pixels    pixels    #        #           #           #           #          \
 #F %-13.3f   %-10.3f   %-9.3f   %-12.3f     %-12.3f     %-12.3f     %-6d       \
 #
-   328.964   222.864   -2.167   0.944       0.044       0.069       1     
+   345.691   241.312   -2.583   0.844       -0.207      -0.072      1     
+   410.872   454.242   -0.623   0.923       -0.069      0.042       2     
