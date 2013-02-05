@@ -26,8 +26,8 @@ class ImagingSourceCameraServer:
 				 # I *think* you just add this number (when calculated) to all Iraf mags and you're set.
 	
 	# The central pixel coordinates
-	target_xpixel = 320.0   # 640 x pixel width
-	target_ypixel = 240.0   # 480 y pixel height
+	target_xpixel = 330.0   # 640 x pixel width
+	target_ypixel = 225.0   # 480 y pixel height
 	north_move_arcmins = 1
 	east_move_arcmins = 1
 	oneArcmininPixelsN = 1/2.  # This tells us how many pixels there are to one arcsecond in the North/South direction
@@ -45,7 +45,7 @@ class ImagingSourceCameraServer:
 	
 	#Store the default camera settings here
 	frameRateDefault = 30.0
-	exposureAutoDefault = 1
+	exposureAutoDefault = 0
 	exposureAbsoluteDefault = 333
 	gainDefault = 1023
 	brightnessDefault = 0
@@ -96,7 +96,7 @@ class ImagingSourceCameraServer:
 	def cmd_brightStarCoords(self, the_command):
 		'''This takes one photo to be used to detect the brightest star and find its coordinates. '''
 		#capture image from the camera and save it as a fits file
-		try: dummy = self.cmd_imageCube('imageCube guiding_test')
+		try: dummy = self.cmd_imageCube('imageCube guiding_test 10')
 		except Exception: print 'Could not capture images'
 		#analyse the image using iraf and find the brightest star. This step requires iraf's daofind to be fully setup with stuff on eparam/
 		try: brightcoords = self.analyseImage('program_images/guiding_test.fits','program_images/guiding_test.txt')
@@ -240,7 +240,7 @@ class ImagingSourceCameraServer:
 			else: return 'ERROR see help'
 		else: return 'Invalid input'
 
-		capture = self.cmd_imageCube('imageCube '+image_name)
+		capture = self.cmd_imageCube('imageCube '+image_name+' 10')
 		if not 'Final image created' in capture: return 'ERROR capturing image'
 		else: return str(commands[1])+' image captured.' # change this to a number perhaps for ease when automating
 
@@ -365,11 +365,13 @@ class ImagingSourceCameraServer:
 		return 'Image chop status set to '+str(self.image_chop)
 
 	def cmd_imageCube(self, the_command):
-		'''This function can be used to pull a series of images from the camera and coadd them in a simple way. This is slightly better process for measuring the position of a star for the purposes of guiding. In essence, this will take 10 images, average them and create a master image for analysis to be perfomed on.'''
+		'''This function can be used to pull a series of images from the camera and coadd them in a simple way. This is slightly better process for measuring the position of a star for the purposes of guiding. In essence, this will take n images (specified by user), median them and create a master image for analysis to be perfomed on.'''
 		commands = str.split(the_command)
-		if len(commands) != 2: return 'Please just specify the name of the final image'
+		if len(commands) != 3: return 'Please specify the name of the final image and the number of images to median through'
+		try: nims=int(commands[2])
+		except Exception: return 'Unable to convert number of images to integer'
 		#make upperlimit images and average combine them.
-		upperlimit = 10
+		upperlimit = nims
 		base_filename = commands[1]
 		print 'Starting to capture images'
 		capture = self.capture_images('program_images/'+base_filename, upperlimit,show=False)
@@ -379,7 +381,7 @@ class ImagingSourceCameraServer:
 		self.check_if_file_exists('program_images/inlist')
 		iraf.images(_doprint=0)
 		os.system('ls program_images/'+base_filename+'_*.fits > inlist')
-		try: iraf.imcombine(input='@inlist', output='program_images/'+base_filename+'.fits', combine='average',reject='none',outtype='integer', scale='none', zero='none', weight='none')
+		try: iraf.imcombine(input='@inlist', output='program_images/'+base_filename+'.fits', combine='median',reject='none',outtype='integer', scale='none', zero='none', weight='none')
 		except Exception: return 'Could not combine images'
 		return 'Final image created. It is image program_images/'+base_filename+'.fits'
 
@@ -399,7 +401,7 @@ class ImagingSourceCameraServer:
 		'''This function can be used to define the pixel coordinates that coincide with the optical axis of the telescope (or where we want the guide star to be at all times) by taking images and working out where the bright star is. Very similar to cmd_defineCenter, but takes the images as well and defines the bright star coordinates as the central coords.'''
 		commands=str.split(the_command)
 		if len(commands) != 1: return 'no input needed for this function'
-		dummy=self.cmd_imageCube('imageCube central')
+		dummy=self.cmd_imageCube('imageCube central 15')
 		star_info = self.analyseImage('program_images/central.fits', 'program_images/central.txt') # put in these parameters
 		try: 
 			new_x=float(star_info[1])
@@ -507,8 +509,13 @@ class ImagingSourceCameraServer:
 
 	def chop(self,im):
 		'''Function that will return a section of the image that we are interested in. This will just chop off a box of width 'width' centred at middle_x,middle_y'''
-		middle_y=240
-		middle_x=320
+		middle_x=self.target_xpixel
+		middle_y=self.target_ypixel
 		width=60
-		return im[middle_y-width/2:middle_y+width/2,middle_x-width/2:middle_x+width/2]
+		im_temp=im.copy()
+		im_temp[:middle_y-width/2]=0
+		im_temp[middle_y+width/2:]=0
+		im_temp[:,:middle_x-width/2]=0
+		im_temp[:,middle_x+width/2:]=0
+		return im_temp
 	
