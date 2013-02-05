@@ -458,7 +458,15 @@ class FiberFeedServer:
 		#iraf.daofind.setParam('image',FitsFileName)		#Set ImageName
 		iraf.daofind.setParam('verify','no')			#Don't verify
 		iraf.daofind.setParam('interactive','no')		#Interactive
-		
+		#these parameters have to be set everytime because whenever any routine uses iraf, the settings get changed for all functions. THerefore, if the other camera changes any of the parameters, these would be set identically is daofind was attempted.
+		iraf.daofind.setParam('scale',3)    #plate scale in arcsecs
+		iraf.daofind.setParam('fwhmpsf',15)  #FWHM of PSF in arcsecs
+		iraf.daofind.setParam('datamin',60)  #Minimum flux for a detection of star. adjustExposure should be ran before this is attempted, making sure the star of interest is bright enough. IF the flux drops below this point then we have a problem (maybe clouds?)
+		iraf.daofind.setParam('sigma',2.0)    #standard deviation of the background counts
+		iraf.daofind.setParam('emission','Yes') #stellar features are positive
+		iraf.daofind.setParam('datamax',250)  # this just makes sure that if the star saturates, no star is detected. THis should make sure that, somewhere else, if a star is not detected, the exposure should be adjusted and another attempt should be made. 
+		iraf.daofind.setParam('threshold',15.0)  #threshold above background where a detection is valid
+		iraf.daofind.setParam('nsigma',1.5)     #Width of convolution kernel in sigma
 		self.check_if_file_exists(outfile)
 		try: iraf.daofind(image = input_image, output = outfile)
 		except Exception: return 0
