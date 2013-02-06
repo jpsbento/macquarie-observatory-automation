@@ -15,7 +15,7 @@ class UberServer:
 	labjack_client = client_socket.ClientSocket("labjack",telescope_type) #23456 <- port number
 	telescope_client = client_socket.ClientSocket("telescope",telescope_type)  #23458 <- port number
 	weatherstation_client = client_socket.ClientSocket("weatherstation",telescope_type) #23457 <- port number
-	acqcamera_client = client_socket.ClientSocket("imagingsourcecamera",telescope_type) #23459 <- port number
+	sidecam_client = client_socket.ClientSocket("sidecameracamera",telescope_type) #23459 <- port number
 	camera_client = client_socket.ClientSocket("sbig",telescope_type) #23460 <- port number 
 	fiberfeed_client = client_socket.ClientSocket("fiberfeed",telescope_type) #23459 <- port number
         
@@ -81,16 +81,16 @@ class UberServer:
 			return str(response)
 		else: return 'To get a list of commands for the camera type "camera help".'
 
-	def cmd_acqcamera(self,the_command):
+	def cmd_sidecam(self,the_command):
 		'''A user can still access the low level commands from the imaging source camera using this command. ie
-		type 'acqcamera help' to get all the available commands for the imaging source camera server.'''
+		type 'sidecam help' to get all the available commands for the imaging source camera server.'''
 		commands = str.split(the_command)
 		if len(commands) > 1:
 			del commands[0]
-			command_for_acqcamera = ' '.join(commands)
-			response = self.acqcamera_client.send_command(command_for_acqcamera)
+			command_for_sidecam = ' '.join(commands)
+			response = self.sidecam_client.send_command(command_for_sidecam)
 			return str(response)
-		else: return 'To get a list of commands for the acqcamera type "acqcamera help".'
+		else: return 'To get a list of commands for the sidecam type "sidecam help".'
 
 	def cmd_fiberfeed(self,the_command):
 		'''A user can still access the low level commands from the fiber feed imaging source camera using this command. ie
@@ -116,18 +116,18 @@ class UberServer:
 
 	def cmd_orientateCamera(self, the_command):
 		'''This will control the camera and the telescope to get the camera orientation.'''
-		self.acqcamera_client.send_command('orientationCapture base')
+		self.sidecam_client.send_command('orientationCapture base')
 		jog_response = self.telescope_client.send_command('jog North 30')  # jogs the telescope 1 arcsec (or arcmin??) north
 		if jog_response == 'ERROR': return 'ERROR in telescope movement.'
 		print 'sleeping 10 seconds'
 		time.sleep(10)
-		self.acqcamera_client.send_command('orientationCapture North 30')
+		self.sidecam_client.send_command('orientationCapture North 30')
 		jog_response = self.telescope_client.send_command('jog East 30')
 		print 'sleeping 10 seconds'
 		time.sleep(10)
 		if jog_response == 'ERROR': return 'ERROR in telescope movement'
-		self.acqcamera_client.send_command('orientationCapture East 30') # Should add some responses here to keep track
-		response = self.acqcamera_client.send_command('calculateCameraOrientation')
+		self.sidecam_client.send_command('orientationCapture East 30') # Should add some responses here to keep track
+		response = self.sidecam_client.send_command('calculateCameraOrientation')
 		return response
 
 	def cmd_offset(self, the_command):
@@ -165,8 +165,8 @@ class UberServer:
 		'''This pulls together commands from the camera server and the telescope server so we can
 		center and focus a bright star with just one call to this command. It is recommended that you 
 		focus the star before attemping to center it for more accurate results'''
-		acqcamera_client.send_command('captureImages centering_image 1')
-		response = acqcamera_client.send_command('starDistanceFromCenter centering_image')
+		sidecam_client.send_command('captureImages centering_image 1')
+		response = sidecam_client.send_command('starDistanceFromCenter centering_image')
 		try: dNorth, dEast = response
 		except Exception: "Error with star centering"
 

@@ -2,7 +2,7 @@
 #This is the main program. It should be *very* simple.
 import sbigudrv_server
 import sys
-sys.path.append('..')
+sys.path.append('../common')
 import server_socket
 import find_port
 f = find_port.FindPort()

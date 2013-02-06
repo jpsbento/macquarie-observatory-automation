@@ -3,7 +3,7 @@ labjack
 telescope
 weatherstation
 camera
-acqcamera
+sidecam
 fiberfeed
 setDomeTracking
 orientateCamera
