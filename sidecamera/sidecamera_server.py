@@ -45,7 +45,7 @@ class SideCameraServer:
 	
 	#Store the default camera settings here
 	frameRateDefault = 30.0
-	exposureAutoDefault = 0
+	exposureAutoDefault = 1
 	exposureAbsoluteDefault = 333
 	gainDefault = 1023
 	brightnessDefault = 0
