@@ -101,9 +101,9 @@ class FiberFeedServer:
 		except Exception: print 'Could not capture images'
 		#analyse the image using iraf and find the brightest star. This step requires iraf's daofind to be fully setup with stuff on eparam/
 		try: brightcoords = self.analyseImage('program_images/guiding_test.fits','program_images/guiding_test.txt')
-		except Exception: return 'Could not analyse image'
+		except Exception: return 'Could not analyse image or no stars found.'
 		#return the coordinates, magnitude and sharpness
-		return str(brightcoords)		
+		return str(brightcoords[0]), str(brightcoords[1]), str(brightcoords[2]), str(brightcoords[3])
 
 
 	def cmd_adjustExposure(self, the_command):

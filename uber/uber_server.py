@@ -235,6 +235,70 @@ class UberServer:
 		else: self.override_wx=True
 		return str(self.override_wx)
 
+	def cmd_guiding(self, the_command):
+		'''This function is used to activate or decativate the guiding loop. Usage is 'guiding <on/off> <camera>', where option is either 'on' or 'off' and camera is either 'sidecam' or 'fiberfeed' (default). '''
+		commands=str.split(the_command)
+		#Still needs to be completed. 
+		
+	def cmd_spiral(self, the_command):
+		'''This function is used to spiral the telescope until the fiberfeed camera finds a star close to the center of the chip. Usage is 'guiding <amount>', where amount is the offset in arcmins of each spiral motion. A default amount is set'''
+		default=0.25
+		commands=str.split(the_command)
+		if len(commands) > 2:
+			return 'Too many arguments!'
+		if len(commands) == 1:
+			offset=1
+		else: 
+			try: offset=float(commands[1])
+			except Exception: return 'invalid offset value for spiralling. Type "spiral help" for more information.'
+		#n=number of times the offset the current direction is meant to be moved by
+		n=1
+		#sign is the orientation of the motion. To move south, you can instruct the telescope to move north negatively. (see below for explanation of this procedure)
+		sign=1
+		#parameter that changes once a star has been found close to the middle of the chip.
+		found_it=False
+		#directions of motion
+		directions=['North','East']
+		while n<11 and found_it==False:
+			for direction in directions:
+				result=self.sidecam_client.send_command('brightStarCoords')
+				if 'no stars found' not in result:
+					 starinfo=str.split(result)
+					 try: 
+						 xcoord=float(starinfo[1])
+						 ycoord=float(starinfo[2])
+					 except Exception: return 'Something went really wrong here, if we got this message...'
+					 print 'star found in coordinates', xcoord, ycoord
+					 if xcoord < 420 and xcoord > 220 and ycoord < 320 and ycoord > 160:
+						 found_it==True
+						 break
+					 else: print 'Still not good enough. Continuing...'
+				else: print 'Star not found, Continuing...'
+				jog_response=self.telescope_client.send_command('jog '+direction+' '+str(sign*n*offset))
+				time.sleep(3)
+			sign*=-1
+			n+=1
+		if found_it==False:
+			return 'Spiral unsucessful. Star is not within the search region.'
+		else: 
+			return 'Spiral sucessful. Star is now at coordinates '+str(xcoord)+', '+str(ycoord)
+		#_______________________________________________
+		#  Quick explanation of how the spiralling is coded:
+		#
+		#  What we want is to move 1 north, 1 east, 2 south, 2 west, 3 north, 3 east, 
+		#   4 south, 4 west, etc, taking exposures at each offset of 1. (The units of the motion are defined in the input).
+		#
+		#  And, moving twice south is equivalent of moving twice north by a negative amount. Also, notice that the amount 
+		#  of displacement in each direction is increased by one every time the direction of motion changes twice.
+		#
+		#  So, one loop that moves north by a given amount, and east by the same amount, can do the trick, provided that the 
+		#  amount of offsets is increased every time the loop runs and the direction of motion is inverted every loop. The amount 
+		#  controlled by the variable 'n' and the motion direction is inverted by multiplying the amount by 1 or -1 depending on the
+		#  iteration.
+		#
+
+
+		
 
 #***************************** End of User Commands *****************************#
 
@@ -291,6 +355,8 @@ class UberServer:
 	#This may not be necessary anymore. Anyways, looks like a pretty stupid function to have. Might as well replace any function call with the only line in it! I'm just leaving it here for now just in case something else is calling it, in case the program breaks.
 	def watchdog_slits(self):
 		self.labjack_client.send_command('ok')		
-		
 
-
+	
+	def guiding_loop(self):
+		'''This is the function that does the guiding loop''' 
+		#still needs to be put in place
