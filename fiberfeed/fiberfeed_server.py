@@ -46,7 +46,7 @@ class FiberFeedServer:
 	
 	#Store the default camera settings here
 	frameRateDefault = 30.0
-	exposureAutoDefault = 0
+	exposureAutoDefault = 1
 	exposureAbsoluteDefault = 333
 	gainDefault = 260
 	brightnessDefault = 0
@@ -101,9 +101,10 @@ class FiberFeedServer:
 		except Exception: print 'Could not capture images'
 		#analyse the image using iraf and find the brightest star. This step requires iraf's daofind to be fully setup with stuff on eparam/
 		try: brightcoords = self.analyseImage('program_images/guiding_test.fits','program_images/guiding_test.txt')
-		except Exception: return 'Could not analyse image or no stars found.'
+		except Exception: return 'Could not analyse image.'
 		#return the coordinates, magnitude and sharpness
-		return str(brightcoords[0]), str(brightcoords[1]), str(brightcoords[2]), str(brightcoords[3])
+		if brightcoords == 0: return 'no stars found.'
+		return str(brightcoords[0])+' '+str(brightcoords[1])+' '+str(brightcoords[2])+' '+str(brightcoords[3])
 
 
 	def cmd_adjustExposure(self, the_command):
@@ -461,8 +462,8 @@ class FiberFeedServer:
 		#these parameters have to be set everytime because whenever any routine uses iraf, the settings get changed for all functions. THerefore, if the other camera changes any of the parameters, these would be set identically is daofind was attempted.
 		iraf.daofind.setParam('scale',3)    #plate scale in arcsecs
 		iraf.daofind.setParam('fwhmpsf',30)  #FWHM of PSF in arcsecs
-		iraf.daofind.setParam('datamin',150)  #Minimum flux for a detection of star. adjustExposure should be ran before this is attempted, making sure the star of interest is bright enough. IF the flux drops below this point then we have a problem (maybe clouds?)
-		iraf.daofind.setParam('sigma',2.0)    #standard deviation of the background counts
+#		iraf.daofind.setParam('datamin',100)  #Minimum flux for a detection of star. adjustExposure should be ran before this is attempted, making sure the star of interest is bright enough. IF the flux drops below this point then we have a problem (maybe clouds?)
+		iraf.daofind.setParam('sigma',1.0)    #standard deviation of the background counts
 		iraf.daofind.setParam('emission','Yes') #stellar features are positive
 		iraf.daofind.setParam('datamax',255)  #Need to have somewhere else in the code that adjusts the exposure if a star saturates
 		iraf.daofind.setParam('threshold',15.0)  #threshold above background where a detection is valid

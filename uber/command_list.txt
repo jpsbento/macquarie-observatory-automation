@@ -12,3 +12,5 @@ centerStar
 focusStar
 focusIRAF
 override_wx
+guiding
+spiral

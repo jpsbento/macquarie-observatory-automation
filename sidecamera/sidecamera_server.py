@@ -199,7 +199,7 @@ class SideCameraServer:
 		filename = commands[1]	
 		dDec = 0
 		dAz = 0
-		brightest_star_info = self.analyseImage(filename+'.fits', filename+'.txt') 
+		brightest_star_info = self.analyseImage('program_images/'+filename+'.fits', 'program_images/'+filename+'.txt') 
 		if not brightest_star_info: return 'No star found to measure distance to'
 		star_sharp = float(brightest_star_info[3])  # We will use this to check the focus of the star
 		star_mag = float(brightest_star_info[0])    # We use this to identify the brightest star
@@ -462,12 +462,12 @@ class SideCameraServer:
 		#these parameters have to be set everytime because whenever any routine uses iraf, the settings get changed for all functions. THerefore, if the other camera changes any of the parameters, these would be set identically is daofind was attempted.
 		iraf.daofind.setParam('scale',120)    #plate scale in arcsecs
 		iraf.daofind.setParam('fwhmpsf',200)  #FWHM of PSF in arcsecs
-		iraf.daofind.setParam('datamin',60)  #Minimum flux for a detection of star. adjustExposure should be ran before this is attempted, making sure the star of interest is bright enough. IF the flux drops below this point then we have a problem (maybe clouds?)
-		iraf.daofind.setParam('sigma',2.0)    #standard deviation of the background counts
+#		iraf.daofind.setParam('datamin',3)  #Minimum flux for a detection of star. adjustExposure should be ran before this is attempted, making sure the star of interest is bright enough. IF the flux drops below this point then we have a problem (maybe clouds?)
+		iraf.daofind.setParam('sigma',1.0)    #standard deviation of the background counts
 		iraf.daofind.setParam('emission','Yes') #stellar features are positive
-		iraf.daofind.setParam('datamax',250)  # this just makes sure that if the star saturates, no star is detected. THis should make sure that, somewhere else, if a star is not detected, the exposure should be adjusted and another attempt should be made. 
-		iraf.daofind.setParam('threshold',12.0)  #threshold above background where a detection is valid
-		iraf.daofind.setParam('nsigma',1.5)     #Width of convolution kernel in sigma
+		iraf.daofind.setParam('datamax',255)  # this just makes sure that if the star saturates, no star is detected. THis should make sure that, somewhere else, if a star is not detected, the exposure should be adjusted and another attempt should be made. 
+		iraf.daofind.setParam('threshold',10.0)  #threshold above background where a detection is valid
+#		iraf.daofind.setParam('nsigma',1.5)     #Width of convolution kernel in sigma
 		self.check_if_file_exists(outfile)
 		try: iraf.daofind(image = input_image, output = outfile)
 		except Exception: return 0

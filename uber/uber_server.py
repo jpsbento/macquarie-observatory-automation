@@ -261,27 +261,26 @@ class UberServer:
 		directions=['North','East']
 		while n<11 and found_it==False:
 			for direction in directions:
-				result=self.sidecam_client.send_command('brightStarCoords')
-				if 'no stars found' not in result:
-					 starinfo=str.split(result)
-					 try: 
-						 xcoord=float(starinfo[1])
-						 ycoord=float(starinfo[2])
-					 except Exception: return 'Something went really wrong here, if we got this message...'
-					 print 'star found in coordinates', xcoord, ycoord
-					 if xcoord < 420 and xcoord > 220 and ycoord < 320 and ycoord > 160:
-						 found_it==True
-						 break
-					 else: print 'Still not good enough. Continuing...'
-				else: print 'Star not found, Continuing...'
-				jog_response=self.telescope_client.send_command('jog '+direction+' '+str(sign*n*offset))
-				time.sleep(3)
+				for i in range(n):
+					result=self.fiberfeed_client.send_command('brightStarCoords')
+					if 'no stars found' not in result:
+						 starinfo=str.split(result)
+						 try: 
+							 xcoord=float(starinfo[1])
+							 ycoord=float(starinfo[2])
+						 except Exception: return 'Something went really wrong here, if we got this message...'
+						 print 'star found in coordinates', xcoord, ycoord
+						 if xcoord < 420 and xcoord > 220 and ycoord < 320 and ycoord > 160:
+							 return 'Spiral sucessful. Star is now at coordinates '+str(xcoord)+', '+str(ycoord)
+						 else: print 'Still not good enough. Continuing...'
+					else: print 'Star not found, Continuing...'
+					jog_response=self.telescope_client.send_command('jog '+direction+' '+str(sign*offset))
+					time.sleep(3)
 			sign*=-1
 			n+=1
 		if found_it==False:
 			return 'Spiral unsucessful. Star is not within the search region.'
-		else: 
-			return 'Spiral sucessful. Star is now at coordinates '+str(xcoord)+', '+str(ycoord)
+
 		#_______________________________________________
 		#  Quick explanation of how the spiralling is coded:
 		#

@@ -1,16 +1,16 @@
 #K IRAF       = NOAO/IRAFV2.14.1        version    %-23s     
 #K USER       = phy-admin               name       %-23s     
 #K HOST       = IT-4278                 computer   %-23s     
-#K DATE       = 2013-02-03              yyyy-mm-dd %-23s     
-#K TIME       = 21:39:19                hh:mm:ss   %-23s     
+#K DATE       = 2013-02-06              yyyy-mm-dd %-23s     
+#K TIME       = 23:45:16                hh:mm:ss   %-23s     
 #K PACKAGE    = apphot                  name       %-23s     
 #K TASK       = daofind                 name       %-23s     
 #
-#K SCALE      = 3.                      units      %-23.7g   
-#K FWHMPSF    = 15.                     scaleunit  %-23.7g   
+#K SCALE      = 120.                    units      %-23.7g   
+#K FWHMPSF    = 200.                    scaleunit  %-23.7g   
 #K EMISSION   = yes                     switch     %-23b     
-#K DATAMIN    = 150.                    counts     %-23.7g   
-#K DATAMAX    = INDEF                   counts     %-23.7g   
+#K DATAMIN    = INDEF                   counts     %-23.7g   
+#K DATAMAX    = 255.                    counts     %-23.7g   
 #K EXPOSURE   = ""                      keyword    %-23s     
 #K AIRMASS    = ""                      keyword    %-23s     
 #K FILTER     = ""                      keyword    %-23s     
@@ -24,8 +24,8 @@
 #K READNOISE  = 0.                      e-         %-23.7g   
 #
 #K IMAGE      = guiding_test.fits       imagename  %-23s     
-#K FWHMPSF    = 15.                     scaleunit  %-23.7g   
-#K THRESHOLD  = 15.                     sigma      %-23.7g   
+#K FWHMPSF    = 200.                    scaleunit  %-23.7g   
+#K THRESHOLD  = 10.                     sigma      %-23.7g   
 #K NSIGMA     = 1.5                     sigma      %-23.7g   
 #K RATIO      = 1.                      number     %-23.7g   
 #K THETA      = 0.                      degrees    %-23.7g   
@@ -39,3 +39,4 @@
 #U pixels    pixels    #        #           #           #           #          \
 #F %-13.3f   %-10.3f   %-9.3f   %-12.3f     %-12.3f     %-12.3f     %-6d       \
 #
+   334.030   224.168   -3.310   0.988       0.085       0.016       1     
