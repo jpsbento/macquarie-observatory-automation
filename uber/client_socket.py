@@ -9,7 +9,7 @@ class ClientSocket:
 	def __init__(self,device,telescope_type):
 		#Set up the class properties "server", "input", "hardware_name" and "hardware_object"
 		self.device = device
-		try: devicefile = open('device_list.txt')
+		try: devicefile = open('../device_list.txt')
 		except Exception: print 'ERROR: file "device_list.txt" not found'
 		device_list = devicefile.readlines()
 		devicefile.close()

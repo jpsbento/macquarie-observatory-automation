@@ -1,0 +1,9 @@
+#Hardware_Object       bisquemountIP   meademountIP   Port
+# Do NOT leave a blank line at the end of this file!
+# Do NOT change the first line of this file!
+labjack                10.238.16.11    10.238.16.12   23456
+weatherstation         10.238.16.12    10.238.16.12   23457
+telescope              10.238.16.11    10.238.16.12   23458
+sidecamera    	       10.238.16.11    10.238.16.12   23459
+sbig		       10.238.16.11    10.238.16.12   23460
+fiberfeed	       10.238.16.11    10.238.16.12   23461

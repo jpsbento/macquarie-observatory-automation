@@ -15,7 +15,7 @@ class UberServer:
 	labjack_client = client_socket.ClientSocket("labjack",telescope_type) #23456 <- port number
 	telescope_client = client_socket.ClientSocket("telescope",telescope_type)  #23458 <- port number
 	weatherstation_client = client_socket.ClientSocket("weatherstation",telescope_type) #23457 <- port number
-	sidecam_client = client_socket.ClientSocket("sidecameracamera",telescope_type) #23459 <- port number
+	sidecam_client = client_socket.ClientSocket("sidecamera",telescope_type) #23459 <- port number
 	camera_client = client_socket.ClientSocket("sbig",telescope_type) #23460 <- port number 
 	fiberfeed_client = client_socket.ClientSocket("fiberfeed",telescope_type) #23459 <- port number
         
