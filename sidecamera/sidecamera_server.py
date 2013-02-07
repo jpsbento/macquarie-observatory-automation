@@ -26,8 +26,8 @@ class SideCameraServer:
 				 # I *think* you just add this number (when calculated) to all Iraf mags and you're set.
 	
 	# The central pixel coordinates
-	target_xpixel = 330.0   # 640 x pixel width
-	target_ypixel = 225.0   # 480 y pixel height
+	target_xpixel = 333.9   # 640 x pixel width
+	target_ypixel = 224.6   # 480 y pixel height
 	north_move_arcmins = 1
 	east_move_arcmins = 1
 	oneArcmininPixelsN = 1/2.  # This tells us how many pixels there are to one arcsecond in the North/South direction
@@ -96,10 +96,10 @@ class SideCameraServer:
 	def cmd_brightStarCoords(self, the_command):
 		'''This takes one photo to be used to detect the brightest star and find its coordinates. '''
 		#capture image from the camera and save it as a fits file
-		try: dummy = self.cmd_imageCube('imageCube guiding_test 10')
+		try: dummy = self.cmd_imageCube('imageCube brightstar 10')
 		except Exception: print 'Could not capture images'
 		#analyse the image using iraf and find the brightest star. This step requires iraf's daofind to be fully setup with stuff on eparam/
-		try: brightcoords = self.analyseImage('program_images/guiding_test.fits','program_images/guiding_test.txt')
+		try: brightcoords = self.analyseImage('program_images/brightstar.fits','program_images/brightstar.txt')
 		except Exception: return 'Could not analyse image'
 		#return the coordinates, magnitude and sharpness
 		if brightcoords == 0: return 'no stars found.'
@@ -123,7 +123,7 @@ class SideCameraServer:
 						prop['value']+=100
 					else: 
 						prop['value']+=10
-					print 'Exposure=',prop['value']*10**(-4),'s'
+					print 'Exposure=',prop['value']/10.,'ms'
 					self.dev.set_property( prop )
 					self.set_values[2]=prop['value']
 				else: 
@@ -132,12 +132,12 @@ class SideCameraServer:
 				prop = self.dev.get_property('Exposure (Absolute)')
 				if prop['value']> 51:
 					prop['value']-=50
-					print 'Exposure=',prop['value'],'ms'
+					print 'Exposure=',prop['value']/10.,'ms'
 					self.dev.set_property( prop )
 					self.set_values[2]=prop['value']
 				elif prop['value']<51 and prop['value']>2: 
 					prop['value']-=1
-					print 'Exposure=',prop['value'],'ms'
+					print 'Exposure=',prop['value']/10.,'ms'
 					self.dev.set_property( prop )
 					self.set_values[2]=prop['value']
 				else: return 'Exposure too short to reduce. Maybe this is too bright?'
@@ -162,7 +162,7 @@ class SideCameraServer:
 				prop = self.dev.get_property( self.properties[i] )
 				prop['value'] = float(self.default_values[i])
 				self.dev.set_property( prop )
-				self.set_values=self.default_values
+				self.set_values=list(self.default_values)
 			return 'Default settings used for all properties.'
 
 		elif len(commands) == 3:
@@ -219,7 +219,7 @@ class SideCameraServer:
 		# we should have it in RA Dec
 		dArcminN = translated_N/self.oneArcmininPixelsN
 		dArcminE = translated_E/self.oneArcmininPixelsE # Now we convert where to move a positive is a move East
-		return str([dArcminN, dArcminE])
+		return str(dArcminN)+' '+str(dArcminE)
 		# ^ This returns the distance between the central pixel and the brightest star in arcmins in the North and East directions		
 		
 	def cmd_orientationCapture(self, the_command):  # need to have some define settings for this perhaps who knows

@@ -101,7 +101,7 @@ class FiberFeedServer:
 		try: dummy = self.cmd_imageCube('imageCube brightstar 10')
 		except Exception: print 'Could not capture images'
 		#analyse the image using iraf and find the brightest star. This step requires iraf's daofind to be fully setup with stuff on eparam/
-		try: brightcoords = self.analyseImage('program_images/guiding_test.fits','program_images/guiding_test.txt')
+		try: brightcoords = self.analyseImage('program_images/brightstar.fits','program_images/brightstar.txt')
 		except Exception: return 'Could not analyse image.'
 		#return the coordinates, magnitude and sharpness
 		if brightcoords == 0: return 'no stars found.'
@@ -125,7 +125,7 @@ class FiberFeedServer:
 						prop['value']+=100
 					else: 
 						prop['value']+=10
-					print 'Exposure=',prop['value']*10**(-4),'s'
+					print 'Exposure=',prop['value']/10.,'ms'
 					self.dev.set_property( prop )
 					self.set_values[2]=prop['value']
 				else: 
@@ -134,12 +134,12 @@ class FiberFeedServer:
 				prop = self.dev.get_property('Exposure (Absolute)')
 				if prop['value']> 51:
 					prop['value']-=50
-					print 'Exposure=',prop['value'],'ms'
+					print 'Exposure=',prop['value']/10.,'ms'
 					self.dev.set_property( prop )
 					self.set_values[2]=prop['value']
 				elif prop['value']<51 and prop['value']>2: 
 					prop['value']-=1
-					print 'Exposure=',prop['value'],'ms'
+					print 'Exposure=',prop['value']/10.,'ms'
 					self.dev.set_property( prop )
 					self.set_values[2]=prop['value']
 				else: return 'Exposure too short to reduce. Maybe this is too bright?'
@@ -164,7 +164,7 @@ class FiberFeedServer:
 				prop = self.dev.get_property( self.properties[i] )
 				prop['value'] = float(self.default_values[i])
 				self.dev.set_property( prop )
-				self.set_values=self.default_values
+				self.set_values=list(self.default_values)
 			return 'Default settings used for all properties.'
 
 		elif len(commands) == 3:
@@ -361,9 +361,11 @@ class FiberFeedServer:
 	def cmd_imageCube(self, the_command):
 		'''This function can be used to pull a series of images from the camera and coadd them in a simple way. This is slightly better process for measuring the position of a star for the purposes of guiding. In essence, this will take 10 images, average them and create a master image for analysis to be perfomed on.'''
 		commands = str.split(the_command)
-		if len(commands) != 2: return 'Please just specify the name of the final image'
+		if len(commands) != 3: return 'Please specify the name of the final image and the number of images to median through'
+		try: nims=int(commands[2])
+		except Exception: return 'Unable to convert number of images to integer'
 		#make upperlimit images and average combine them.
-		upperlimit = 10
+		upperlimit = nims
 		base_filename = commands[1]
 		print 'Starting to capture images'
 		capture = self.capture_images('program_images/'+base_filename, upperlimit,show=False)
@@ -445,11 +447,6 @@ class FiberFeedServer:
 				img.show()
 			img.save( filename+'.jpg' ) # saves as a jpeg
 			os.system("convert -depth 8 -size 640x480+17 "+ filename+'.raw' +" "+ filename+'.fits') # saves as a fits file
-			if self.image_chop:
-				im_temp=pyfits.getdata(filename+'.fits')
-				im=self.chop(im_temp)
-				os.system('rm '+filename+'.fits')
-				pyfits.writeto(filename+'.fits',im)
 		self.dev.stop_capture()
 		return True
 
@@ -464,10 +461,10 @@ class FiberFeedServer:
 		iraf.daofind.setParam('scale',3)    #plate scale in arcsecs
 		iraf.daofind.setParam('fwhmpsf',30)  #FWHM of PSF in arcsecs
 #		iraf.daofind.setParam('datamin',100)  #Minimum flux for a detection of star. adjustExposure should be ran before this is attempted, making sure the star of interest is bright enough. IF the flux drops below this point then we have a problem (maybe clouds?)
-		iraf.daofind.setParam('sigma',1.0)    #standard deviation of the background counts
+		iraf.daofind.setParam('sigma',0.5)    #standard deviation of the background counts
 		iraf.daofind.setParam('emission','Yes') #stellar features are positive
 		iraf.daofind.setParam('datamax',255)  #Need to have somewhere else in the code that adjusts the exposure if a star saturates
-		iraf.daofind.setParam('threshold',15.0)  #threshold above background where a detection is valid
+		iraf.daofind.setParam('threshold',10.0)  #threshold above background where a detection is valid
 		iraf.daofind.setParam('nsigma',1.5)     #Width of convolution kernel in sigma
 		self.check_if_file_exists(outfile)
 		try: iraf.daofind(image = input_image, output = outfile)

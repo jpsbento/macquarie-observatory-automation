@@ -19,7 +19,7 @@ class UberServer:
 	camera_client = client_socket.ClientSocket("sbig",telescope_type) #23460 <- port number 
 	fiberfeed_client = client_socket.ClientSocket("fiberfeed",telescope_type) #23459 <- port number
         
-	dome_tracking = False
+	dome_tracking = True
 	override_wx = False
 	
 	weather_counts = 1 #integer that gets incremented if the slits are open, the override_wx is false and the weather station returns an unsafe status. If this gets above 3, close slits (see function where this is used)
@@ -31,7 +31,7 @@ class UberServer:
 	guiding_frequency=60
 
 	#this parameter corresponds to an approximate ratio between the exposure times of the sidecamera and the fiberfeed camera for a given star (or all stars)
-	side_fiber_exp_ratio=2.
+	side_fiber_exp_ratio=20.
 
 #***************************** A list of user commands *****************************#
 
@@ -125,10 +125,10 @@ class UberServer:
 		'''This will control the camera and the telescope to get the camera orientation.'''
 		commands=str.split(the_command)
 		if len(commands)!=2: return 'Invalid number of arguments. Please indicate which camera you want this to happen on.'
-		if guiding_camera=='fiberfeed':
+		if commands[1]=='fiberfeed':
 			cam_client=self.fiberfeed_client
 			jog_amount=str(0.3)
-		elif guiding_camera=='sidecam': 
+		elif commands[1]=='sidecam': 
 			cam_client=self.sidecam_client
 			jog_amount=str(20)
 		else: return 'Invalid camera selection'
@@ -278,15 +278,17 @@ class UberServer:
 		
 	def cmd_spiral(self, the_command):
 		'''This function is used to spiral the telescope until the fiberfeed camera finds a star close to the center of the chip. Usage is 'guiding <amount>', where amount is the offset in arcmins of each spiral motion. A default amount is set'''
-		default=0.25
+		default=2.0
 		commands=str.split(the_command)
 		if len(commands) > 2:
 			return 'Too many arguments!'
 		if len(commands) == 1:
-			offset=1
+			offset=default
 		else: 
 			try: offset=float(commands[1])
 			except Exception: return 'invalid offset value for spiralling. Type "spiral help" for more information.'
+		#m=0: keep searching in large movements. m=1: search closer
+		m=0
 		#n=number of times the offset the current direction is meant to be moved by
 		n=1
 		#sign is the orientation of the motion. To move south, you can instruct the telescope to move north negatively. (see below for explanation of this procedure)
@@ -306,12 +308,18 @@ class UberServer:
 							 ycoord=float(starinfo[2])
 						 except Exception: return 'Something went really wrong here, if we got this message...'
 						 print 'star found in coordinates', xcoord, ycoord
+						 if m==0:
+							 m=1
+							 offset/=4.
+							 n=1
+							 sign=1
 						 if xcoord < 420 and xcoord > 220 and ycoord < 320 and ycoord > 160:
 							 return 'Spiral sucessful. Star is now at coordinates '+str(xcoord)+', '+str(ycoord)
 						 else: print 'Still not good enough. Continuing...'
 					else: print 'Star not found, Continuing...'
 					jog_response=self.telescope_client.send_command('jog '+direction+' '+str(sign*offset))
 					time.sleep(3)
+					self.fiberfeed_client.send_command('captureImages test 1')
 			sign*=-1
 			n+=1
 		if found_it==False:
@@ -341,80 +349,92 @@ class UberServer:
 		except Exception: 
 			print 'ERROR: Failed to set the image chopping on the sidecam'
 			return 0
+		print 'image chopping activated.'
 		try: self.sidecam_client.send_command('setCameraValues default')
 		except Exception: 
 			print 'ERROR: Failed to set the default values for the sidecam'
 			return 0
+		print 'default values for sidecam set.'
 		try: self.sidecam_client.send_command('adjustExposure')
 		except Exception: 
 			print 'ERROR: Failed to adjust the exposure of the sidecam'
 			return 0
+		print 'exposure adjusted for sidecam.'
 		try: self.cmd_orientateCamera('orientateCamera sidecam')
 		except Exception: 
 			print 'ERROR: Failed to set the orientation of the sidecam'
 			return 0
+		print 'orientation of the sidecamera set.'
 		try: self.sidecam_client.send_command('imageCube test 10')
 		except Exception: 
 			print 'ERROR: Failed to take images to work out where the star is at the moment'
 			return 0
+		print 'current location images taken for sidecam.'
 		try: 
 			moving=str.split(self.sidecam_client.send_command('starDistanceFromCenter test'))
 			dummy=float(moving[0])
 		except Exception: 
 			print 'ERROR: Failed to work out what the stellar distance to the optimal coordinates is'
 			return 0
+		print 'Stellar distance to center found.'
 		try: 
 			self.telescope_client.send_command('jog North '+moving[0])
 			self.telescope_client.send_command('jog East '+moving[1])
 		except Exception:
 			print 'ERROR: Failed to move telescope to desired coordinates'
 			return 0
+		print 'successfully moved telescope to location'
 		try: 
 			sidecam_exposure=self.sidecam_client.send_command('currentExposure')
-			fiberfeed_exposure=str(int(float(sidecam_exposure)*1E4/self.side_fiber_exp_ratio))
+			fiberfeed_exposure=str(int(float(str.split(sidecam_exposure)[0])*1E4/self.side_fiber_exp_ratio))
 		except Exception:
 			print 'ERROR: Failed to query current sidecam exposure time'
 			return 0
+		print 'Got the sidecamera exposure'
 		try: self.fiberfeed_client.send_command('setCameraValues default')
 		except Exception: 
 			print 'ERROR: Failed to set the default values for the fiberfeed'
 			return 0
+		print 'Set default values for fiberfeed'
 		try: self.fiberfeed_client.send_command('setCameraValues ExposureAbs '+fiberfeed_exposure)
 		except Exception:
 			print 'ERROR: Failed set the fiberfeed camera exposure time'
 			return 0
-		try: self.cmd_spiral()
+		print 'set exposure time for fiberfeed'
+		try: self.cmd_spiral('spiral')
 		except Exception:
 			print 'ERROR: Failed to spiral for some reason. Check the output '
 			return 0
-		try: self.cmd_spiral()
-		except Exception:
-			print 'ERROR: Failed to spiral for some reason. Check the output '
-			return 0
+		print 'spiralling complete'
 		try: self.fiberfeed_client.send_command('adjustExposure')
 		except Exception:
 			print 'ERROR: Failed to adjust exposure for the fiberfeed camera'
 			return 0
+		print 'adjusted exposure for fiberfeed'
 		try: self.cmd_orientateCamera('orientateCamera fiberfeed')
 		except Exception: 
 			print 'ERROR: Failed to set the orientation of the fiberfeed camera'
 			return 0
+		print 'orientation of fiberfeed found'
 		try: self.fiberfeed_client.send_command('imageCube test 10')
 		except Exception: 
 			print 'ERROR: Failed to take images to work out where the star is at the moment in the fiberfeed camera'
 			return 0
+		print 'got the images of current location of star'
 		try: 
 			moving=str.split(self.fiberfeed_client.send_command('starDistanceFromCenter test'))
 			dummy=float(moving[0])
 		except Exception: 
 			print 'ERROR: Failed to work out what the stellar distance to the optimal coordinates is on the fiberfeed camera'
 			return 0
+		print 'worked out the stellar distance to center'
 		try: 
 			self.telescope_client.send_command('jog North '+moving[0])
 			self.telescope_client.send_command('jog East '+moving[1])
 		except Exception:
 			print 'ERROR: Failed to move telescope to desired coordinates (fiberfeed)'
 			return 0
+		print 'sucessfully moved telescope'
 		try: self.fiberfeed_client.send_command('captureImages program_images/visual 1')
 		except Exception: 
 			print 'Failed to capture an image to show you where the star currently lies in. Not too much of a problem...'
@@ -483,7 +503,7 @@ class UberServer:
 		'''This is the function that does the guiding loop''' 
 		if self.guiding_bool:
 			if (math.fabs(time.time() - self.guiding_last_time) > self.guiding_frequency):
-				if guiding_camera=='fiberfeed':
+				if self.guiding_camera=='fiberfeed':
 					cam_client=self.fiberfeed_client
 				else: 
 					cam_client=self.sidecam_client
