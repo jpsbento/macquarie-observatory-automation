@@ -25,6 +25,13 @@ class UberServer:
 	weather_counts = 1 #integer that gets incremented if the slits are open, the override_wx is false and the weather station returns an unsafe status. If this gets above 3, close slits (see function where this is used)
 	dome_last_sync=time.time()
 	dome_frequency = 30 #This parameters sets how often the SkyX virtual dome is told to align with the telescope pointing.
+	guiding_bool=False
+	guiding_camera='fiberfeed'
+	guiding_last_time=time.time()
+	guiding_frequency=60
+
+	#this parameter corresponds to an approximate ratio between the exposure times of the sidecamera and the fiberfeed camera for a given star (or all stars)
+	side_fiber_exp_ratio=2.
 
 #***************************** A list of user commands *****************************#
 
@@ -116,18 +123,27 @@ class UberServer:
 
 	def cmd_orientateCamera(self, the_command):
 		'''This will control the camera and the telescope to get the camera orientation.'''
-		self.sidecam_client.send_command('orientationCapture base')
-		jog_response = self.telescope_client.send_command('jog North 30')  # jogs the telescope 1 arcsec (or arcmin??) north
+		commands=str.split(the_command)
+		if len(commands)!=2: return 'Invalid number of arguments. Please indicate which camera you want this to happen on.'
+		if guiding_camera=='fiberfeed':
+			cam_client=self.fiberfeed_client
+			jog_amount=str(0.3)
+		elif guiding_camera=='sidecam': 
+			cam_client=self.sidecam_client
+			jog_amount=str(20)
+		else: return 'Invalid camera selection'
+		cam_client.send_command('orientationCapture base')
+		jog_response = self.telescope_client.send_command('jog North '+jog_amount)  # jogs the telescope 1 arcsec (or arcmin??) north
 		if jog_response == 'ERROR': return 'ERROR in telescope movement.'
-		print 'sleeping 10 seconds'
-		time.sleep(10)
-		self.sidecam_client.send_command('orientationCapture North 30')
-		jog_response = self.telescope_client.send_command('jog East 30')
-		print 'sleeping 10 seconds'
-		time.sleep(10)
+		print 'sleeping 5 seconds'
+		time.sleep(5)
+		cam_client.send_command('orientationCapture North '+jog_amount)
+		jog_response = self.telescope_client.send_command('jog East '+jog_amount)
+		print 'sleeping 5 seconds'
+		time.sleep(5)
 		if jog_response == 'ERROR': return 'ERROR in telescope movement'
-		self.sidecam_client.send_command('orientationCapture East 30') # Should add some responses here to keep track
-		response = self.sidecam_client.send_command('calculateCameraOrientation')
+		cam_client.send_command('orientationCapture East '+jog_amount) # Should add some responses here to keep track
+		response = cam_client.send_command('calculateCameraOrientation')
 		return response
 
 	def cmd_offset(self, the_command):
@@ -236,8 +252,28 @@ class UberServer:
 		return str(self.override_wx)
 
 	def cmd_guiding(self, the_command):
-		'''This function is used to activate or decativate the guiding loop. Usage is 'guiding <on/off> <camera>', where option is either 'on' or 'off' and camera is either 'sidecam' or 'fiberfeed' (default). '''
+		'''This function is used to activate or decativate the guiding loop. Usage is 'guiding <on/off> <camera>', where option is either 'on' or 'off' and camera is either 'sidecam' or 'fiberfeed' (default). For the 'off' option, no camera needs to be specified.'''
 		commands=str.split(the_command)
+		if len(commands)==2:
+			if commands[1]=='off':
+				self.guiding_bool=False
+				return 'Guiding loop disabled'
+			elif commands[1]=='on':
+				self.guiding_bool=True
+				self.guiding_camera='fiberfeed'
+				return 'Guiding loop enabled using the '+self.guiding_camera
+			else: return 'invalid argument.'
+		if len(commands)==3 and commands[1]=='on':
+			self.guiding_bool=True
+			if commands[2]=='sidecam': 
+				self.guiding_camera='sidecam'
+				return 'Guiding loop enabled using the '+self.guiding_camera
+			elif commands[2]=='fiberfeed':
+				self.guiding_camera='fiberfeed'
+				return 'Guiding loop enabled using the '+self.guiding_camera
+			else: return 'invalid camera selection'
+		else: return 'invalid number of arguments'
+			
 		#Still needs to be completed. 
 		
 	def cmd_spiral(self, the_command):
@@ -297,6 +333,93 @@ class UberServer:
 		#
 
 
+	def cmd_masterAlign(self, the_command):
+		'''Awesome!! function that can be ran to trigger the improvement in the alignment. This is supposed to be ran once the telescope has been instructed to point at a star and the dome has finished moving to it, and it will improve the pointing using the sidecam, put the star in the fiberfeed cam and start the guiding. It is mostly a collection of existing functions. It is also highly customisable.
+
+		This function will require more thorough checks along the way. This will be added whilst this is being tested.'''
+		try: self.sidecam_client.send_command('Chop on')
+		except Exception: 
+			print 'ERROR: Failed to set the image chopping on the sidecam'
+			return 0
+		try: self.sidecam_client.send_command('setCameraValues default')
+		except Exception: 
+			print 'ERROR: Failed to set the default values for the sidecam'
+			return 0
+		try: self.sidecam_client.send_command('adjustExposure')
+		except Exception: 
+			print 'ERROR: Failed to adjust the exposure of the sidecam'
+			return 0
+		try: self.cmd_orientateCamera('orientateCamera sidecam')
+		except Exception: 
+			print 'ERROR: Failed to set the orientation of the sidecam'
+			return 0
+		try: self.sidecam_client.send_command('imageCube test 10')
+		except Exception: 
+			print 'ERROR: Failed to take images to work out where the star is at the moment'
+			return 0
+		try: 
+			moving=str.split(self.sidecam_client.send_command('starDistanceFromCenter test'))
+			dummy=float(moving[0])
+		except Exception: 
+			print 'ERROR: Failed to work out what the stellar distance to the optimal coordinates is'
+			return 0
+		try: 
+			self.telescope_client.send_command('jog North '+moving[0])
+			self.telescope_client.send_command('jog East '+moving[1])
+		except Exception:
+			print 'ERROR: Failed to move telescope to desired coordinates'
+			return 0
+		try: 
+			sidecam_exposure=self.sidecam_client.send_command('currentExposure')
+			fiberfeed_exposure=str(int(float(sidecam_exposure)*1E4/self.side_fiber_exp_ratio))
+		except Exception:
+			print 'ERROR: Failed to query current sidecam exposure time'
+			return 0
+		try: self.fiberfeed_client.send_command('setCameraValues default')
+		except Exception: 
+			print 'ERROR: Failed to set the default values for the fiberfeed'
+			return 0
+		try: self.fiberfeed_client.send_command('setCameraValues ExposureAbs '+fiberfeed_exposure)
+		except Exception:
+			print 'ERROR: Failed set the fiberfeed camera exposure time'
+			return 0
+		try: self.cmd_spiral()
+		except Exception:
+			print 'ERROR: Failed to spiral for some reason. Check the output '
+			return 0
+		try: self.cmd_spiral()
+		except Exception:
+			print 'ERROR: Failed to spiral for some reason. Check the output '
+			return 0
+		try: self.fiberfeed_client.send_command('adjustExposure')
+		except Exception:
+			print 'ERROR: Failed to adjust exposure for the fiberfeed camera'
+			return 0
+		try: self.cmd_orientateCamera('orientateCamera fiberfeed')
+		except Exception: 
+			print 'ERROR: Failed to set the orientation of the fiberfeed camera'
+			return 0
+		try: self.fiberfeed_client.send_command('imageCube test 10')
+		except Exception: 
+			print 'ERROR: Failed to take images to work out where the star is at the moment in the fiberfeed camera'
+			return 0
+		try: 
+			moving=str.split(self.fiberfeed_client.send_command('starDistanceFromCenter test'))
+			dummy=float(moving[0])
+		except Exception: 
+			print 'ERROR: Failed to work out what the stellar distance to the optimal coordinates is on the fiberfeed camera'
+			return 0
+		try: 
+			self.telescope_client.send_command('jog North '+moving[0])
+			self.telescope_client.send_command('jog East '+moving[1])
+		except Exception:
+			print 'ERROR: Failed to move telescope to desired coordinates (fiberfeed)'
+			return 0
+		try: self.fiberfeed_client.send_command('captureImages program_images/visual 1')
+		except Exception: 
+			print 'Failed to capture an image to show you where the star currently lies in. Not too much of a problem...'
+		return 'Finished the master alignment. You can now inspect the image and decide if this is good enough. '
+		
 		
 
 #***************************** End of User Commands *****************************#
@@ -358,4 +481,39 @@ class UberServer:
 	
 	def guiding_loop(self):
 		'''This is the function that does the guiding loop''' 
-		#still needs to be put in place
+		if self.guiding_bool:
+			if (math.fabs(time.time() - self.guiding_last_time) > self.guiding_frequency):
+				if guiding_camera=='fiberfeed':
+					cam_client=self.fiberfeed_client
+				else: 
+					cam_client=self.sidecam_client
+				result=cam_client.send_command('brightStarCoords')
+				if 'no stars found' not in result:
+					starinfo=str.split(result)
+					try: 						
+						xcoord=float(starinfo[1])
+						ycoord=float(starinfo[2])
+					except Exception: return 'Could not convert coordinates of star to floats, for some reason...'
+					print 'star found in coordinates', xcoord, ycoord
+					try: output=cam_client.send_command('defineCenter show')
+					except Exception: print 'This failed, really should not happen!'
+					central=str.split(output)
+					try: 
+						centralx=float(output[0])
+						centraly=float(output[1])
+					except Exception: print 'could not convert central coordinates to floats'
+					distance=math.hypot(centralx-xcoord, centraly-ycoord)
+					if distance>2:
+						moving=cam_client.send_command('starDistanceFromCenter brightstar')
+						moving=str.split(moving)
+						try: 
+							dummy=self.telescope_client.send_command('jog North '+moving[0])
+							dummy=self.telescope_client.send_command('jog East '+moving[1])
+						except Exception: 
+							print 'For some reason communication with the telescope is not working.'
+							self.guiding_bool=False
+						print 'Guiding has offset the telescope by amounts: '+moving[0]+' arcmins North and '+moving[1]+' arcmins East'
+				else: 
+					print 'guide star lost, stopping the guiding loop'
+					self.guiding_bool=False
+				self.guiding_last_time=time.time()

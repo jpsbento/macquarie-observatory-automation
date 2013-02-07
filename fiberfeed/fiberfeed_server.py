@@ -31,8 +31,8 @@ class FiberFeedServer:
 	target_ypixel = 240.0   # 480 y pixel height
 	north_move_arcmins = 1
 	east_move_arcmins = 1
-	oneArcmininPixelsN = 1/2.  # This tells us how many pixels there are to one arcsecond in the North/South direction
-	oneArcmininPixelsE = 1/2.  # This tells us how many pixels there are to one arcsecond in the East/West direction
+	oneArcmininPixelsN = 100  # This tells us how many pixels there are to one arcsecond in the North/South direction
+	oneArcmininPixelsE = 100  # This tells us how many pixels there are to one arcsecond in the East/West direction
 	axis_flip = 1.0
 	theta = 0 
 	transformation_matrix = [math.cos(theta), math.sin(theta), -1*math.sin(theta), math.cos(theta)]	
@@ -69,7 +69,6 @@ class FiberFeedServer:
 	default_values = [frameRateDefault, exposureAutoDefault, exposureAbsoluteDefault, gainDefault, brightnessDefault, gammaDefault]
 	# We initially have the values to set as being the default values (some values unicap gave)
 
-	image_chop=False
 	
 #******************************* The main camera commands ***********************************#
 
@@ -96,8 +95,10 @@ class FiberFeedServer:
 
 	def cmd_brightStarCoords(self, the_command):
 		'''This takes one photo to be used to detect the brightest star and find its coordinates. '''
-		#capture image from the camera and save it as a fits file
-		try: dummy = self.cmd_imageCube('imageCube guiding_test')
+		commands=str.split(the_command)
+		if len(commands)!=1: return 'Hm, this function does not take arguments (in this version, anyway)...'
+                #capture image from the camera and save it as a fits file
+		try: dummy = self.cmd_imageCube('imageCube brightstar 10')
 		except Exception: print 'Could not capture images'
 		#analyse the image using iraf and find the brightest star. This step requires iraf's daofind to be fully setup with stuff on eparam/
 		try: brightcoords = self.analyseImage('program_images/guiding_test.fits','program_images/guiding_test.txt')
@@ -201,7 +202,7 @@ class FiberFeedServer:
 		filename = commands[1]	
 		dDec = 0
 		dAz = 0
-		brightest_star_info = self.analyseImage(filename+'.fits', filename+'.txt') 
+		brightest_star_info = self.analyseImage('program_images/'+filename+'.fits', filename+'.txt') 
 		if not brightest_star_info: return 'No star found to measure distance to'
 		star_sharp = float(brightest_star_info[3])  # We will use this to check the focus of the star
 		star_mag = float(brightest_star_info[0])    # We use this to identify the brightest star
@@ -220,7 +221,7 @@ class FiberFeedServer:
 		# we should have it in RA Dec
 		dArcminN = translated_N/self.oneArcmininPixelsN
 		dArcminE = translated_E/self.oneArcmininPixelsE # Now we convert where to move a positive is a move East
-		return str([dArcminN, dArcminE])
+		return str(dArcminN)+' '+str(dArcminE)
 		# ^ This returns the distance between the central pixel and the brightest star in arcmins in the North and East directions		
 		
 	def cmd_orientationCapture(self, the_command):  # need to have some define settings for this perhaps who knows
@@ -242,7 +243,7 @@ class FiberFeedServer:
 			else: return 'ERROR see help'
 		else: return 'Invalid input'
 
-		capture = self.cmd_imageCube('imageCube '+image_name)
+		capture = self.cmd_imageCube('imageCube '+image_name+' 10')
 		if not 'Final image created' in capture: return 'ERROR capturing image'
 		else: return str(commands[1])+' image captured.' # change this to a number perhaps for ease when automating
 
@@ -357,15 +358,6 @@ class FiberFeedServer:
 		print magnitude_conversion
 		return 'Magnitude correction calibrated'
 
-	def cmd_Chop(self, the_command):
-		'''Changes the value of self.image_chop such that, if it is True, any time an image taken from the camera is analysed, only a scetion in the middle is considered. This is mostly for the purposes of adjusting the exposure and looking for bright stars.'''
-		commands = str.split(the_command)
-		if len(commands)==1: return 'Image chop is set to '+str(self.image_chop)
-		elif len(commands)==2 and commands[1]=='on': self.image_chop=True
-		elif len(commands)==2 and commands[1]=='off': self.image_chop=False
-		else: return 'Incorrect usage of function. Activate chopping of images using "on" or "off".'
-		return 'Image chop status set to '+str(self.image_chop)
-
 	def cmd_imageCube(self, the_command):
 		'''This function can be used to pull a series of images from the camera and coadd them in a simple way. This is slightly better process for measuring the position of a star for the purposes of guiding. In essence, this will take 10 images, average them and create a master image for analysis to be perfomed on.'''
 		commands = str.split(the_command)
@@ -386,9 +378,11 @@ class FiberFeedServer:
 		return 'Final image created. It is image program_images/'+base_filename+'.fits'
 
 	def cmd_defineCenter(self, the_command):
-		'''This function can be used to define the pixel coordinates that coincide with the optical axis of the telescope (or where we want the guide star to be at all times).'''
+		'''This function can be used to define the pixel coordinates that coincide with the optical axis of the telescope (or where we want the guide star to be at all times). use the option 'show' to query the current central coordinates.'''
 		commands=str.split(the_command)
-		if len(commands) != 3: return 'Please specify the x and y coordinates as separate values'
+		if len(commands) > 3: return 'Please specify the x and y coordinates as separate values'
+		if len(commands)==2 and commands[1]=='show':
+			return str(self.target_xpixel)+' '+str(self.target_ypixel)
 		try: 
 			new_x=float(commands[1])
 			new_y=float(commands[2])
@@ -409,6 +403,13 @@ class FiberFeedServer:
 		except Exception: return 'Finding brightest star failed'
 		dummy=self.cmd_defineCenter('defineCenter '+str(new_x)+' '+str(new_y))
 		return 'Finished updating central coordinates'
+
+	def cmd_currentExposure(self, the_command):
+		'''Function used to query the exposure time of the camera'''
+		commands=str.split(the_command)
+		if len(commands)!=1: return 'no input needed for this function'
+		else: return str(self.set_values[2]*1E-4)
+
 
 #*********************************** End of user commands ***********************************#
 
@@ -507,10 +508,3 @@ class FiberFeedServer:
 		return filename
 
 
-	def chop(self,im):
-		'''Function that will return a section of the image that we are interested in. This will just chop off a box of width 'width' centred at middle_x,middle_y'''
-		middle_y=240
-		middle_x=320
-		width=60
-		return im[middle_y-width/2:middle_y+width/2,middle_x-width/2:middle_x+width/2]
-	

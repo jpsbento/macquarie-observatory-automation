@@ -102,7 +102,8 @@ class SideCameraServer:
 		try: brightcoords = self.analyseImage('program_images/guiding_test.fits','program_images/guiding_test.txt')
 		except Exception: return 'Could not analyse image'
 		#return the coordinates, magnitude and sharpness
-		return str(brightcoords)		
+		if brightcoords == 0: return 'no stars found.'
+		return str(brightcoords[0])+' '+str(brightcoords[1])+' '+str(brightcoords[2])+' '+str(brightcoords[3])
 
 
 	def cmd_adjustExposure(self, the_command):
@@ -244,23 +245,6 @@ class SideCameraServer:
 		if not 'Final image created' in capture: return 'ERROR capturing image'
 		else: return str(commands[1])+' image captured.' # change this to a number perhaps for ease when automating
 
-	def cmd_focusCapture(self,the_command):
-		'''This will capture the images to be used for focusing an image. When calling this image you need
-		to give the function the focuser counts the photo is being taken at. Might make life easier to combine
-		this with the orientate capture'''
-		commands = str.split(the_command)
-		if len(commands) !=2: return 'ERROR'
-		try: focus_count = int(commands[1])
-		except Exception: return 'ERROR'
-		filename = 'focusImage'
-
-		capture = self.capture_images(filename, 1)
-		if not capture: return 'ERROR capturing images'
-
-		bright_star_info = self.analyseImage(filename+'.fits', 'focus_output.txt')
-		sharpness_value = bright_star_info[3]
-		return sharpness_value
-
 	def cmd_calculateCameraOrientation(self, the_command):
 		'''This does the maths for the camera orientation. Theta is the angle between the positive x axis of the camera and the North direction'''
 		base_star_info = self.analyseImage('program_images/base_orientation.fits','program_images/base_orientation.txt')
@@ -386,16 +370,19 @@ class SideCameraServer:
 		return 'Final image created. It is image program_images/'+base_filename+'.fits'
 
 	def cmd_defineCenter(self, the_command):
-		'''This function can be used to define the pixel coordinates that coincide with the optical axis of the telescope (or where we want the guide star to be at all times).'''
+		'''This function can be used to define the pixel coordinates that coincide with the optical axis of the telescope (or where we want the guide star to be at all times). Use the 'show' option to query the current central coordinates.'''
 		commands=str.split(the_command)
-		if len(commands) != 3: return 'Please specify the x and y coordinates as separate values'
-		try: 
-			new_x=float(commands[1])
-			new_y=float(commands[2])
-		except Exception: return 'ERROR: invalid coordinate format. They must be floats'
-		self.target_xpixel=new_x
-		self.target_ypixel=new_y
-		return 'Central coordinates updated'
+		if len(commands) > 3: return 'Please specify the x and y coordinates as separate values'
+		elif len(commands)==2 and commands[1]=='show':
+			return str(self.target_xpixel)+' '+str(self.target_ypixel)
+		else: 
+			try: 
+				new_x=float(commands[1])
+				new_y=float(commands[2])
+			except Exception: return 'ERROR: invalid coordinate format. They must be floats'
+			self.target_xpixel=new_x
+			self.target_ypixel=new_y
+			return 'Central coordinates updated'
 
 	def cmd_centerIsHere(self, the_command):
 		'''This function can be used to define the pixel coordinates that coincide with the optical axis of the telescope (or where we want the guide star to be at all times) by taking images and working out where the bright star is. Very similar to cmd_defineCenter, but takes the images as well and defines the bright star coordinates as the central coords.'''
@@ -409,6 +396,14 @@ class SideCameraServer:
 		except Exception: return 'Finding brightest star failed'
 		dummy=self.cmd_defineCenter('defineCenter '+str(new_x)+' '+str(new_y))
 		return 'Finished updating central coordinates'
+
+	def cmd_currentExposure(self, the_command):
+		'''Function used to query the exposure time of the camera'''
+		commands=str.split(the_command)
+		if len(commands)!=1: return 'no input needed for this function'
+		else: return str(self.set_values[2]*1E-4)
+		
+
 
 #*********************************** End of user commands ***********************************#
 
