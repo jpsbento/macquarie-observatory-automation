@@ -4,10 +4,10 @@ adjustExposure
 setCameraValues
 starDistanceFromCenter
 orientationCapture
-focusCapture
 calculateCameraOrientation
 calibrateMagnitude
 Chop
 imageCube
 defineCenter
 centerIsHere
+currentExposure

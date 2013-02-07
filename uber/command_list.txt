@@ -14,3 +14,4 @@ focusIRAF
 override_wx
 guiding
 spiral
+masterAlign

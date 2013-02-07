@@ -7,7 +7,7 @@ orientationCapture
 focusCapture
 calculateCameraOrientation
 calibrateMagnitude
-Chop
 imageCube
 defineCenter
 centerIsHere
+currentExposure
