@@ -507,7 +507,7 @@ class UberServer:
 					cam_client=self.fiberfeed_client
 				else: 
 					cam_client=self.sidecam_client
-				result=cam_client.send_command('brightStarCoords')
+				result=cam_client.send_command('brightStarCoords high')
 				if 'no stars found' not in result:
 					starinfo=str.split(result)
 					try: 						
@@ -527,8 +527,8 @@ class UberServer:
 						moving=cam_client.send_command('starDistanceFromCenter brightstar')
 						moving=str.split(moving)
 						try: 
-							dummy=self.telescope_client.send_command('jog North '+moving[0])
-							dummy=self.telescope_client.send_command('jog East '+moving[1])
+							dummy=self.telescope_client.send_command('jog North '+str(float(moving[0])/2.))
+							dummy=self.telescope_client.send_command('jog East '+str(float(moving[1])/2.))
 						except Exception: 
 							print 'For some reason communication with the telescope is not working.'
 							self.guiding_bool=False

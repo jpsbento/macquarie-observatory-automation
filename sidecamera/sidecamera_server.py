@@ -95,12 +95,17 @@ class SideCameraServer:
 
 	def cmd_brightStarCoords(self, the_command):
 		'''This takes one photo to be used to detect the brightest star and find its coordinates. '''
-		#capture image from the camera and save it as a fits file
-		try: dummy = self.cmd_imageCube('imageCube brightstar 10')
-		except Exception: print 'Could not capture images'
+		commands=str.split(the_command)
+		if len(commands) >2: return 'Hm, this function does not take 3 arguments (in this version, anyway)...'
+		elif len(commands) == 2 and commands[1]==high:
+			try: dummy = self.cmd_imageCube('imageCube brightstar high')
+			except Exception: print 'Could not capture images'
+		else: 
+			try: dummy = self.cmd_imageCube('imageCube brightstar 10')
+			except Exception: print 'Could not capture images'
 		#analyse the image using iraf and find the brightest star. This step requires iraf's daofind to be fully setup with stuff on eparam/
 		try: brightcoords = self.analyseImage('program_images/brightstar.fits','program_images/brightstar.txt')
-		except Exception: return 'Could not analyse image'
+		except Exception: return 'Could not analyse image.'
 		#return the coordinates, magnitude and sharpness
 		if brightcoords == 0: return 'no stars found.'
 		return str(brightcoords[0])+' '+str(brightcoords[1])+' '+str(brightcoords[2])+' '+str(brightcoords[3])
@@ -351,9 +356,11 @@ class SideCameraServer:
 	def cmd_imageCube(self, the_command):
 		'''This function can be used to pull a series of images from the camera and coadd them in a simple way. This is slightly better process for measuring the position of a star for the purposes of guiding. In essence, this will take n images (specified by user), median them and create a master image for analysis to be perfomed on.'''
 		commands = str.split(the_command)
-		if len(commands) != 3: return 'Please specify the name of the final image and the number of images to median through'
-		try: nims=int(commands[2])
-		except Exception: return 'Unable to convert number of images to integer'
+		if len(commands) != 3: return 'Please specify the name of the final image and the number of images to median through. Alternatively, specify "high" instead of the number of images to acquire a high enough number of average over scintilation.'
+		if commands[2]=='high': nims=3E-4/set_values[2]
+		else: 
+			try: nims=int(commands[2])
+			except Exception: return 'Unable to convert number of images to integer'
 		#make upperlimit images and average combine them.
 		upperlimit = nims
 		base_filename = commands[1]
