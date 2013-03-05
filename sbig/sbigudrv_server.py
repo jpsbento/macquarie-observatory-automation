@@ -22,8 +22,16 @@ p = sb.EstablishLinkParams()
 r = sb.EstablishLinkResults()
 sb.SBIGUnivDrvCommand(sb.CC_ESTABLISH_LINK,p,r)
 
+
 class SBigUDrv:
-	#FUNCTIONS: the following two functions are used in the imaging process, they relate to filenames and prevet crashes 
+	#Some parameters for the default status
+
+	exposing=False   #Boolean to determine when the camera should be exposing
+	exptime=0        #Default exposure time
+	shutter_position='closed'  #Default shutter position
+	
+	
+        #FUNCTIONS: the following two functions are used in the imaging process, they relate to filenames and prevet crashes 
 	#when there are typos in directories or	duplicate filenames
 	
 	#Checks to see if directory is specified, if it exists and then prompts to reinput if there is an issue.
@@ -157,7 +165,7 @@ class SBigUDrv:
 		p.ccd=0
 		sb.SBIGUnivDrvCommand(sb.CC_END_READOUT,p,None)
 		im = np.transpose(im)
-		plt.imshow(im)
+		#plt.imshow(im)
 				
 		#gets end time
 		endTime = time.localtime()	
@@ -166,11 +174,33 @@ class SBigUDrv:
 		hdu = pyfits.PrimaryHDU(im)
 		#sets up fits header, this is an example, the actual start exposure and end exposure
 		#times are stored in the code but are not written to the header below, as of yet
-		hdu.header.update('EXPTIME', 10.3, comment='The frame exposure time')		
+		hdu.header.update('EXPTIME', float(exposureTime), comment='The frame exposure time in seconds')		
 		hdu.writeto(self.fullpath)
 
 
 	
+	def cmd_settings(self,the_command):
+		#sets the camera settings for the exposing loop
+		commands=str.split(the_command)
+		if len(commands)==1: 
+			return 'exposure time is set to '+str(self.exptime)+'\nshutter state is set to '+str(self.shutter_position)
+		elif len(commands)!=3:
+			return 'please input the desired exposure time in seconds and the intended shutter state'
+		else:
+			self.exptime=float(commands[1])
+			self.shutter_position=commands[2]
+			return 'Finished updating camera settings'
+
+	def cmd_imaging(self,the_command):
+		#sets the state of the boolean for the imaging_loop function COMPLETE!!!!!
+		commands=str.split(the_command)
+		if len(commands)==1: return 'Imaging is set to '+str(self.exposing)
+		elif len(commands)==2 and commands[1]=='on': self.exposing=True
+		elif len(commands)==2 and commands[1]=='off': self.exposing=False
+		else: return 'Incorrect usage of function. Activate chopping of images using "on" or "off".'
+		return 'Imaging status set to '+str(self.exposing)
+
+
 	def cmd_closeLink(self,the_command):
 		#turns of the temperature regualtion, if not already done, before closing the lin
 		b = sb.SetTemperatureRegulationParams()
@@ -358,3 +388,14 @@ class SBigUDrv:
 		#NEED TO CHANGE FOCUS BETWEEN IMAGE CAPTURES
 		#conduct dark subtraction 
 		#analyse focus using iraf tools
+
+
+	def imaging_loop(self):
+		#Function that sets the camera going if the 
+		if self.exposing==True:
+			localtime=time.localtime(time.time())
+			filename=str(localtime[0])+str(localtime[1]).zfill(2)+str(localtime[2]).zfill(2)+str(localtime[3]).zfill(2)+str(localtime[4]).zfill(2)+str(localtime[5]).zfill(2)
+			result=self.cmd_exposeAndWait('exposeAndWait '+str(self.exptime)+' '+str(self.shutter_position)+' '+filename)
+			if result!='Exposure Complete':
+				print 'Exposure failed for some reason'
+			

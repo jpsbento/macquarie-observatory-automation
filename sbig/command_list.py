@@ -28,13 +28,13 @@ def execute_command(the_command, m):
     '''Find the_command amongst the list of commands like cmd_one in module m
     
     This returns a string containing the response, or a -1 if a quit is commanded.'''
-    the_functions = dict(closeLink=m.cmd_closeLink,establishLink=m.cmd_establishLink,getCCDParams=m.cmd_getCCDParams,setTemperature=m.cmd_setTemperature,checkTemperature=m.cmd_checkTemperature,disableRegulation=m.cmd_disableRegulation,exposeAndWait=m.cmd_exposeAndWait,focusCalculate=m.cmd_focusCalculate,focusImages=m.cmd_focusImages)
+    the_functions = dict(settings=m.cmd_settings,imaging=m.cmd_imaging,closeLink=m.cmd_closeLink,establishLink=m.cmd_establishLink,getCCDParams=m.cmd_getCCDParams,setTemperature=m.cmd_setTemperature,checkTemperature=m.cmd_checkTemperature,disableRegulation=m.cmd_disableRegulation,exposeAndWait=m.cmd_exposeAndWait,focusCalculate=m.cmd_focusCalculate,focusImages=m.cmd_focusImages)
     commands = string.split(the_command)
     if len(commands) == 0:
         return ""
     if commands[0] == "help":
         if (len(commands) == 1):
-            return 'closeLink\nestablishLink\ngetCCDParams\nsetTemperature\ncheckTemperature\ndisableRegulation\nexposeAndWait\nfocusCalculate\nfocusImages'
+            return 'settings\nimaging\ncloseLink\nestablishLink\ngetCCDParams\nsetTemperature\ncheckTemperature\ndisableRegulation\nexposeAndWait\nfocusCalculate\nfocusImages'
         elif commands[1] in the_functions:
             td=pydoc.TextDoc()
             return td.docroutine(the_functions[commands[1]])
