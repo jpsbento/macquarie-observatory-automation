@@ -99,7 +99,7 @@ class SBigUDrv:
 		width = r.readoutInfo[0].width
 		height = r.readoutInfo[0].height
 		#Start the Exposure
-		startTime = time.localtime()
+		startTime = time.time()
 		p = sb.StartExposureParams()
 		p.ccd = 0
 		p.exposureTime = int(exposureTime * 100)
@@ -142,7 +142,7 @@ class SBigUDrv:
 		#NOTE: FOR THE CAMERA IN THE LAB HEIGHT AND WIDTH NEED TO BE HARD CODED TO THE RELEVANT VALUES AS THE GETCCDPARAMS FUNCTION GIVES 
 		#ERONEOUS HEIGHTS AND WIDTHS
 		p.height=height
-		p.widht=width
+		p.width=width
 		# NOTE: WHEN USING THE LAB CAMERA THESE ARE THE WIDTHS 
 		#AND HEIGHTS, FOR THE CAMERA IN THE OBSERVATORY COMMENT OUT THE NEXT 2 LINES
 		#width = 3326
@@ -168,15 +168,64 @@ class SBigUDrv:
 		#plt.imshow(im)
 				
 		#gets end time
-		endTime = time.localtime()	
+		endTime = time.time()	
 
 		#saves image as fits file
 		hdu = pyfits.PrimaryHDU(im)
 
-		#sets up fits header, this is an example, the actual start exposure and end exposure
-		#times are stored in the code but are not written to the header below, as of yet
-		hdu.header.update('EXPTIME', float(exposureTime), comment='The frame exposure time in seconds')		
-		hdu.header.append('TEMP', 0.0, 'testing', end=True)
+		#sets up fits header. Most things are self explanatory
+		hdu.header.update('EXPTIME', float(exposureTime), comment='The frame exposure time in seconds')	
+		hdu.header.update('NAXIS1', width, comment='Width of the CCD in pixels')
+		hdu.header.update('NAXIS2', height, comment='Height of the CCD in pixels')
+		hdu.header.update('XFACTOR', 1, 'Camera x binning factor')
+		hdu.header.update('YFACTOR', 1, 'Camera y binning factor')
+		start=time.gmtime(startTime)
+		dateobs=str(start[0])+'-'+str(start[1]).zfill(2)+'-'+str(start[2]).zfill(2)
+		hdu.header.update('DATE-OBS', dateobs, 'UTC YYYY-MM-DD')
+		starttime=str(start[3]).zfill(2)+':'+str(start[4]).zfill(2)+':'+str(start[5]).zfill(2)
+		hdu.header.update('UTSTART', starttime , 'UTC HH:MM:SS.ss Exp. Start')
+		middleTime=startTime+(endTime-startTime)/2.
+		middle=time.gmtime(middleTime)
+		midtime=str(middle[3]).zfill(2)+':'+str(middle[4]).zfill(2)+':'+str(middle[5]).zfill(2)
+		hdu.header.update('UTMIDDLE', midtime , 'UTC HH:MM:SS.ss Exp. Midpoint')
+		end=time.gmtime(endTime)
+		endtime=str(end[3]).zfill(2)+':'+str(end[4]).zfill(2)+':'+str(end[5]).zfill(2)
+		hdu.header.update('UTEND', endtime , 'UTC HH:MM:SS.ss Exp. End')
+		
+		start=time.localtime(startTime)
+		dateobs=str(start[0])+'-'+str(start[1]).zfill(2)+'-'+str(start[2]).zfill(2)
+		hdu.header.update('LDATEOBS', dateobs , 'LOCAL YYYY-MM-DD')
+		starttime=str(start[3]).zfill(2)+':'+str(start[4]).zfill(2)+':'+str(start[5]).zfill(2)
+		hdu.header.update('LTSTART', starttime , 'Local HH:MM:SS.ss Exp. Start')
+		middleTime=startTime+(endTime-startTime)/2.
+		middle=time.localtime(middleTime)
+		midtime=str(middle[3]).zfill(2)+':'+str(middle[4]).zfill(2)+':'+str(middle[5]).zfill(2)
+		hdu.header.update('LTMIDDLE', midtime , 'Local HH:MM:SS.ss Exp. Midpoint')
+		end=time.localtime(endTime)
+		endtime=str(end[3]).zfill(2)+':'+str(end[4]).zfill(2)+':'+str(end[5]).zfill(2)
+		hdu.header.update('LTEND', endtime , 'Local HH:MM:SS.ss Exp. End')
+		'''hdu.header.update('JD-MID', USE JG.ctx, 'Julian date of Midpoint of exposure')
+		hdu.header.update('LST', , '')
+		hdu.header.update('CCD', , 'Some Sort of serial')
+		hdu.header.update('CAMTEMP', , '')
+		hdu.header.update('IMGTYPE', , '')
+		hdu.header.update('TELESCOP', 'Meade LX200 f/10 16 inch', 'Which telescope used.')#NEEDS TO BE SET BY WHICH TELESCOPE CODE IS BEING USED
+		hdu.header.update('FILTER', , 'NEED to query this')
+		hdu.header.update('LATITUDE', , '')
+		hdu.header.update('LONGITUDE', , '')
+		hdu.header.update('ALTITUDE', , '')
+		hdu.header.update('TEL-RA', , '')
+		hdu.header.update('TEL-DEC', , '')
+		hdu.header.update('DOMETEMP', , '')
+		hdu.header.update('DOMEPRES', , '')
+		hdu.header.update('DOMEHUMD', , '')
+		hdu.header.update('ZENDIST', , '')
+		hdu.header.update('AIRMASS', , '')
+		hdu.header.update('MOONPHAS', , '')
+		hdu.header.update('MOONDIST', , '')
+		hdu.header.update('MOONALT', , '')
+		hdu.header.update('NIGHT', , '')
+'''
 		hdu.writeto(self.fullpath)
 
 
