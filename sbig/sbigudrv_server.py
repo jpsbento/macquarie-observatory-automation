@@ -172,9 +172,11 @@ class SBigUDrv:
 
 		#saves image as fits file
 		hdu = pyfits.PrimaryHDU(im)
+
 		#sets up fits header, this is an example, the actual start exposure and end exposure
 		#times are stored in the code but are not written to the header below, as of yet
 		hdu.header.update('EXPTIME', float(exposureTime), comment='The frame exposure time in seconds')		
+		hdu.header.append('TEMP', 0.0, 'testing', end=True)
 		hdu.writeto(self.fullpath)
 
 
