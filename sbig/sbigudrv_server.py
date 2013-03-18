@@ -5,6 +5,8 @@ import pyfits
 import time
 import ctypes
 import os
+#import the tools to do time and coordinate transforms
+import ctx
 
 #the following lines establish a link with the camera via the USB port, these run 
 #automatically when sbigudrv_main is excecuted
@@ -90,7 +92,7 @@ class SBigUDrv:
 				self.presencePrior = False
 	
 	#command that takes an image
-	def capture(self,exposureTime,shutter,fileInput):	
+	def capture(self,exposureTime,shutter,fileInput,imtype='Light'):	
 		#Get CCD Parameters, this is required for later during readout
 		p = sb.GetCCDInfoParams()
 		p.request = 0
@@ -98,6 +100,9 @@ class SBigUDrv:
 		sb.SBIGUnivDrvCommand(sb.CC_GET_CCD_INFO,p,r)
 		width = r.readoutInfo[0].width
 		height = r.readoutInfo[0].height
+		CCD_serial='x'
+		camtemp='x'
+		
 		#Start the Exposure
 		startTime = time.time()
 		p = sb.StartExposureParams()
@@ -179,6 +184,7 @@ class SBigUDrv:
 		hdu.header.update('NAXIS2', height, comment='Height of the CCD in pixels')
 		hdu.header.update('XFACTOR', 1, 'Camera x binning factor')
 		hdu.header.update('YFACTOR', 1, 'Camera y binning factor')
+		#UTC time header keywords
 		start=time.gmtime(startTime)
 		dateobs=str(start[0])+'-'+str(start[1]).zfill(2)+'-'+str(start[2]).zfill(2)
 		hdu.header.update('DATE-OBS', dateobs, 'UTC YYYY-MM-DD')
@@ -191,7 +197,10 @@ class SBigUDrv:
 		end=time.gmtime(endTime)
 		endtime=str(end[3]).zfill(2)+':'+str(end[4]).zfill(2)+':'+str(end[5]).zfill(2)
 		hdu.header.update('UTEND', endtime , 'UTC HH:MM:SS.ss Exp. End')
-		
+		ut=str(middle[2]).zfill(2)+'/'+str(middle[1]).zfill(2)+'/'+str(middle[0])+':'+str(middle[3]).zfill(2)+':'+str(middle[4]).zfill(2)+':'+str(middle[5]).zfill(2)
+		hdu.header.update('JD', ctx.ut2jd(ut), 'Julian date of Midpoint of exposure')
+		hdu.header.update('LST', ctx.ut2lst(ut,151.112,flag=1), 'Local sidereal time of Midpoint')
+		#local time header keywords
 		start=time.localtime(startTime)
 		dateobs=str(start[0])+'-'+str(start[1]).zfill(2)+'-'+str(start[2]).zfill(2)
 		hdu.header.update('LDATEOBS', dateobs , 'LOCAL YYYY-MM-DD')
@@ -204,12 +213,17 @@ class SBigUDrv:
 		end=time.localtime(endTime)
 		endtime=str(end[3]).zfill(2)+':'+str(end[4]).zfill(2)+':'+str(end[5]).zfill(2)
 		hdu.header.update('LTEND', endtime , 'Local HH:MM:SS.ss Exp. End')
-		'''hdu.header.update('JD-MID', USE JG.ctx, 'Julian date of Midpoint of exposure')
-		hdu.header.update('LST', , '')
-		hdu.header.update('CCD', , 'Some Sort of serial')
-		hdu.header.update('CAMTEMP', , '')
-		hdu.header.update('IMGTYPE', , '')
+
+
+		hdu.header.update('CCD', CCD_serial , 'Some Sort of serial')
+		hdu.header.update('CAMTEMP', camtemp, 'Camera temperature (C)')
+		if exposureTime==0:
+			imtype='Bias'
+		elif shutter=='closed':
+			imtype='Dark'
+		hdu.header.update('IMGTYPE', imtype, 'Image type')
 		hdu.header.update('TELESCOP', 'Meade LX200 f/10 16 inch', 'Which telescope used.')#NEEDS TO BE SET BY WHICH TELESCOPE CODE IS BEING USED
+		'''
 		hdu.header.update('FILTER', , 'NEED to query this')
 		hdu.header.update('LATITUDE', , '')
 		hdu.header.update('LONGITUDE', , '')
