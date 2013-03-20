@@ -4,6 +4,7 @@
 import os
 import client_socket
 import time, math
+import pyfits
 
 class UberServer:
 	
@@ -32,6 +33,11 @@ class UberServer:
 
 	#this parameter corresponds to an approximate ratio between the exposure times of the sidecamera and the fiberfeed camera for a given star (or all stars)
 	side_fiber_exp_ratio=20.
+	
+	exposing=False   #Boolean to determine when the camera should be exposing
+	exptime=0        #Default exposure time
+	shutter_position='closed'  #Default shutter position
+
 
 #***************************** A list of user commands *****************************#
 
@@ -440,7 +446,27 @@ class UberServer:
 			print 'Failed to capture an image to show you where the star currently lies in. Not too much of a problem...'
 		return 'Finished the master alignment. You can now inspect the image and decide if this is good enough. '
 		
-		
+	def cmd_Imaging(self,the_command):
+		#sets the state of the boolean for the imaging_loop function COMPLETE!!!!!
+		commands=str.split(the_command)
+		if len(commands)==1: return 'Imaging is set to '+str(self.exposing)
+		elif len(commands)==2 and commands[1]=='on': self.exposing=True
+		elif len(commands)==2 and commands[1]=='off': self.exposing=False
+		else: return 'Incorrect usage of function. Activate Imaging using "on" or "off".'
+		return 'Imaging status set to '+str(self.exposing)
+
+	def cmd_Imsettings(self,the_command):
+		#sets the camera settings for the exposing loop
+		commands=str.split(the_command)
+		if len(commands)==1: 
+			return 'exposure time is set to '+str(self.exptime)+'\nshutter state is set to '+str(self.shutter_position)
+		elif len(commands)!=3:
+			return 'please input the desired exposure time in seconds and the intended shutter state'
+		else:
+			self.exptime=float(commands[1])
+			self.shutter_position=commands[2]
+			return 'Finished updating camera settings'
+	
 
 #***************************** End of User Commands *****************************#
 
@@ -537,3 +563,31 @@ class UberServer:
 					print 'guide star lost, stopping the guiding loop'
 					self.guiding_bool=False
 				self.guiding_last_time=time.time()
+
+	def imaging_loop(self):
+		#Function that sets the camera going if the imaging boolean is true
+		if self.exposing==True:
+			localtime=time.localtime(time.time())
+			filename=str(localtime[0])+str(localtime[1]).zfill(2)+str(localtime[2]).zfill(2)+str(localtime[3]).zfill(2)+str(localtime[4]).zfill(2)+str(localtime[5]).zfill(2)
+			result=self.camera_client.send_command('exposeAndWait '+str(self.exptime)+' '+str(self.shutter_position)+' '+filename)
+			if result!='Exposure Complete':
+				print 'Exposure failed for some reason'
+			else: #update the image header with extra keywords
+				im=pyfits.open('images/'+filename+'.fits',mode='update')
+				h=im[0].header
+				h.append(('TELESCOP', 'Meade LX200 f/10 16 inch', 'Which telescope used')
+				h.append(('LATITUDE', -33.77022, 'Telescope latitude (deg)'))
+				h.append(('LONGITUDE', 151.111075, 'Telescope longitude (deg)'))
+				h.append('TEL-RA', self.telescope_client.send_command('getRA'), 'Telescope pointing Right Ascension')
+				h.append('TEL-DEC', self.telescope_client.send_command('getRA') , 'Telescope pointing Declination')
+				h.append('TEL-ALT', self.telescope_client.send_command('getAltitude'), 'Telescope pointing altitude')
+				h.append('TEL-AZ', self.telescope_client.send_command('getAzimuth') , 'Telescope pointing Azimuth')
+				h.append('DOMETEMP', self.labjack_client.send_command('temperature') , 'Dome Temperature (C)')
+				h.append('DOMEHUMD', self.labjack_client.send_command('humidity') , 'Dome Humidity')
+				h.append('ZENDIST','place_holder' , 'Zenith Distance (deg)')
+				h.append('AIRMASS','place_holder' , 'Airmass of observation')
+				h.append('MOONPHAS', 'place_holder', 'Lunar Phase (% illumination)')
+				h.append('MOONDIST', 'place_holder', 'Distance to the Moon (deg)')
+				h.append('MOONALT','place_holder' , 'Moon altitude (deg)')
+				h.append('NIGHT', 'place_holder', 'Night index')
+				im.flush()

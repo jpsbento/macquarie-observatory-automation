@@ -28,10 +28,6 @@ sb.SBIGUnivDrvCommand(sb.CC_ESTABLISH_LINK,p,r)
 class SBigUDrv:
 	#Some parameters for the default status
 
-	exposing=False   #Boolean to determine when the camera should be exposing
-	exptime=0        #Default exposure time
-	shutter_position='closed'  #Default shutter position
-	
 	
         #FUNCTIONS: the following two functions are used in the imaging process, they relate to filenames and prevet crashes 
 	#when there are typos in directories or	duplicate filenames
@@ -93,6 +89,12 @@ class SBigUDrv:
 	
 	#command that takes an image
 	def capture(self,exposureTime,shutter,fileInput,imtype='Light'):	
+		#This command checks the temperature status and other related parameters at the time it is run
+		a = sb.QueryTemperatureStatusResults2()
+		sb.SBIGUnivDrvCommand(sb.CC_QUERY_TEMPERATURE_STATUS,None,a)
+		camtemp=a.imagingCCDTemperature
+		ccdSetPoint=a.ccdSetpoint
+		cooling=a.coolingEnabled
 		#Get CCD Parameters, this is required for later during readout
 		p = sb.GetCCDInfoParams()
 		p.request = 0
@@ -100,8 +102,8 @@ class SBigUDrv:
 		sb.SBIGUnivDrvCommand(sb.CC_GET_CCD_INFO,p,r)
 		width = r.readoutInfo[0].width
 		height = r.readoutInfo[0].height
-		CCD_serial='x'
-		camtemp='x'
+		gain= r.readoutInfo[0].gain
+		pixel_width=r.readoutInfo[0].pixelWidth
 		
 		#Start the Exposure
 		startTime = time.time()
@@ -182,6 +184,8 @@ class SBigUDrv:
 		hdu.header.update('EXPTIME', float(exposureTime), comment='The frame exposure time in seconds')	
 		hdu.header.update('NAXIS1', width, comment='Width of the CCD in pixels')
 		hdu.header.update('NAXIS2', height, comment='Height of the CCD in pixels')
+		hdu.header.update('GAIN', gain, comment='CCD gain in e-/ADU')
+		hdu.header.update('PIXWIDTH',pixel_width,'Pixel width in microns')
 		hdu.header.update('XFACTOR', 1, 'Camera x binning factor')
 		hdu.header.update('YFACTOR', 1, 'Camera y binning factor')
 		#UTC time header keywords
@@ -214,58 +218,21 @@ class SBigUDrv:
 		endtime=str(end[3]).zfill(2)+':'+str(end[4]).zfill(2)+':'+str(end[5]).zfill(2)
 		hdu.header.update('LTEND', endtime , 'Local HH:MM:SS.ss Exp. End')
 
-
-		hdu.header.update('CCD', CCD_serial , 'Some Sort of serial')
 		hdu.header.update('CAMTEMP', camtemp, 'Camera temperature (C)')
+		hdu.header.update('SETPOINT', ccdSetpoint, 'Camera temperature setpoint (C)')
+		hdu.header.update('COOLING', str(cooling), 'Camera cooling enabled?')
 		if exposureTime==0:
 			imtype='Bias'
 		elif shutter=='closed':
 			imtype='Dark'
 		hdu.header.update('IMGTYPE', imtype, 'Image type')
-		hdu.header.update('TELESCOP', 'Meade LX200 f/10 16 inch', 'Which telescope used.')#NEEDS TO BE SET BY WHICH TELESCOPE CODE IS BEING USED
 		'''
 		hdu.header.update('FILTER', , 'NEED to query this')
-		hdu.header.update('LATITUDE', , '')
-		hdu.header.update('LONGITUDE', , '')
-		hdu.header.update('ALTITUDE', , '')
-		hdu.header.update('TEL-RA', , '')
-		hdu.header.update('TEL-DEC', , '')
-		hdu.header.update('DOMETEMP', , '')
-		hdu.header.update('DOMEPRES', , '')
-		hdu.header.update('DOMEHUMD', , '')
-		hdu.header.update('ZENDIST', , '')
-		hdu.header.update('AIRMASS', , '')
-		hdu.header.update('MOONPHAS', , '')
-		hdu.header.update('MOONDIST', , '')
-		hdu.header.update('MOONALT', , '')
-		hdu.header.update('NIGHT', , '')
 '''
 		hdu.writeto(self.fullpath)
 
 
 	
-	def cmd_settings(self,the_command):
-		#sets the camera settings for the exposing loop
-		commands=str.split(the_command)
-		if len(commands)==1: 
-			return 'exposure time is set to '+str(self.exptime)+'\nshutter state is set to '+str(self.shutter_position)
-		elif len(commands)!=3:
-			return 'please input the desired exposure time in seconds and the intended shutter state'
-		else:
-			self.exptime=float(commands[1])
-			self.shutter_position=commands[2]
-			return 'Finished updating camera settings'
-
-	def cmd_imaging(self,the_command):
-		#sets the state of the boolean for the imaging_loop function COMPLETE!!!!!
-		commands=str.split(the_command)
-		if len(commands)==1: return 'Imaging is set to '+str(self.exposing)
-		elif len(commands)==2 and commands[1]=='on': self.exposing=True
-		elif len(commands)==2 and commands[1]=='off': self.exposing=False
-		else: return 'Incorrect usage of function. Activate chopping of images using "on" or "off".'
-		return 'Imaging status set to '+str(self.exposing)
-
-
 	def cmd_closeLink(self,the_command):
 		#turns of the temperature regualtion, if not already done, before closing the lin
 		b = sb.SetTemperatureRegulationParams()
@@ -394,7 +361,7 @@ class SBigUDrv:
 		# This function takes a full frame image and waits for the image to be read out
 		# prior to exiting.
 		commands = str.split(command)
-		if len(commands) < 4 : return 'error: require 3 input values (exposure time, lens (open/closed) and filename'
+		if len(commands) < 4 : return 'error: require 3 input values (exposure time, lens (open/closed) and filename. optional argument imtype for header keyword if image type is not bias, dark or light.'
 		#Tests to see if the first command is a float (exposure time) and the second command is either open or close
 		try: exposureTime = float(commands[1])
 		except Exception: return 'invalid input, first input must be a value in seconds'
@@ -406,7 +373,10 @@ class SBigUDrv:
 		shutter = str(commands[2])
 	        fileInput = str(commands[3])  
 		self.defualt_dir = 'images/'
-		self.capture(exposureTime,shutter,fileInput)	
+		if len(commands)==4:
+			self.capture(exposureTime,shutter,fileInput)	
+		else: 
+			self.capture(exposureTime,shutter,fileInput,imtype=commands[4])
 		return 'Exposure Complete'
 
 	def cmd_focusCalculate(self,command):
@@ -455,12 +425,3 @@ class SBigUDrv:
 		#analyse focus using iraf tools
 
 
-	def imaging_loop(self):
-		#Function that sets the camera going if the 
-		if self.exposing==True:
-			localtime=time.localtime(time.time())
-			filename=str(localtime[0])+str(localtime[1]).zfill(2)+str(localtime[2]).zfill(2)+str(localtime[3]).zfill(2)+str(localtime[4]).zfill(2)+str(localtime[5]).zfill(2)
-			result=self.cmd_exposeAndWait('exposeAndWait '+str(self.exptime)+' '+str(self.shutter_position)+' '+filename)
-			if result!='Exposure Complete':
-				print 'Exposure failed for some reason'
-			
