@@ -15,3 +15,5 @@ override_wx
 guiding
 spiral
 masterAlign
+Imaging
+Imsettings

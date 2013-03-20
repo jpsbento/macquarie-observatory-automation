@@ -1,5 +1,3 @@
-settings
-imaging
 closeLink
 establishLink
 getCCDParams
