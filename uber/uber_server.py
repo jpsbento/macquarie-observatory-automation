@@ -569,25 +569,30 @@ class UberServer:
 		if self.exposing==True:
 			localtime=time.localtime(time.time())
 			filename=str(localtime[0])+str(localtime[1]).zfill(2)+str(localtime[2]).zfill(2)+str(localtime[3]).zfill(2)+str(localtime[4]).zfill(2)+str(localtime[5]).zfill(2)
-			result=self.camera_client.send_command('exposeAndWait '+str(self.exptime)+' '+str(self.shutter_position)+' '+filename)
-			if result!='Exposure Complete':
+			try:  result=self.camera_client.send_command('exposeAndWait '+str(self.exptime)+' '+str(self.shutter_position)+' '+filename)
+			except Exception: print 'Something did not go down well with the exposure!'
+			if not 'Complete' in result:
 				print 'Exposure failed for some reason'
 			else: #update the image header with extra keywords
-				im=pyfits.open('images/'+filename+'.fits',mode='update')
+				im=pyfits.open('../sbig/images/'+filename+'.fits',mode='update')
 				h=im[0].header
-				h.append(('TELESCOP', 'Meade LX200 f/10 16 inch', 'Which telescope used'))
-				h.append(('LATITUDE', -33.77022, 'Telescope latitude (deg)'))
-				h.append(('LONGITUDE', 151.111075, 'Telescope longitude (deg)'))
-				h.append(('TEL-RA', self.telescope_client.send_command('getRA'), 'Telescope pointing Right Ascension'))
-				h.append(('TEL-DEC', self.telescope_client.send_command('getRA') , 'Telescope pointing Declination'))
-				h.append(('TEL-ALT', self.telescope_client.send_command('getAltitude'), 'Telescope pointing altitude'))
-				h.append(('TEL-AZ', self.telescope_client.send_command('getAzimuth') , 'Telescope pointing Azimuth'))
-				h.append(('DOMETEMP', self.labjack_client.send_command('temperature') , 'Dome Temperature (C)'))
-				h.append(('DOMEHUMD', self.labjack_client.send_command('humidity') , 'Dome Humidity'))
-				h.append(('ZENDIST','place_holder' , 'Zenith Distance (deg)'))
-				h.append(('AIRMASS','place_holder' , 'Airmass of observation'))
-				h.append(('MOONPHAS', 'place_holder', 'Lunar Phase (% illumination)'))
-				h.append(('MOONDIST', 'place_holder', 'Distance to the Moon (deg)'))
-				h.append(('MOONALT','place_holder' , 'Moon altitude (deg)'))
-				h.append(('NIGHT', 'place_holder', 'Night index'))
+				h.update('TELESCOP', 'Meade LX200 f/10 16 inch', 'Which telescope used')
+				h.update('LAT', -33.77022, 'Telescope latitude (deg)')
+				h.update('LONG', 151.111075, 'Telescope longitude (deg)')
+				h.update('TEL-RA', float(self.telescope_client.send_command('getRA').split('\n')[0]), 'Telescope pointing Right Ascension')
+				h.update('TEL-DEC', float(self.telescope_client.send_command('getRA').split('\n')[0]) , 'Telescope pointing Declination')
+				h.update('TEL-ALT', float(self.telescope_client.send_command('getAltitude').split('\n')[0]), 'Telescope pointing altitude')
+				telAz=float(self.telescope_client.send_command('getAzimuth').split('\n')[0])
+				h.update('TEL-AZ', float(self.telescope_client.send_command('getAzimuth').split('\n')[0]) , 'Telescope pointing Azimuth')
+				h.update('DOMETEMP', float(self.labjack_client.send_command('temperature').split('\n')[0]) , 'Dome Temperature (C)')
+				h.update('DOMEHUMD', float(self.labjack_client.send_command('humidity').split('\n')[0]) , 'Dome Humidity')
+				zendist= 90-telAz 
+				h.update('ZENDIST', zendist , 'Zenith Distance (deg)')
+				#From Rozenberg, G. V. 1966. Twilight: A Study in Atmospheric Optics. New York: Plenum Press, 160.
+				airmass= 1/(math.cos(math.radians(zendist)) + 0.025*math.exp(-11*math.cos(math.radians(zendist))))
+				h.update('AIRMASS',airmass , 'Airmass of observation')
+				h.update('MOONPHAS', 'place_holder', 'Lunar Phase (% illumination)')
+				h.update('MOONDIST', 'place_holder', 'Distance to the Moon (deg)')
+				h.update('MOONALT','place_holder' , 'Moon altitude (deg)')
+				h.update('NIGHT', 'place_holder', 'Night index')
 				im.flush()

@@ -89,12 +89,24 @@ class SBigUDrv:
 	
 	#command that takes an image
 	def capture(self,exposureTime,shutter,fileInput,imtype='Light'):	
-		#This command checks the temperature status and other related parameters at the time it is run
-		a = sb.QueryTemperatureStatusResults2()
+		#This command checks the temperature at the time it is run
+		a = sb.QueryTemperatureStatusResults()
 		sb.SBIGUnivDrvCommand(sb.CC_QUERY_TEMPERATURE_STATUS,None,a)
-		camtemp=a.imagingCCDTemperature
-		ccdSetPoint=a.ccdSetpoint
-		cooling=a.coolingEnabled
+		#A-D unit conversion
+		SP = a.ccdSetpoint
+		v1 = 4096.0/SP
+		v2 = 10.0/(v1-1.0)
+		setPointC = int(25.0 - 25.0 *((np.log(v2/3.0))/0.943906))
+		v3 = 4096.0/a.ccdThermistor
+		v4 = 10.0/(v3-1.0)
+		TempC = 25.0 - 25.0 *((np.log(v4/3.0))/0.943906)
+		TempC_rounded = round(TempC, 2)
+	      	#associates the binary output of the refulation variable with on or off for the purposes of printing
+		if a.enabled == 1 : reg = 'on'
+		elif a.enabled == 0 : reg = 'off'
+		camtemp=TempC_rounded
+		ccdSetpoint=setPointC
+		cooling=reg
 		#Get CCD Parameters, this is required for later during readout
 		p = sb.GetCCDInfoParams()
 		p.request = 0
@@ -103,7 +115,6 @@ class SBigUDrv:
 		width = r.readoutInfo[0].width
 		height = r.readoutInfo[0].height
 		gain= r.readoutInfo[0].gain
-		pixel_width=r.readoutInfo[0].pixelWidth
 		
 		#Start the Exposure
 		startTime = time.time()
@@ -185,7 +196,6 @@ class SBigUDrv:
 		hdu.header.update('NAXIS1', width, comment='Width of the CCD in pixels')
 		hdu.header.update('NAXIS2', height, comment='Height of the CCD in pixels')
 		hdu.header.update('GAIN', gain, comment='CCD gain in e-/ADU')
-		hdu.header.update('PIXWIDTH',pixel_width,'Pixel width in microns')
 		hdu.header.update('XFACTOR', 1, 'Camera x binning factor')
 		hdu.header.update('YFACTOR', 1, 'Camera y binning factor')
 		#UTC time header keywords
