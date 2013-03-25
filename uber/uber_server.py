@@ -29,7 +29,7 @@ class UberServer:
 	guiding_bool=False
 	guiding_camera='fiberfeed'
 	guiding_last_time=time.time()
-	guiding_frequency=60
+	guiding_frequency=5
 
 	#this parameter corresponds to an approximate ratio between the exposure times of the sidecamera and the fiberfeed camera for a given star (or all stars)
 	side_fiber_exp_ratio=20.
@@ -581,12 +581,13 @@ class UberServer:
 				h.update('LONG', 151.111075, 'Telescope longitude (deg)')
 				h.update('TEL-RA', float(self.telescope_client.send_command('getRA').split('\n')[0]), 'Telescope pointing Right Ascension')
 				h.update('TEL-DEC', float(self.telescope_client.send_command('getRA').split('\n')[0]) , 'Telescope pointing Declination')
-				h.update('TEL-ALT', float(self.telescope_client.send_command('getAltitude').split('\n')[0]), 'Telescope pointing altitude')
+				telAlt=float(self.telescope_client.send_command('getAltitude').split('\n')[0])
+				h.update('TEL-ALT', telAlt, 'Telescope pointing altitude')
 				telAz=float(self.telescope_client.send_command('getAzimuth').split('\n')[0])
 				h.update('TEL-AZ', float(self.telescope_client.send_command('getAzimuth').split('\n')[0]) , 'Telescope pointing Azimuth')
 				h.update('DOMETEMP', float(self.labjack_client.send_command('temperature').split('\n')[0]) , 'Dome Temperature (C)')
 				h.update('DOMEHUMD', float(self.labjack_client.send_command('humidity').split('\n')[0]) , 'Dome Humidity')
-				zendist= 90-telAz 
+				zendist= 90-telAlt 
 				h.update('ZENDIST', zendist , 'Zenith Distance (deg)')
 				#From Rozenberg, G. V. 1966. Twilight: A Study in Atmospheric Optics. New York: Plenum Press, 160.
 				airmass= 1/(math.cos(math.radians(zendist)) + 0.025*math.exp(-11*math.cos(math.radians(zendist))))

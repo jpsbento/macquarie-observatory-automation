@@ -12,7 +12,7 @@ import pyraf
 from pyraf import iraf
 import math
 import socket
-
+import commands
 
 class SideCameraServer:
 
@@ -76,17 +76,17 @@ class SideCameraServer:
 		'''This takes the photos to be used for science. Input the name of the images to capture (images will then be
 		numbered: ie filename1.fits filename2.fits) and the number of images to capture. Note: when specifying a filename
 		you do not need to include the extention: ie input "filename" not "filename.fits". Optional input is to force the routine to not show the images once it has taken them. Just add 'no' at the end of the call. '''
-		commands = str.split(the_command)
-		if len(commands) < 3: return 'Please input number of images to capture.'
-		try: int(commands[2])
+		comands = str.split(the_command)
+		if len(comands) < 3: return 'Please input number of images to capture.'
+		try: int(comands[2])
 		except Exception: return 'Invalid number.'
-		upperlimit = int(commands[2])
-		base_filename = commands[1]
-		if len(commands)==3:
+		upperlimit = int(comands[2])
+		base_filename = comands[1]
+		if len(comands)==3:
 			capture = self.capture_images(base_filename, upperlimit)
 			if not capture: return 'ERROR capturing images'
-		if (len(commands)==4):
-			if (commands[3]=='no'):
+		if (len(comands)==4):
+			if (comands[3]=='no'):
 				capture = self.capture_images(base_filename, upperlimit,show=False)
 				if not capture: return 'ERROR capturing images'
 			else:
@@ -95,9 +95,9 @@ class SideCameraServer:
 
 	def cmd_brightStarCoords(self, the_command):
 		'''This takes one photo to be used to detect the brightest star and find its coordinates. '''
-		commands=str.split(the_command)
-		if len(commands) >2: return 'Hm, this function does not take 3 arguments (in this version, anyway)...'
-		elif len(commands) == 2 and commands[1]==high:
+		comands=str.split(the_command)
+		if len(comands) >2: return 'Hm, this function does not take 3 arguments (in this version, anyway)...'
+		elif len(comands) == 2 and comands[1]=='high':
 			try: dummy = self.cmd_imageCube('imageCube brightstar high')
 			except Exception: print 'Could not capture images'
 		else: 
@@ -150,19 +150,19 @@ class SideCameraServer:
 		
 	def cmd_setCameraValues(self,the_command):
 		'''This sets up the camera with the exposure settings etc. wanted by the user. If no input is given this will list the allowed values for each of the settings, otherwise a user can set each setting individually. The properties are: \nFrameRate \nExposureAuto \nExposureAbs \nGain \nBrightness \nGamma. \nTo set a property type: setCameraValues FrameRate 3 \nTo get a list of properties type: setCameraValues show.\nTo use the default settings type "setCameraValues default"'''
-		commands = str.split(the_command)
-		if len(commands) == 1:
+		comands = str.split(the_command)
+		if len(comands) == 1:
 			message = ""
 			for i in range(0, len(self.properties)-1):
 				message += " property: "+self.properties[i]+', allowed range: '+str(self.allowed_range[i][0])+' to '+str(self.allowed_range[i][-1])+', in increments of: '+str(float(self.allowed_range[i][1]) - int(self.allowed_range[i][0]))+"\n"
 			return message
-		elif len(commands) == 2 and commands[1] == 'show':
+		elif len(comands) == 2 and comands[1] == 'show':
 			message = ''
 			for i in range(0, len(self.properties)):
 				message += '\n'+self.properties[i]+': '+str(self.set_values[i])
 			return message+'\n'
 
-		elif len(commands) == 2 and commands[1] == 'default':
+		elif len(comands) == 2 and comands[1] == 'default':
 			for i in range(0,len(self.properties)-1):
 				prop = self.dev.get_property( self.properties[i] )
 				prop['value'] = float(self.default_values[i])
@@ -170,18 +170,18 @@ class SideCameraServer:
 				self.set_values=list(self.default_values)
 			return 'Default settings used for all properties.'
 
-		elif len(commands) == 3:
+		elif len(comands) == 3:
 			#fmts = self.dev.enumerate_formats()
 			#props = self.dev.enumerate_properties()
-			pro = commands[1]
-			try: float(commands[2])
+			pro = comands[1]
+			try: float(comands[2])
 			except Exception: return 'Invalid input'
-			if pro == 'FrameRate' and float(commands[2]) in self.allowed_range[0]: self.set_values[0] = float(commands[2])
-			elif pro == 'ExposureAuto' and float(commands[2]) in self.allowed_range[1]: self.set_values[1] = int(commands[2])
-			elif pro == 'ExposureAbs' and float(commands[2]) in self.allowed_range[2]: self.set_values[2] = int(commands[2])
-			elif pro == 'Gain' and float(commands[2]) in self.allowed_range[3]: self.set_values[3] = int(commands[2])
-			elif pro == 'Brightness' and float(commands[2]) in self.allowed_range[4]: self.set_values[4] = int(commands[2])
-			elif pro == 'Gamma' and float(commands[2]) in self.allowed_range[5]: self.set_values[5] = int(commands[2])
+			if pro == 'FrameRate' and float(comands[2]) in self.allowed_range[0]: self.set_values[0] = float(comands[2])
+			elif pro == 'ExposureAuto' and float(comands[2]) in self.allowed_range[1]: self.set_values[1] = int(comands[2])
+			elif pro == 'ExposureAbs' and float(comands[2]) in self.allowed_range[2]: self.set_values[2] = int(comands[2])
+			elif pro == 'Gain' and float(comands[2]) in self.allowed_range[3]: self.set_values[3] = int(comands[2])
+			elif pro == 'Brightness' and float(comands[2]) in self.allowed_range[4]: self.set_values[4] = int(comands[2])
+			elif pro == 'Gamma' and float(comands[2]) in self.allowed_range[5]: self.set_values[5] = int(comands[2])
 			else: return 'Invalid input, type "setCameraValues show" for a list of current values and ranges'
 			for i in range(0,len(self.properties)-1):
 				prop = self.dev.get_property( self.properties[i] )
@@ -200,9 +200,9 @@ class SideCameraServer:
 		the sharpness of the same star. A call to this function will return a vector distance between the centeral
 		pixel and the brightest star in arcseconds in the North and East directions. When calling this function 
 		you must specify which file for daofind to use (do not add the file extension, ie type "filename" NOT "filename.fits"'''
-		commands = str.split(the_command)
-		if len(commands) != 2: return 'Invalid input, give name of file with data.'
-		filename = commands[1]	
+		comands = str.split(the_command)
+		if len(comands) != 2: return 'Invalid input, give name of file with data.'
+		filename = comands[1]	
 		dDec = 0
 		dAz = 0
 		brightest_star_info = self.analyseImage('program_images/'+filename+'.fits', 'program_images/'+filename+'.txt') 
@@ -233,22 +233,22 @@ class SideCameraServer:
 		photograph after the telescope has been moved North type "north amountmoved" where amountmoved is in arcseconds. 
 		To take the photograph after the telescope has been moved East type "east amountmoved" where again amountmoved 
 		is in arcseconds'''
-		commands = str.split(the_command)
+		comands = str.split(the_command)
 		image_name = ''
-		if len(commands) == 2 and commands[1] == 'base': image_name = 'base_orientation'
-		elif len(commands) == 3:
-			if commands[1] == 'North' and self.is_float_try(commands[2]):
+		if len(comands) == 2 and comands[1] == 'base': image_name = 'base_orientation'
+		elif len(comands) == 3:
+			if comands[1] == 'North' and self.is_float_try(comands[2]):
 				image_name = 'north_orientation'
-				self.north_move_arcmins = float(commands[2])
-			elif commands[1] == 'East' and self.is_float_try(commands[2]):
+				self.north_move_arcmins = float(comands[2])
+			elif comands[1] == 'East' and self.is_float_try(comands[2]):
 				image_name = 'east_orientation'
-				self.east_move_arcmins = float(commands[2])
+				self.east_move_arcmins = float(comands[2])
 			else: return 'ERROR see help'
 		else: return 'Invalid input'
 
 		capture = self.cmd_imageCube('imageCube '+image_name+' 10')
 		if not 'Final image created' in capture: return 'ERROR capturing image'
-		else: return str(commands[1])+' image captured.' # change this to a number perhaps for ease when automating
+		else: return str(comands[1])+' image captured.' # change this to a number perhaps for ease when automating
 
 	def cmd_calculateCameraOrientation(self, the_command):
 		'''This does the maths for the camera orientation. Theta is the angle between the positive x axis of the camera and the North direction'''
@@ -329,9 +329,9 @@ class SideCameraServer:
 		'''We need a way to also convert the magnitudes from IRAF to actual magnitudes. Do this by centering on a star with
 		a known magnitude, reading out the maginitude from IRAF and then calculating the conversion to use for all
 		future stars.'''
-		commands = str.split(the_command)
-		if len(commands) != 2: return 'ERROR, input actual star magnitude'
-		try: star_magnitude = float(commands[1])
+		comands = str.split(the_command)
+		if len(comands) != 2: return 'ERROR, input actual star magnitude'
+		try: star_magnitude = float(comands[1])
 		except Exception: return 'ERROR, input number for star magnitude'
 
 		self.capture_images('magnitudeCalibration', 1) # we need to neaten this up
@@ -346,24 +346,26 @@ class SideCameraServer:
 
 	def cmd_Chop(self, the_command):
 		'''Changes the value of self.image_chop such that, if it is True, any time an image taken from the camera is analysed, only a scetion in the middle is considered. This is mostly for the purposes of adjusting the exposure and looking for bright stars.'''
-		commands = str.split(the_command)
-		if len(commands)==1: return 'Image chop is set to '+str(self.image_chop)
-		elif len(commands)==2 and commands[1]=='on': self.image_chop=True
-		elif len(commands)==2 and commands[1]=='off': self.image_chop=False
+		comands = str.split(the_command)
+		if len(comands)==1: return 'Image chop is set to '+str(self.image_chop)
+		elif len(comands)==2 and comands[1]=='on': self.image_chop=True
+		elif len(comands)==2 and comands[1]=='off': self.image_chop=False
 		else: return 'Incorrect usage of function. Activate chopping of images using "on" or "off".'
 		return 'Image chop status set to '+str(self.image_chop)
 
 	def cmd_imageCube(self, the_command):
 		'''This function can be used to pull a series of images from the camera and coadd them in a simple way. This is slightly better process for measuring the position of a star for the purposes of guiding. In essence, this will take n images (specified by user), median them and create a master image for analysis to be perfomed on.'''
-		commands = str.split(the_command)
-		if len(commands) != 3: return 'Please specify the name of the final image and the number of images to median through. Alternatively, specify "high" instead of the number of images to acquire a high enough number of average over scintilation.'
-		if commands[2]=='high': nims=3E-4/set_values[2]
+		comands = str.split(the_command)
+		if len(comands) != 3: return 'Please specify the name of the final image and the number of images to median through. Alternatively, specify "high" instead of the number of images to acquire a high enough number of average over scintilation.'
+		if comands[2]=='high': nims=3E4/self.set_values[2]
 		else: 
-			try: nims=int(commands[2])
+			try: nims=int(comands[2])
 			except Exception: return 'Unable to convert number of images to integer'
 		#make upperlimit images and average combine them.
-		upperlimit = nims
-		base_filename = commands[1]
+		upperlimit = int(nims)
+		base_filename = comands[1]
+		if base_filename in commands.getoutput('ls program_images/'):
+			os.system('rm program_images/'+base_filename+'*')
 		print 'Starting to capture images'
 		capture = self.capture_images('program_images/'+base_filename, upperlimit,show=False)
 		if not capture: return 'ERROR capturing images'
@@ -378,14 +380,14 @@ class SideCameraServer:
 
 	def cmd_defineCenter(self, the_command):
 		'''This function can be used to define the pixel coordinates that coincide with the optical axis of the telescope (or where we want the guide star to be at all times). Use the 'show' option to query the current central coordinates.'''
-		commands=str.split(the_command)
-		if len(commands) > 3: return 'Please specify the x and y coordinates as separate values'
-		elif len(commands)==2 and commands[1]=='show':
+		comands=str.split(the_command)
+		if len(comands) > 3: return 'Please specify the x and y coordinates as separate values'
+		elif len(comands)==2 and comands[1]=='show':
 			return str(self.target_xpixel)+' '+str(self.target_ypixel)
 		else: 
 			try: 
-				new_x=float(commands[1])
-				new_y=float(commands[2])
+				new_x=float(comands[1])
+				new_y=float(comands[2])
 			except Exception: return 'ERROR: invalid coordinate format. They must be floats'
 			self.target_xpixel=new_x
 			self.target_ypixel=new_y
@@ -393,8 +395,8 @@ class SideCameraServer:
 
 	def cmd_centerIsHere(self, the_command):
 		'''This function can be used to define the pixel coordinates that coincide with the optical axis of the telescope (or where we want the guide star to be at all times) by taking images and working out where the bright star is. Very similar to cmd_defineCenter, but takes the images as well and defines the bright star coordinates as the central coords.'''
-		commands=str.split(the_command)
-		if len(commands) != 1: return 'no input needed for this function'
+		comands=str.split(the_command)
+		if len(comands) != 1: return 'no input needed for this function'
 		dummy=self.cmd_imageCube('imageCube central 15')
 		star_info = self.analyseImage('program_images/central.fits', 'program_images/central.txt') # put in these parameters
 		try: 
@@ -406,8 +408,8 @@ class SideCameraServer:
 
 	def cmd_currentExposure(self, the_command):
 		'''Function used to query the exposure time of the camera'''
-		commands=str.split(the_command)
-		if len(commands)!=1: return 'no input needed for this function'
+		comands=str.split(the_command)
+		if len(comands)!=1: return 'no input needed for this function'
 		else: return str(self.set_values[2]*1E-4)
 		
 
@@ -418,7 +420,7 @@ class SideCameraServer:
 		'''This takes the photos to be used for science. Input the name of the images to capture (images will then be
 		numbered: ie filename1.fits filename2.fits) and the number of images to capture. Note: when specifying a filename
 		you do not need to include the extention: ie input "filename" not "filename.fits"'''
-		try: int(upperlimit)
+		try: up=int(upperlimit)
 		except Exception: return False
 
 # plt.draw()
@@ -431,7 +433,7 @@ class SideCameraServer:
 # dev.stop_capture
 		self.dev.start_capture()
 		imgbuf = self.dev.wait_buffer( 10 ) 
-		for i in range( 0, upperlimit ):
+		for i in range( 0, up ):
 			#self.dev.set_property( prop )
 			t1 = time.time()
 			imgbuf = self.dev.wait_buffer( 11 )
