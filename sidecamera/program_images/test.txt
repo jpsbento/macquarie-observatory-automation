@@ -1,8 +1,8 @@
 #K IRAF       = NOAO/IRAFV2.14.1        version    %-23s     
 #K USER       = phy-admin               name       %-23s     
 #K HOST       = IT-4278                 computer   %-23s     
-#K DATE       = 2013-03-25              yyyy-mm-dd %-23s     
-#K TIME       = 21:52:26                hh:mm:ss   %-23s     
+#K DATE       = 2013-03-27              yyyy-mm-dd %-23s     
+#K TIME       = 23:22:59                hh:mm:ss   %-23s     
 #K PACKAGE    = apphot                  name       %-23s     
 #K TASK       = daofind                 name       %-23s     
 #
@@ -39,4 +39,4 @@
 #U pixels    pixels    #        #           #           #           #          \
 #F %-13.3f   %-10.3f   %-9.3f   %-12.3f     %-12.3f     %-12.3f     %-6d       \
 #
-   318.163   213.034   -3.379   0.985       -0.044      -0.076      1     
+   322.153   213.297   -3.407   0.930       0.173       0.071       1     

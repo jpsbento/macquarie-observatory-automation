@@ -30,6 +30,7 @@ class UberServer:
 	guiding_camera='fiberfeed'
 	guiding_last_time=time.time()
 	guiding_frequency=5
+	guiding_failures=0
 
 	#this parameter corresponds to an approximate ratio between the exposure times of the sidecamera and the fiberfeed camera for a given star (or all stars)
 	side_fiber_exp_ratio=20.
@@ -541,6 +542,7 @@ class UberServer:
 						ycoord=float(starinfo[2])
 					except Exception: return 'Could not convert coordinates of star to floats, for some reason...'
 					print 'star found in coordinates', xcoord, ycoord
+					self.guiding_failures=0
 					try: output=cam_client.send_command('defineCenter show')
 					except Exception: print 'This failed, really should not happen!'
 					central=str.split(output)
@@ -560,8 +562,10 @@ class UberServer:
 							self.guiding_bool=False
 						print 'Guiding has offset the telescope by amounts: '+moving[0]+' arcmins North and '+moving[1]+' arcmins East'
 				else: 
-					print 'guide star lost, stopping the guiding loop'
-					self.guiding_bool=False
+					if self.guiding_failures>10:
+						print 'guide star lost, stopping the guiding loop'
+						self.guiding_bool=False
+					else: self.guiding_failures+=1
 				self.guiding_last_time=time.time()
 
 	def imaging_loop(self):

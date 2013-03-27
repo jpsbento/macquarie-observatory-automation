@@ -105,7 +105,11 @@ class FiberFeedServer:
 			try: dummy = self.cmd_imageCube('imageCube brightstar 10')
 			except Exception: print 'Could not capture images'
 		#analyse the image using iraf and find the brightest star. This step requires iraf's daofind to be fully setup with stuff on eparam/
-		try: brightcoords = self.analyseImage('program_images/brightstar.fits','program_images/brightstar.txt')
+		localtime=time.localtime(time.time())
+		filename='guiding_'+str(localtime[0])+str(localtime[1]).zfill(2)+str(localtime[2]).zfill(2)+str(localtime[3]).zfill(2)+str(localtime[4]).zfill(2)+str(localtime[5]).zfill(2)
+		try: 
+			brightcoords = self.analyseImage('program_images/brightstar.fits','program_images/brightstar.txt')
+			os.system('cp program_images/brightstar.fits program_images/'+filename+'.fits')
 		except Exception: return 'Could not analyse image.'
 		#return the coordinates, magnitude and sharpness
 		if brightcoords == 0: return 'no stars found.'
@@ -366,7 +370,7 @@ class FiberFeedServer:
 		'''This function can be used to pull a series of images from the camera and coadd them in a simple way. This is slightly better process for measuring the position of a star for the purposes of guiding. In essence, this will take 10 images, average them and create a master image for analysis to be perfomed on.'''
 		comands = str.split(the_command)
 		if len(comands) != 3: return 'Please specify the name of the final image and the number of images to median through. Alternatively, specify "high" instead of the number of images to acquire a high enough number of average over scintilation.'
-		if comands[2]=='high': nims=50 #3E4/self.set_values[2]
+		if comands[2]=='high': nims=30 #3E4/self.set_values[2]
 		else: 
 			try: nims=int(comands[2])
 			except Exception: return 'Unable to convert number of images to integer'
