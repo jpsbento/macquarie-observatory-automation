@@ -463,23 +463,23 @@ class FiberFeedServer:
 		return True
 
 	def analyseImage(self, input_image, outfile):
-		iraf.noao(_doprint=0)     # load noao
-		iraf.digiphot(_doprint=0) # load digiphot
-		iraf.apphot(_doprint=0)   # load apphot
-		#iraf.daofind.setParam('image',FitsFileName)		#Set ImageName
-		iraf.daofind.setParam('verify','no')			#Don't verify
-		iraf.daofind.setParam('interactive','no')		#Interactive
+#		iraf.noao(_doprint=0)     # load noao
+#		iraf.digiphot(_doprint=0) # load digiphot
+#		iraf.apphot(_doprint=0)   # load apphot
+#		#iraf.daofind.setParam('image',FitsFileName)		#Set ImageName
+#		iraf.daofind.setParam('verify','no')			#Don't verify
+#		iraf.daofind.setParam('interactive','no')		#Interactive
 		#these parameters have to be set everytime because whenever any routine uses iraf, the settings get changed for all functions. THerefore, if the other camera changes any of the parameters, these would be set identically is daofind was attempted.
-		iraf.daofind.setParam('scale',3)    #plate scale in arcsecs
-		iraf.daofind.setParam('fwhmpsf',30)  #FWHM of PSF in arcsecs
+#		iraf.daofind.setParam('scale',3)    #plate scale in arcsecs
+#		iraf.daofind.setParam('fwhmpsf',30)  #FWHM of PSF in arcsecs
 #		iraf.daofind.setParam('datamin',100)  #Minimum flux for a detection of star. adjustExposure should be ran before this is attempted, making sure the star of interest is bright enough. IF the flux drops below this point then we have a problem (maybe clouds?)
-		iraf.daofind.setParam('sigma',0.5)    #standard deviation of the background counts
-		iraf.daofind.setParam('emission','Yes') #stellar features are positive
-		iraf.daofind.setParam('datamax',255)  #Need to have somewhere else in the code that adjusts the exposure if a star saturates
-		iraf.daofind.setParam('threshold',10.0)  #threshold above background where a detection is valid
-		iraf.daofind.setParam('nsigma',1.5)     #Width of convolution kernel in sigma
+#		iraf.daofind.setParam('sigma',0.5)    #standard deviation of the background counts
+#		iraf.daofind.setParam('emission','Yes') #stellar features are positive
+#		iraf.daofind.setParam('datamax',255)  #Need to have somewhere else in the code that adjusts the exposure if a star saturates
+#		iraf.daofind.setParam('threshold',10.0)  #threshold above background where a detection is valid
+#		iraf.daofind.setParam('nsigma',1.5)     #Width of convolution kernel in sigma
 		self.check_if_file_exists(outfile)
-		try: iraf.daofind(image = input_image, output = outfile)
+		try: os.system('sex '+input_image+' -c fiberfeed.sex -CATALOG_NAME '+outfile) #iraf.daofind(image = input_image, output = outfile)
 		except Exception: return 0
 		brightest_star_info = self.find_brightest_star(outfile)
 		return brightest_star_info
