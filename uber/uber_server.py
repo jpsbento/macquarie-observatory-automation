@@ -134,7 +134,7 @@ class UberServer:
 		if len(commands)!=2: return 'Invalid number of arguments. Please indicate which camera you want this to happen on.'
 		if commands[1]=='fiberfeed':
 			cam_client=self.fiberfeed_client
-			jog_amount=str(0.3)
+			jog_amount=str(0.2)
 		elif commands[1]=='sidecam': 
 			cam_client=self.sidecam_client
 			jog_amount=str(20)
@@ -320,13 +320,13 @@ class UberServer:
 							 offset/=4.
 							 n=1
 							 sign=1
-						 if xcoord < 420 and xcoord > 220 and ycoord < 320 and ycoord > 160:
+						 if xcoord < 520 and xcoord > 120 and ycoord < 360 and ycoord > 120:
 							 return 'Spiral sucessful. Star is now at coordinates '+str(xcoord)+', '+str(ycoord)
 						 else: print 'Still not good enough. Continuing...'
 					else: print 'Star not found, Continuing...'
 					jog_response=self.telescope_client.send_command('jog '+direction+' '+str(sign*offset))
 					time.sleep(3)
-					self.fiberfeed_client.send_command('captureImages test 1')
+					self.fiberfeed_client.send_command('captureImages test 1 no')
 			sign*=-1
 			n+=1
 		if found_it==False:
