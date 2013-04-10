@@ -51,6 +51,7 @@ class BisqueMountServer:
 
 	def cmd_focusReadPosition(self,the_command):
 		'''This will read the position of the focuser.'''
+		
 		ser.write('p')
 		echo = ser.read(1)
 		#responsetemp = self.recvamount(2)

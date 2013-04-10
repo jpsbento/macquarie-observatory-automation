@@ -38,7 +38,8 @@ class UberServer:
 	exposing=False   #Boolean to determine when the camera should be exposing
 	exptime=0        #Default exposure time
 	shutter_position='closed'  #Default shutter position
-
+	filename='None'
+	old_filename='None'
 
 #***************************** A list of user commands *****************************#
 
@@ -570,14 +571,10 @@ class UberServer:
 
 	def imaging_loop(self):
 		#Function that sets the camera going if the imaging boolean is true
-		if self.exposing==True:
-			if self.camera_client.send_command('imagingStatus')=='False':
-				localtime=time.localtime(time.time())
-				filename=str(localtime[0])+str(localtime[1]).zfill(2)+str(localtime[2]).zfill(2)+str(localtime[3]).zfill(2)+str(localtime[4]).zfill(2)+str(localtime[5]).zfill(2)
-				result=self.camera_client.send_command('imageInstruction '+str(self.exptime)+' '+str(self.shutter_position)+' '+filename)
-				if 'being taken' not in result: print 'Something went wrong with the image instruction'
-			else : #update the image header with extra keywords
-				im=pyfits.open('../sbig/images/'+filename+'.fits',mode='update')
+		if os.path.exists('../sbig/images/'+self.old_filename+'.fits'):
+			a=pyfits.getheader('../sbig/images/'+self.old_filename+'.fits')
+			if not a.has_key('TELESCOP'):
+				im=pyfits.open('../sbig/images/'+self.old_filename+'.fits',mode='update')
 				h=im[0].header
 				h.update('TELESCOP', 'Meade LX200 f/10 16 inch', 'Which telescope used')
 				h.update('LAT', -33.77022, 'Telescope latitude (deg)')
@@ -600,3 +597,10 @@ class UberServer:
 				h.update('MOONALT','place_holder' , 'Moon altitude (deg)')
 				h.update('NIGHT', 'place_holder', 'Night index')
 				im.flush()
+				self.old_filename='None'
+		if self.exposing==True and ('False' in self.camera_client.send_command('imagingStatus')) and self.old_filename=='None':
+			localtime=time.localtime(time.time())
+			self.filename=str(localtime[0])+str(localtime[1]).zfill(2)+str(localtime[2]).zfill(2)+str(localtime[3]).zfill(2)+str(localtime[4]).zfill(2)+str(localtime[5]).zfill(2)
+			result=self.camera_client.send_command('imageInstruction '+str(self.exptime)+' '+str(self.shutter_position)+' '+self.filename)
+			if self.old_filename=='None': self.old_filename=self.filename
+			if 'being taken' not in result: print 'Something went wrong with the image instruction'

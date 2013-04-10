@@ -24,11 +24,6 @@ p = sb.EstablishLinkParams()
 r = sb.EstablishLinkResults()
 sb.SBIGUnivDrvCommand(sb.CC_ESTABLISH_LINK,p,r)
 
-exposing=False
-exptime=0
-shutter_position='Closed'
-filename='None'
-
 class SBigUDrv:
 	#Some parameters for the default status
 
@@ -37,6 +32,11 @@ class SBigUDrv:
 	#when there are typos in directories or	duplicate filenames
 	
 	#Checks to see if directory is specified, if it exists and then prompts to reinput if there is an issue.
+	exposing=False
+	exptime=0
+	shutter_position='Closed'
+	filename='None'
+
 	def checkDir(self,directory_to_check):
 		if '/' in directory_to_check: 
 			self.dir = ''
@@ -460,10 +460,11 @@ class SBigUDrv:
 	def imaging_loop(self):
 		#function that takes an image and then sets the imaging boolean off
 		if self.exposing==True:
-			try: result=self.cmd_exposeAndWait('exposeAndWait '+str(self.exptime)+' '+str(self.shutter_position)+' '+filename)
+			try: result=self.cmd_exposeAndWait('exposeAndWait '+str(self.exptime)+' '+str(self.shutter_position)+' '+self.filename)
 			except Exception: print 'Something did not go down well with the exposure!'
 			if not 'Complete' in result:
 				print 'Exposure failed for some reason'
+			time.sleep(1)
 			self.exposing=False
 
 			
