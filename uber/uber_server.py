@@ -571,13 +571,12 @@ class UberServer:
 	def imaging_loop(self):
 		#Function that sets the camera going if the imaging boolean is true
 		if self.exposing==True:
-			localtime=time.localtime(time.time())
-			filename=str(localtime[0])+str(localtime[1]).zfill(2)+str(localtime[2]).zfill(2)+str(localtime[3]).zfill(2)+str(localtime[4]).zfill(2)+str(localtime[5]).zfill(2)
-			try:  result=self.camera_client.send_command('exposeAndWait '+str(self.exptime)+' '+str(self.shutter_position)+' '+filename)
-			except Exception: print 'Something did not go down well with the exposure!'
-			if not 'Complete' in result:
-				print 'Exposure failed for some reason'
-			else: #update the image header with extra keywords
+			if self.camera_client.send_command('imagingStatus')=='False':
+				localtime=time.localtime(time.time())
+				filename=str(localtime[0])+str(localtime[1]).zfill(2)+str(localtime[2]).zfill(2)+str(localtime[3]).zfill(2)+str(localtime[4]).zfill(2)+str(localtime[5]).zfill(2)
+				result=self.camera_client.send_command('imageInstruction '+str(self.exptime)+' '+str(self.shutter_position)+' '+filename)
+				if 'being taken' not in result: print 'Something went wrong with the image instruction'
+			else : #update the image header with extra keywords
 				im=pyfits.open('../sbig/images/'+filename+'.fits',mode='update')
 				h=im[0].header
 				h.update('TELESCOP', 'Meade LX200 f/10 16 inch', 'Which telescope used')

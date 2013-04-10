@@ -24,6 +24,10 @@ p = sb.EstablishLinkParams()
 r = sb.EstablishLinkResults()
 sb.SBIGUnivDrvCommand(sb.CC_ESTABLISH_LINK,p,r)
 
+exposing=False
+exptime=0
+shutter_position='Closed'
+filename='None'
 
 class SBigUDrv:
 	#Some parameters for the default status
@@ -434,4 +438,33 @@ class SBigUDrv:
 		#conduct dark subtraction 
 		#analyse focus using iraf tools
 
+	def cmd_imageInstruction(self,the_command):
+		#function that sets the exposing boolean to true and gets the imaging parameters from the uber server
+		commands = str.split(the_command)
+		if len(commands) != 4 : return 'error: please specify the exposure time, shutter position and filename'
+		try: 
+			self.exptime=float(commands[1])
+			self.shutter_position=commands[2]
+			self.filename=commands[3]
+		except Exception: return 'Error: could not set imaging parameters on the sbig server'
+		self.exposing=True
+		return 'Image being taken'
 
+	def cmd_imagingStatus(self,the_command):
+		#function that returns the status of the imaging boolean
+		commands=str.split(the_command)
+		if len(commands)>1: return 'Error: this function does not take inputs'
+		else: return str(self.exposing)
+
+
+	def imaging_loop(self):
+		#function that takes an image and then sets the imaging boolean off
+		if self.exposing==True:
+			try: result=self.cmd_exposeAndWait('exposeAndWait '+str(self.exptime)+' '+str(self.shutter_position)+' '+filename)
+			except Exception: print 'Something did not go down well with the exposure!'
+			if not 'Complete' in result:
+				print 'Exposure failed for some reason'
+			self.exposing=False
+
+			
+			
