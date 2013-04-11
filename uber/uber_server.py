@@ -29,7 +29,7 @@ class UberServer:
 	guiding_bool=False
 	guiding_camera='fiberfeed'
 	guiding_last_time=time.time()
-	guiding_frequency=5
+	guiding_frequency=1
 	guiding_failures=0
 
 	#this parameter corresponds to an approximate ratio between the exposure times of the sidecamera and the fiberfeed camera for a given star (or all stars)
@@ -41,6 +41,11 @@ class UberServer:
 	filename='None'
 	old_filename='None'
 
+	#Parameters to do with the focus adjustment
+	move_focus_amount = 200
+	sharp_value = 0
+	sharp_count =0
+	
 #***************************** A list of user commands *****************************#
 
 	def cmd_finishSession(self,the_command):
@@ -526,7 +531,7 @@ class UberServer:
 	def watchdog_slits(self):
 		self.labjack_client.send_command('ok')		
 
-	
+
 	def guiding_loop(self):
 		'''This is the function that does the guiding loop''' 
 		if self.guiding_bool:
@@ -538,9 +543,11 @@ class UberServer:
 				result=cam_client.send_command('brightStarCoords high')
 				if 'no stars found' not in result:
 					starinfo=str.split(result)
+					print starinfo
 					try: 						
 						xcoord=float(starinfo[1])
 						ycoord=float(starinfo[2])
+						HFD=float(starinfo[3])
 					except Exception: return 'Could not convert coordinates of star to floats, for some reason...'
 					print 'star found in coordinates', xcoord, ycoord
 					self.guiding_failures=0
@@ -562,6 +569,15 @@ class UberServer:
 							print 'For some reason communication with the telescope is not working.'
 							self.guiding_bool=False
 						print 'Guiding has offset the telescope by amounts: '+moving[0]+' arcmins North and '+moving[1]+' arcmins East'
+					focusposition = self.telescope_client.send_command("focusReadPosition").split('\n')[0]
+					try: focusposition = int(focusposition)
+					except Exception: return 'ERROR'
+					print focusposition, HFD, self.move_focus_amount
+					if HFD >= self.sharp_value: 
+						self.move_focus_amount = int((self.move_focus_amount*-1)/2)
+						if self.move_focus_amount==0: self.move_focus_amount=10
+					self.telescope_client.send_command("focusGoToPosition "+str(int(focusposition)+self.move_focus_amount))
+					self.sharp_value=HFD
 				else: 
 					if self.guiding_failures>10:
 						print 'guide star lost, stopping the guiding loop'

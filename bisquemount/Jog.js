@@ -1,6 +1,6 @@
 /* Java Script */
 
-var dJog = "-0.00148646830553";
+var dJog = "2.0";
 var dDirection = "East";
 var Out;
 

@@ -14,7 +14,7 @@ import binascii
 
 #Open port 0 at "9600,8,N,1", timeout of 5 seconds
 #Open port connected to the mount
-ser = serial.Serial('/dev/ttyUSB0',9600, timeout = 100) # non blocking serial port, will wait
+ser = serial.Serial('/dev/ttyUSB1',9600, timeout = 100) # non blocking serial port, will wait
 						        # for ten seconds find the address
 print ser.portstr       # check which port was rea3lly used
                         # we open a serial port to talk to the focuser

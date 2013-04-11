@@ -1,42 +1,15 @@
-#K IRAF       = NOAO/IRAFV2.14.1        version    %-23s     
-#K USER       = phy-admin               name       %-23s     
-#K HOST       = IT-4278                 computer   %-23s     
-#K DATE       = 2013-03-28              yyyy-mm-dd %-23s     
-#K TIME       = 00:34:50                hh:mm:ss   %-23s     
-#K PACKAGE    = apphot                  name       %-23s     
-#K TASK       = daofind                 name       %-23s     
-#
-#K SCALE      = 3.                      units      %-23.7g   
-#K FWHMPSF    = 30.                     scaleunit  %-23.7g   
-#K EMISSION   = yes                     switch     %-23b     
-#K DATAMIN    = INDEF                   counts     %-23.7g   
-#K DATAMAX    = 255.                    counts     %-23.7g   
-#K EXPOSURE   = ""                      keyword    %-23s     
-#K AIRMASS    = ""                      keyword    %-23s     
-#K FILTER     = ""                      keyword    %-23s     
-#K OBSTIME    = ""                      keyword    %-23s     
-#
-#K NOISE      = poisson                 model      %-23s     
-#K SIGMA      = 0.5                     counts     %-23.7g   
-#K GAIN       = ""                      keyword    %-23s     
-#K EPADU      = 1.                      e-/adu     %-23.7g   
-#K CCDREAD    = ""                      keyword    %-23s     
-#K READNOISE  = 0.                      e-         %-23.7g   
-#
-#K IMAGE      = brightstar.fits         imagename  %-23s     
-#K FWHMPSF    = 30.                     scaleunit  %-23.7g   
-#K THRESHOLD  = 10.                     sigma      %-23.7g   
-#K NSIGMA     = 1.5                     sigma      %-23.7g   
-#K RATIO      = 1.                      number     %-23.7g   
-#K THETA      = 0.                      degrees    %-23.7g   
-#
-#K SHARPLO    = 0.2                     number     %-23.7g   
-#K SHARPHI    = 1.                      number     %-23.7g   
-#K ROUNDLO    = -1.                     number     %-23.7g   
-#K ROUNDHI    = 1.                      number     %-23.7g   
-#
-#N XCENTER   YCENTER   MAG      SHARPNESS   SROUND      GROUND      ID         \
-#U pixels    pixels    #        #           #           #           #          \
-#F %-13.3f   %-10.3f   %-9.3f   %-12.3f     %-12.3f     %-12.3f     %-6d       \
-#
-   237.893   231.072   -3.616   0.396       -0.151      -0.062      1     
+#   1 X_IMAGE         Object position along x                         [pixel]
+#   2 Y_IMAGE         Object position along y                         [pixel]
+#   3 MAG_AUTO        Kron-like elliptical aperture magnitude         [mag]
+#   4 FWHM_IMAGE      FWHM assuming a gaussian core                   [pixel]
+#   5 FLUX_RADIUS     Fraction-of-light radii                         [pixel]
+#   6 XPEAK_IMAGE     x-coordinate of the brightest pixel             [pixel]
+#   7 YPEAK_IMAGE     y-coordinate of the brightest pixel             [pixel]
+#   8 KRON_RADIUS     Kron apertures in units of A or B
+#   9 BACKGROUND      Background at centroid position                 [count]
+#  10 THRESHOLD       Detection threshold above background            [count]
+#  11 MU_THRESHOLD    Detection threshold above background            [mag * arcsec**(-2)]
+#  12 FLUX_MAX        Peak flux above background                      [count]
+#  13 MU_MAX          Peak surface brightness above background        [mag * arcsec**(-2)]
+#  14 FLAGS           Extraction flags
+   232.587    232.093  -8.8242    11.40      5.782        233        231  5.25            0           10  -5.5103           24  -6.4608   0
