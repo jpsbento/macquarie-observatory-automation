@@ -45,6 +45,7 @@ class UberServer:
 	move_focus_amount = 200
 	sharp_value = 0
 	sharp_count =0
+	initial_focus_position=telescope_client.send_command("focusReadPosition").split('\n')[0]
 	
 #***************************** A list of user commands *****************************#
 
@@ -331,6 +332,7 @@ class UberServer:
 						 else: print 'Still not good enough. Continuing...'
 					else: print 'Star not found, Continuing...'
 					jog_response=self.telescope_client.send_command('jog '+direction+' '+str(sign*offset))
+					print direction, sign*offset
 					time.sleep(3)
 					self.fiberfeed_client.send_command('captureImages test 1 no')
 			sign*=-1
@@ -397,6 +399,8 @@ class UberServer:
 			print 'ERROR: Failed to move telescope to desired coordinates'
 			return 0
 		print 'successfully moved telescope to location'
+		#Set the focus position back to the initial value
+		self.telescope_client.send_command("focusGoToPosition "+self.initial_focus_position)
 		try: 
 			sidecam_exposure=self.sidecam_client.send_command('currentExposure')
 			fiberfeed_exposure=str(int(float(str.split(sidecam_exposure)[0])*1E4/self.side_fiber_exp_ratio))
