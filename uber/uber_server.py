@@ -1,4 +1,4 @@
-# This will do EVERYTHING
+ # This will do EVERYTHING
 # will make a way to give it a script
 
 import os
@@ -28,8 +28,6 @@ class UberServer:
 	dome_frequency = 30 #This parameters sets how often the SkyX virtual dome is told to align with the telescope pointing.
 	guiding_bool=False
 	guiding_camera='fiberfeed'
-	guiding_last_time=time.time()
-	guiding_frequency=1
 	guiding_failures=0
 
 	#this parameter corresponds to an approximate ratio between the exposure times of the sidecamera and the fiberfeed camera for a given star (or all stars)
@@ -538,56 +536,29 @@ class UberServer:
 
 	def guiding_loop(self):
 		'''This is the function that does the guiding loop''' 
-		if self.guiding_bool:
-			if (math.fabs(time.time() - self.guiding_last_time) > self.guiding_frequency):
-				if self.guiding_camera=='fiberfeed':
-					cam_client=self.fiberfeed_client
-				else: 
-					cam_client=self.sidecam_client
-				result=cam_client.send_command('brightStarCoords high')
-				if 'no stars found' not in result:
-					starinfo=str.split(result)
-					print starinfo
-					try: 						
-						xcoord=float(starinfo[1])
-						ycoord=float(starinfo[2])
-						HFD=float(starinfo[3])
-					except Exception: return 'Could not convert coordinates of star to floats, for some reason...'
-					print 'star found in coordinates', xcoord, ycoord
-					self.guiding_failures=0
-					try: output=cam_client.send_command('defineCenter show')
-					except Exception: print 'This failed, really should not happen!'
-					central=str.split(output)
-					try: 
-						centralx=float(output[0])
-						centraly=float(output[1])
-					except Exception: print 'could not convert central coordinates to floats'
-					distance=math.hypot(centralx-xcoord, centraly-ycoord)
-					if distance>2:
-						moving=cam_client.send_command('starDistanceFromCenter brightstar')
-						moving=str.split(moving)
-						try: 
-							dummy=self.telescope_client.send_command('jog North '+str(float(moving[0])/2.))
-							dummy=self.telescope_client.send_command('jog East '+str(float(moving[1])/2.))
-						except Exception: 
-							print 'For some reason communication with the telescope is not working.'
-							self.guiding_bool=False
-						print 'Guiding has offset the telescope by amounts: '+moving[0]+' arcmins North and '+moving[1]+' arcmins East'
-					focusposition = self.telescope_client.send_command("focusReadPosition").split('\n')[0]
-					try: focusposition = int(focusposition)
-					except Exception: return 'ERROR'
-					print focusposition, HFD, self.move_focus_amount
-					if HFD >= self.sharp_value: 
-						self.move_focus_amount = int((self.move_focus_amount*-1)/2)
-						if self.move_focus_amount==0: self.move_focus_amount=10
-					self.telescope_client.send_command("focusGoToPosition "+str(int(focusposition)+self.move_focus_amount))
-					self.sharp_value=HFD
-				else: 
-					if self.guiding_failures>10:
-						print 'guide star lost, stopping the guiding loop'
-						self.guiding_bool=False
-					else: self.guiding_failures+=1
-				self.guiding_last_time=time.time()
+		if self.guiding_bool and ('False' in self.fiberfeed_client.send_command('imagingStatus')):
+			guidingReturn=str.split(self.fiberfeed_client.send_command('guidingReturn'))
+			HFD=guidingReturn[0]
+			moving=[float(guidingReturn[1]),float(guidingReturn[2])]
+			if HFD==0.0 and moving==[0.0,0.0]:
+				if self.guiding_failures>10:
+					print 'guide star lost, stopping the guiding loop'
+					self.guiding_bool=False
+				else: self.guiding_failures+=1
+			else:
+				self.guiding_failures=0
+				try: 
+					dummy=self.telescope_client.send_command('jog North '+str(float(moving[0])/.))
+					dummy=self.telescope_client.send_command('jog East '+str(float(moving[1])/2))
+				except Exception: 
+					print 'For some reason communication with the telescope is not working.'					   self.guiding_bool=False
+				print 'Guiding has offset the telescope by amounts: '+moving[0]+' arcmins Nrth and '+moving[1]+' arcmins East'
+				result=telescope_client.send_command('focusTelescope '+str(HFD))
+				if 'Focussing' not in result: print 'Something went wrong with the focussing instruction'
+			result=fiberfeed_client.send_command('guide')
+			if 'being taken' not in result: print 'Something went wrong with the image instruction'
+
+
 
 	def imaging_loop(self):
 		#Function that sets the camera going if the imaging boolean is true

@@ -9,6 +9,7 @@ focusWriteShuttleSpeedRegister
 focusSetZeroPosition
 focusMove
 fs
+focusTelescope
 find
 getTargetRaDec
 mountGetRaDec

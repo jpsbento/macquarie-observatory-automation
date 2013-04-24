@@ -70,7 +70,12 @@ class FiberFeedServer:
 	default_values = [frameRateDefault, exposureAutoDefault, exposureAbsoluteDefault, gainDefault, brightnessDefault, gammaDefault]
 	# We initially have the values to set as being the default values (some values unicap gave)
 
-	
+
+	#parameters dictating whether the guiding camera is being used
+	exposing=False
+	movement=[0.0,0.0]
+	HDF=0.0
+
 #******************************* The main camera comands ***********************************#
 
 	def cmd_captureImages(self, the_command):
@@ -516,4 +521,52 @@ class FiberFeedServer:
 		if os.path.isfile(filename): os.remove(filename)
 		return filename
 
+	def cmd_guide(self,the_command):
+		#function that sets the exposing boolean to true and gets the imaging parameters from the uber server
+		commands = str.split(the_command)
+		if len(commands) != 1 : return 'error: this function does not take inputs.'
+		self.exposing=True
+		return 'Image being taken'
 
+	def cmd_imagingStatus(self,the_command):
+		#function that returns the status of the imaging boolean
+		commands=str.split(the_command)
+		if len(commands)>1: return 'Error: this function does not take inputs'
+		else: return str(self.exposing)
+		
+	def cmd_guidingReturn(self,the_command):
+		#function that returns the current guiding parameters
+		commands=str.split(the_command)
+		if len(commands)>1: return 'Error: this function does not take inputs'
+		else: return str(self.HDF)+' '+str(self.movement[0])+' 'str(self.movement[1])
+		
+
+	def imaging_loop(self):
+		#function that takes an image and then sets the imaging boolean off
+		if self.exposing==True:
+			try: result=self.cmd_brightStarCoords('brightStarCoords high')
+			except Exception: print 'Something did not go down well with the exposure!'
+			if 'no stars found' not in result:
+				starinfo=str.split(result)
+				print starinfo
+				try: 						
+					xcoord=float(starinfo[1])
+					ycoord=float(starinfo[2])
+					self.HFD=float(starinfo[3])
+				except Exception: return 'Could not convert coordinates of star to floats, for some reason...'					print 'star found in coordinates', xcoord, ycoord
+				try: output=self.cmd_defineCenter('defineCenter show')
+				except Exception: print 'This failed, really should not happen!'
+				central=str.split(output)
+				try: 
+					centralx=float(output[0])
+					centraly=float(output[1])
+				except Exception: print 'could not convert central coordinates to floats'
+				distance=math.hypot(centralx-xcoord, centraly-ycoord)
+				if distance>2:
+					moving=self.cmd_starDistanceFromCenter('starDistanceFromCenter brightstar')
+					self.movement=str.split(moving)
+			else:
+				self.movement=[0.0,0.0]
+				self.HDF=0.0
+
+			self.exposing=False

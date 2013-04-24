@@ -27,6 +27,12 @@ class BisqueMountServer:
 
 	dome_slewing_enabled = 0 #can enable disable automatic dome slewing
 
+	#parameters to do with the focus adjustment
+	move_focus_amount = 200
+	sharp_value = 0
+	sharp_count =0
+	focussing=False
+	
 #**************************************SERIAL COMMANDS FOR THE FOCUSER **************************************#
 #The focuser echos the command back to the user.
 
@@ -193,8 +199,29 @@ class BisqueMountServer:
 		ser.write('s')
 		return ser.read(1)
 
-
+	def cmd_focusTelescope(self,the_command):
+		#function that activates the focus adjustment function
+		commands = str.split(the_command)
+		if len(commands)!=2: return 'ERROR:, this function just needs the half-flux diameter value as input'
+		try: self.HFD=float(commands[1])
+		except Exception: return 'could not convert HFD into float'
+		self.focussing=True
+		return 'Focussing'
 		
+	
+	def adjustFocus(self,the_command):
+		#routine to adjust the focuser position based on a new half-flux diameter measurement
+		if self.focussing:
+			focusposition = self.cmd_focusReadPosition("focusReadPosition")
+			try: focusposition = int(focusposition)
+			except Exception: return 'ERROR: can not convert focus position to integer'
+			print focusposition, HFD, self.move_focus_amount
+			if HFD >= self.sharp_value: 
+				self.move_focus_amount = int((self.move_focus_amount*-1)/2)
+				if self.move_focus_amount==0: self.move_focus_amount=10
+			self.cmd_focusGoToPosition("focusGoToPosition "+str(int(focusposition)+self.move_focus_amount))
+			self.sharp_value=HFD
+			self.focussing=False
 
 
 

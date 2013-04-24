@@ -11,3 +11,6 @@ imageCube
 defineCenter
 centerIsHere
 currentExposure
+guide
+imagingStatus
+guidingReturn

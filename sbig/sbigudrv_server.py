@@ -28,15 +28,17 @@ class SBigUDrv:
 	#Some parameters for the default status
 
 	
-        #FUNCTIONS: the following two functions are used in the imaging process, they relate to filenames and prevet crashes 
-	#when there are typos in directories or	duplicate filenames
-	
-	#Checks to see if directory is specified, if it exists and then prompts to reinput if there is an issue.
+        #parameters related to the exposure settings and whether there is an image being taken at any given time.
 	exposing=False
 	exptime=0
 	shutter_position='Closed'
 	filename='None'
+        
 
+        #FUNCTIONS: the following two functions are used in the imaging process, they relate to filenames and prevet crashes 
+	#when there are typos in directories or	duplicate filenames
+	
+	#Checks to see if directory is specified, if it exists and then prompts to reinput if there is an issue.
 	def checkDir(self,directory_to_check):
 		if '/' in directory_to_check: 
 			self.dir = ''

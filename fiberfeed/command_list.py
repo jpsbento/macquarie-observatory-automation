@@ -28,13 +28,13 @@ def execute_command(the_command, m):
     '''Find the_command amongst the list of commands like cmd_one in module m
     
     This returns a string containing the response, or a -1 if a quit is commanded.'''
-    the_functions = dict(captureImages=m.cmd_captureImages,brightStarCoords=m.cmd_brightStarCoords,adjustExposure=m.cmd_adjustExposure,setCameraValues=m.cmd_setCameraValues,starDistanceFromCenter=m.cmd_starDistanceFromCenter,orientationCapture=m.cmd_orientationCapture,focusCapture=m.cmd_focusCapture,calculateCameraOrientation=m.cmd_calculateCameraOrientation,calibrateMagnitude=m.cmd_calibrateMagnitude,imageCube=m.cmd_imageCube,defineCenter=m.cmd_defineCenter,centerIsHere=m.cmd_centerIsHere,currentExposure=m.cmd_currentExposure)
+    the_functions = dict(captureImages=m.cmd_captureImages,brightStarCoords=m.cmd_brightStarCoords,adjustExposure=m.cmd_adjustExposure,setCameraValues=m.cmd_setCameraValues,starDistanceFromCenter=m.cmd_starDistanceFromCenter,orientationCapture=m.cmd_orientationCapture,focusCapture=m.cmd_focusCapture,calculateCameraOrientation=m.cmd_calculateCameraOrientation,calibrateMagnitude=m.cmd_calibrateMagnitude,imageCube=m.cmd_imageCube,defineCenter=m.cmd_defineCenter,centerIsHere=m.cmd_centerIsHere,currentExposure=m.cmd_currentExposure,guide=m.cmd_guide,imagingStatus=m.cmd_imagingStatus,guidingReturn=m.cmd_guidingReturn)
     commands = string.split(the_command)
     if len(commands) == 0:
         return ""
     if commands[0] == "help":
         if (len(commands) == 1):
-            return 'captureImages\nbrightStarCoords\nadjustExposure\nsetCameraValues\nstarDistanceFromCenter\norientationCapture\nfocusCapture\ncalculateCameraOrientation\ncalibrateMagnitude\nimageCube\ndefineCenter\ncenterIsHere\ncurrentExposure'
+            return 'captureImages\nbrightStarCoords\nadjustExposure\nsetCameraValues\nstarDistanceFromCenter\norientationCapture\nfocusCapture\ncalculateCameraOrientation\ncalibrateMagnitude\nimageCube\ndefineCenter\ncenterIsHere\ncurrentExposure\nguide\nimagingStatus\nguidingReturn'
         elif commands[1] in the_functions:
             td=pydoc.TextDoc()
             return td.docroutine(the_functions[commands[1]])
