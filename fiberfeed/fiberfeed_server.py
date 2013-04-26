@@ -28,8 +28,8 @@ class FiberFeedServer:
 				 # I *think* you just add this number (when calculated) to all Iraf mags and you're set.
 	
 	# The central pixel coordinates
-	target_xpixel = 237.9   # 640 x pixel width
-	target_ypixel = 231.5   # 480 y pixel height
+	target_xpixel = 234.5   # 640 x pixel width
+	target_ypixel = 229.4   # 480 y pixel height
 	north_move_arcmins = 1
 	east_move_arcmins = 1
 	oneArcmininPixelsN = 100  # This tells us how many pixels there are to one arcsecond in the North/South direction
@@ -74,7 +74,7 @@ class FiberFeedServer:
 	#parameters dictating whether the guiding camera is being used
 	exposing=False
 	movement=[0.0,0.0]
-	HDF=0.0
+	HFD=0.0
 
 #******************************* The main camera comands ***********************************#
 
@@ -538,7 +538,7 @@ class FiberFeedServer:
 		#function that returns the current guiding parameters
 		commands=str.split(the_command)
 		if len(commands)>1: return 'Error: this function does not take inputs'
-		else: return str(self.HDF)+' '+str(self.movement[0])+' 'str(self.movement[1])
+		else: return str(self.HFD)+' '+str(self.movement[0])+' '+str(self.movement[1])
 		
 
 	def imaging_loop(self):
@@ -553,7 +553,8 @@ class FiberFeedServer:
 					xcoord=float(starinfo[1])
 					ycoord=float(starinfo[2])
 					self.HFD=float(starinfo[3])
-				except Exception: return 'Could not convert coordinates of star to floats, for some reason...'					print 'star found in coordinates', xcoord, ycoord
+				except Exception: return 'Could not convert coordinates of star to floats, for some reason...'
+				print 'star found in coordinates', xcoord, ycoord
 				try: output=self.cmd_defineCenter('defineCenter show')
 				except Exception: print 'This failed, really should not happen!'
 				central=str.split(output)
@@ -567,6 +568,6 @@ class FiberFeedServer:
 					self.movement=str.split(moving)
 			else:
 				self.movement=[0.0,0.0]
-				self.HDF=0.0
+				self.HFD=0.0
 
 			self.exposing=False

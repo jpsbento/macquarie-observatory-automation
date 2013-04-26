@@ -209,18 +209,18 @@ class BisqueMountServer:
 		return 'Focussing'
 		
 	
-	def adjustFocus(self,the_command):
+	def adjustFocus(self):
 		#routine to adjust the focuser position based on a new half-flux diameter measurement
 		if self.focussing:
 			focusposition = self.cmd_focusReadPosition("focusReadPosition")
 			try: focusposition = int(focusposition)
 			except Exception: return 'ERROR: can not convert focus position to integer'
-			print focusposition, HFD, self.move_focus_amount
-			if HFD >= self.sharp_value: 
+			print focusposition, self.HFD, self.move_focus_amount
+			if self.HFD >= self.sharp_value: 
 				self.move_focus_amount = int((self.move_focus_amount*-1)/2)
 				if self.move_focus_amount==0: self.move_focus_amount=10
 			self.cmd_focusGoToPosition("focusGoToPosition "+str(int(focusposition)+self.move_focus_amount))
-			self.sharp_value=HFD
+			self.sharp_value=self.HFD
 			self.focussing=False
 
 

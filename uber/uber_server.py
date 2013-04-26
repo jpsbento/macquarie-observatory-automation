@@ -43,7 +43,7 @@ class UberServer:
 	move_focus_amount = 200
 	sharp_value = 0
 	sharp_count =0
-	initial_focus_position=telescope_client.send_command("focusReadPosition").split('\n')[0]
+	initial_focus_position=0
 	
 #***************************** A list of user commands *****************************#
 
@@ -184,7 +184,7 @@ class UberServer:
 		RA_final=RA_init+dyh
 		Dec_final=Dec_init+dxd
 		#Instruct the telescope to move to new coordinates
-		try:	dummy = self.telescope_client.send_command('slewToRaDec '+str(RA_final)+' '+str(Dec_final))
+		try: dummy = self.telescope_client.send_command('slewToRaDec '+str(RA_final)+' '+str(Dec_final))
 		except Exception: print'ERROR: Telescope failed to move to new coordinates'
 		return 'Telescope successfully offset to new coordinates.'
 		
@@ -398,7 +398,10 @@ class UberServer:
 			return 0
 		print 'successfully moved telescope to location'
 		#Set the focus position back to the initial value
-		self.telescope_client.send_command("focusGoToPosition "+self.initial_focus_position)
+		if self.initial_focus_position==0:
+			self.initial_focus_position=self.telescope_client.send_command("focusReadPosition").split('\n')[0]
+		else: 
+			self.telescope_client.send_command("focusGoToPosition "+self.initial_focus_position)
 		try: 
 			sidecam_exposure=self.sidecam_client.send_command('currentExposure')
 			fiberfeed_exposure=str(int(float(str.split(sidecam_exposure)[0])*1E4/self.side_fiber_exp_ratio))
@@ -548,14 +551,15 @@ class UberServer:
 			else:
 				self.guiding_failures=0
 				try: 
-					dummy=self.telescope_client.send_command('jog North '+str(float(moving[0])/.))
-					dummy=self.telescope_client.send_command('jog East '+str(float(moving[1])/2))
+					dummy=self.telescope_client.send_command('jog North '+str(float(moving[0])/2.))
+					dummy=self.telescope_client.send_command('jog East '+str(float(moving[1])/2.))
 				except Exception: 
-					print 'For some reason communication with the telescope is not working.'					   self.guiding_bool=False
-				print 'Guiding has offset the telescope by amounts: '+moving[0]+' arcmins Nrth and '+moving[1]+' arcmins East'
-				result=telescope_client.send_command('focusTelescope '+str(HFD))
+					print 'For some reason communication with the telescope is not working.'  
+					self.guiding_bool=False
+				print 'Guiding has offset the telescope by amounts: '+str(moving[0])+' arcmins Nrth and '+str(moving[1])+' arcmins East'
+				result=self.telescope_client.send_command('focusTelescope '+str(HFD))
 				if 'Focussing' not in result: print 'Something went wrong with the focussing instruction'
-			result=fiberfeed_client.send_command('guide')
+			result=self.fiberfeed_client.send_command('guide')
 			if 'being taken' not in result: print 'Something went wrong with the image instruction'
 
 
