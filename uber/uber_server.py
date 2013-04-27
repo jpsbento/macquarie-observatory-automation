@@ -30,8 +30,8 @@ class UberServer:
 	guiding_camera='fiberfeed'
 	guiding_failures=0
 
-	#this parameter corresponds to an approximate ratio between the exposure times of the sidecamera and the fiberfeed camera for a given star (or all stars)
-	side_fiber_exp_ratio=20.
+	#this parameter corresponds to an approximate ratio between the exposure times of the sidecamera and the fiberfeed camera for a given star (or all stars). Should be 20 for accurate value. If it is any less is just to make sure that there are enough photons if the telescope is out of focus.
+	side_fiber_exp_ratio=5.
 	
 	exposing=False   #Boolean to determine when the camera should be exposing
 	exptime=0        #Default exposure time
@@ -378,24 +378,28 @@ class UberServer:
 			print 'ERROR: Failed to set the orientation of the sidecam'
 			return 0
 		print 'orientation of the sidecamera set.'
-		try: self.sidecam_client.send_command('imageCube test 10')
-		except Exception: 
-			print 'ERROR: Failed to take images to work out where the star is at the moment'
-			return 0
-		print 'current location images taken for sidecam.'
-		try: 
-			moving=str.split(self.sidecam_client.send_command('starDistanceFromCenter test'))
-			dummy=float(moving[0])
-		except Exception: 
-			print 'ERROR: Failed to work out what the stellar distance to the optimal coordinates is'
-			return 0
-		print 'Stellar distance to center found.'
-		try: 
-			self.telescope_client.send_command('jog North '+moving[0])
-			self.telescope_client.send_command('jog East '+moving[1])
-		except Exception:
-			print 'ERROR: Failed to move telescope to desired coordinates'
-			return 0
+		distance=1000
+		while distance>1.0:
+			try: self.sidecam_client.send_command('imageCube test 10')
+			except Exception: 
+				print 'ERROR: Failed to take images to work out where the star is at the moment'
+				return 0
+			print 'current location images taken for sidecam.'
+			try: 
+				moving=str.split(self.sidecam_client.send_command('starDistanceFromCenter test'))
+				dummy=float(moving[0])
+			except Exception: 
+				print 'ERROR: Failed to work out what the stellar distance to the optimal coordinates is'
+				return 0
+			print 'Stellar distance to center found.'
+			distance=math.sqrt(float(moving[0])**2+float(moving[1])**2)
+			print 'Distance to be moved: ',distance
+			try: 
+				self.telescope_client.send_command('jog North '+moving[0])
+				self.telescope_client.send_command('jog East '+moving[1])
+			except Exception:
+				print 'ERROR: Failed to move telescope to desired coordinates'
+				return 0
 		print 'successfully moved telescope to location'
 		#Set the focus position back to the initial value
 		if self.initial_focus_position==0:
@@ -456,6 +460,7 @@ class UberServer:
 		try: self.fiberfeed_client.send_command('captureImages program_images/visual 1')
 		except Exception: 
 			print 'Failed to capture an image to show you where the star currently lies in. Not too much of a problem...'
+		self.guiding_failures=0
 		return 'Finished the master alignment. You can now inspect the image and decide if this is good enough. '
 		
 	def cmd_Imaging(self,the_command):
@@ -541,7 +546,7 @@ class UberServer:
 		'''This is the function that does the guiding loop''' 
 		if self.guiding_bool and ('False' in self.fiberfeed_client.send_command('imagingStatus')):
 			guidingReturn=str.split(self.fiberfeed_client.send_command('guidingReturn'))
-			HFD=guidingReturn[0]
+			HFD=float(guidingReturn[0])
 			moving=[float(guidingReturn[1]),float(guidingReturn[2])]
 			if HFD==0.0 and moving==[0.0,0.0]:
 				if self.guiding_failures>10:
