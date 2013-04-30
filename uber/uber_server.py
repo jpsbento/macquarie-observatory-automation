@@ -580,7 +580,7 @@ class UberServer:
 				h.update('LAT', -33.77022, 'Telescope latitude (deg)')
 				h.update('LONG', 151.111075, 'Telescope longitude (deg)')
 				h.update('TEL-RA', float(self.telescope_client.send_command('getRA').split('\n')[0]), 'Telescope pointing Right Ascension')
-				h.update('TEL-DEC', float(self.telescope_client.send_command('getRA').split('\n')[0]) , 'Telescope pointing Declination')
+				h.update('TEL-DEC', float(self.telescope_client.send_command('getDec').split('\n')[0]) , 'Telescope pointing Declination')
 				telAlt=float(self.telescope_client.send_command('getAltitude').split('\n')[0])
 				h.update('TEL-ALT', telAlt, 'Telescope pointing altitude')
 				telAz=float(self.telescope_client.send_command('getAzimuth').split('\n')[0])
