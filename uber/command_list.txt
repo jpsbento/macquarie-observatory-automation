@@ -5,6 +5,7 @@ weatherstation
 camera
 sidecam
 fiberfeed
+labjacku6
 setDomeTracking
 orientateCamera
 offset

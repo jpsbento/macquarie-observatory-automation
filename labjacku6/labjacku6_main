@@ -4,16 +4,17 @@
 #os.chdir('macquarie-observatory-automation\labjacku6')
 import labjacku6_server
 import sys
-import os 
+import os
+if sys.argv[0][0] != '.':
+    os.chdir('/usr/local/obs/labjack/')
 sys.path.append('../common')
 #sys.path.append('..\uber')
 import server_socket
-#import find_port
-#f = find_port.FindPort()
-#Port = f.findPort('labjack')
+import find_port
+f = find_port.FindPort()
+Port = f.findPort('labjacku6')
 lj=labjacku6_server.LabjackU6Server()
-#ss=server_socket.ServerSocket(Port, 'labjack', lj)	
-ss=server_socket.ServerSocket(3002, 'labjacku6', lj)	
+ss=server_socket.ServerSocket(Port, 'labjacku6', lj)	
 ss.add_job(lj.heaterControl)
 ss.add_job(lj.feedbackLoop)
 ss.run()

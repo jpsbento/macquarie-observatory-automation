@@ -19,7 +19,8 @@ class UberServer:
 	sidecam_client = client_socket.ClientSocket("sidecamera",telescope_type) #23459 <- port number
 	camera_client = client_socket.ClientSocket("sbig",telescope_type) #23460 <- port number 
 	fiberfeed_client = client_socket.ClientSocket("fiberfeed",telescope_type) #23459 <- port number
-        
+        labjacku6_client = client_socket.ClientSocket("labjacku6",telescope_type) #23462 <- port number
+
 	dome_tracking = True
 	override_wx = False
 	
@@ -122,6 +123,18 @@ class UberServer:
 			return str(response)
 		else: return 'To get a list of commands for the fiberfeed type "fiberfeed help".'
 
+	def cmd_labjacku6(self,the_command):
+		'''A user can still access the low level commands from the labjacku6 using this command. ie
+		type 'labjacku6 help' to get all the available commands for the labjack server.'''
+		commands = str.split(the_command)
+		if len(commands) > 1:
+			del commands[0]
+			command_for_labjacku6 = ' '.join(commands)
+			response = self.labjacku6_client.send_command(command_for_labjacku6)
+			return str(response)
+		else: return 'To get a list of commands for the labjacku6 type "labjacku6 help".'
+
+		
 	def cmd_setDomeTracking(self,the_command):
 		'''Can set the dome tracking to be on or off'''
 		commands = str.split(the_command)

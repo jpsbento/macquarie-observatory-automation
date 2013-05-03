@@ -44,7 +44,9 @@ class LabjackU6Server:
         pcm_time=0.5
         heater_frac=0.0
         delT_int = 0.0
-        T_targ = 30
+        T_targ = 23.5
+        heater_gain=5
+        integral_gain=0.1
 #*************************************** List of user commands ***************************************#
 
 	def cmd_ljtemp(self,the_command):
@@ -101,34 +103,59 @@ class LabjackU6Server:
                 
 	def feedbackLoop(self):
                 '''Execute the feedback loop every feedback_freq times'''
+
                 if self.feedback_freq==0: return
                 fileName='TLog.log' #'TLog_'+localtime+'.log'
                 self.f = open(fileName,'a')
                 self.loop_count = self.loop_count + 1
-                if (self.loop_count == self.feedback_freq):
+                
+                
+                if (self.loop_count == self.feedback_freq):  
+               
+                 
                  #Firstly, compute temperatures.
-                 a0 = LJ.getAIN(0,resolutionIndex=11,gainIndex=0,settlingFactor=0)
-                 a1 = LJ.getAIN(1,resolutionIndex=11,gainIndex=1,settlingFactor=0)
-                 a2 = LJ.getAIN(2,resolutionIndex=11,gainIndex=0,settlingFactor=0)
-                 r1 = (a0 - a2)/a1
-                 r2 = (a2 - a1)/a1
+
+                 #ResolutionIndex: 0=default, 1-8 for high-speed ADC, 9-13 for high-res ADC on U6-Pro.
+                 #GainIndex: 0=x1, 1=x10, 2=x100, 3=x1000, 15=autorange.
+                 #SettlingFactor: 0=Auto, 1=20us, 2=50us, 3=100us, 4=200us, 5=500us, 6=1ms, 7=2ms, 8=5ms, 9=10ms.
+                        
+                 a0 = LJ.getAIN(0,resolutionIndex=9,gainIndex=1,settlingFactor=8,differential=1)
+                 a1 = LJ.getAIN(1,resolutionIndex=9,gainIndex=0,settlingFactor=0)   #Temp_sensor_1 (bridge)
+                 a2 = LJ.getAIN(2,resolutionIndex=9,gainIndex=0,settlingFactor=0)   #voltage reference (5V)
+                 a3 = LJ.getAIN(3,resolutionIndex=9,gainIndex=0,settlingFactor=0)   #Temp_sensor_3
+                                                   
+                 r3 = 1 * (a2-a3)/a3         #ambient temperature
+
+                 dR = 2*9.09*a0/(a2-a0)      #differential change
+                 r1 = 9.09 + dR              #value of R2 in bridge
+                                                          
                  T0 = 298
                  B = 3920
                  R0 = 10
-                 T1 = 1.0/T0 + math.log(r1/R0)/B
+                 T1 = 1.0/T0 + math.log(r1/R0)/B   #equation for PTC resistors (see Wikipedia)
                  T1 = 1/T1 - 273
-                 T2 = 1.0/T0 + math.log(r2/R0)/B
-                 T2 = 1/T2 - 273
-                 lineOut = "%.4f %.4f %.4f %.3f" % (T1, T2,self.heater_frac,self.delT_int)
+               
+                 T3 = 1.0/T0 + math.log(r3/R0)/B
+                 T3 = 1/T3 - 273
+             
+                 lineOut = " %.4f %.4f %.4f %.3f " % (T1,T3,self.heater_frac,self.delT_int)
                  print lineOut
                  localtime = time.asctime( time.localtime(time.time()) )
                  self.f.write(lineOut+' '+localtime+'\n')
                  self.f.close()
-                 delT = 0.5*(T1 + T2) - self.T_targ
-                 self.delT_int += delT
-                 if (self.delT_int > 10):  self.delT_int=5
-                 if (self.delT_int < -10): self.delT_int=-5
+                 
+                 
+                 #Temperature servo:
+                 
+                 delT = T1 - self.T_targ            #delta_T = average of both sensors - T_set    
+                 self.delT_int += delT              #start: deltT_int = 0 --> add delT to deltT_int per cycle
+                 if (self.delT_int > 0.5/self.integral_gain): self.delT_int = 0.5/self.integral_gain      # = +5
+                 elif (self.delT_int < -0.5/self.integral_gain): self.delT_int = -0.5/self.integral_gain  # = -5
+                 
+                 integral_term = self.integral_gain*self.delT_int #integral term (int_gain * delta_T)
                  #Full range is 0.7 mK/s. So a gain of 10 will set
                  #0.7 mK/s for a 100mK temperature difference.
-                 self.heater_frac = 0.5 - 10*delT - 0.1*self.delT_int
-                 self.loop_count=0            
+                 self.heater_frac =  self.heater_gain*delT - integral_term   #see equation in notebook
+
+                 self.loop_count=0
+                           
