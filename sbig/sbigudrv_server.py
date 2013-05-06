@@ -120,7 +120,12 @@ class SBigUDrv:
 		sb.SBIGUnivDrvCommand(sb.CC_GET_CCD_INFO,p,r)
 		width = r.readoutInfo[0].width
 		height = r.readoutInfo[0].height
-		gain= r.readoutInfo[0].gain
+		#This is because the spectrograph camera does not return the correct width and height from GetCCDInfoParams. This is probably ok since it is unlikely we will ever have a camera with 1000x1000 pixels exactly.
+		if height==1000 and width==1000:
+			width = 3326
+			height = 2504
+		gain = hex(r.readoutInfo[0].gain)
+		gain=float(gain[2:])*0.01
 		
 		#Start the Exposure
 		startTime = time.time()
@@ -163,14 +168,9 @@ class SBigUDrv:
 		#entire height and width
 		p.top=0
 		p.left=0
-		#NOTE: FOR THE CAMERA IN THE LAB HEIGHT AND WIDTH NEED TO BE HARD CODED TO THE RELEVANT VALUES AS THE GETCCDPARAMS FUNCTION GIVES 
-		#ERONEOUS HEIGHTS AND WIDTHS
 		p.height=height
 		p.width=width
-		# NOTE: WHEN USING THE LAB CAMERA THESE ARE THE WIDTHS 
-		#AND HEIGHTS, FOR THE CAMERA IN THE OBSERVATORY COMMENT OUT THE NEXT 2 LINES
-		#width = 3326
-		#height = 2504
+		#NOTE, THERE IS A CHANCE THAT, WHEN THIS CODE IS USED ON SBIG CAMERAS, THE WIDTH AND HEIGHT MAY HAVE TO BE SET TO SOMETHING FIXED (SEE HEIGHT AND WIDTH DEFINITION ABOVE)
 		result = sb.SBIGUnivDrvCommand(sb.CC_START_READOUT,p,None)
 		#Set aside some memory to store the array
 		im = np.zeros([width,height],dtype='ushort')
