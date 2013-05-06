@@ -286,6 +286,7 @@ class UberServer:
 			elif commands[1]=='on':
 				self.guiding_bool=True
 				self.guiding_camera='fiberfeed'
+				self.telescope_client.send_command("focusSetAmount " + str(200))
 				return 'Guiding loop enabled using the '+self.guiding_camera
 			else: return 'invalid argument.'
 		if len(commands)==3 and commands[1]=='on':
@@ -295,6 +296,7 @@ class UberServer:
 				return 'Guiding loop enabled using the '+self.guiding_camera
 			elif commands[2]=='fiberfeed':
 				self.guiding_camera='fiberfeed'
+				self.telescope_client.send_command("focusSetAmount " + str(200))
 				return 'Guiding loop enabled using the '+self.guiding_camera
 			else: return 'invalid camera selection'
 		else: return 'invalid number of arguments'

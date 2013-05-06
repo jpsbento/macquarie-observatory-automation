@@ -209,6 +209,14 @@ class BisqueMountServer:
 		return 'Focussing'
 		
 	
+	def cmd_focusSetAmount(self,the_command):
+		#function to reset the amount by which the focuser is moving
+		commands = str.split(the_command)
+		if len(commands)!=2: return 'ERROR: this function just needs the focussing amount in counts'
+		try: self.move_focus_amount=int(commands[1])
+		except Exception: return 'could not convert focus amount into integer'
+		return 'New focus amount set'
+		
 	def adjustFocus(self):
 		#routine to adjust the focuser position based on a new half-flux diameter measurement
 		if self.focussing:
@@ -218,11 +226,10 @@ class BisqueMountServer:
 			print focusposition, self.HFD, self.move_focus_amount
 			if self.HFD >= self.sharp_value: 
 				self.move_focus_amount = int((self.move_focus_amount*-1)/2)
-				if self.move_focus_amount==0: self.move_focus_amount=10
+				if self.move_focus_amount==0: self.move_focus_amount=1
 			self.cmd_focusGoToPosition("focusGoToPosition "+str(int(focusposition)+self.move_focus_amount))
 			self.sharp_value=self.HFD
 			self.focussing=False
-
 
 
 #************************************** COMMANDS TO TALK TO MOUNT **************************************#

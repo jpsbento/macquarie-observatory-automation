@@ -60,6 +60,8 @@ class LabjackU6Server:
 		if len(commands) == 2:
  			try: heater_frac_temp = float(commands[1])
 			except Exception: return 'ERROR: Requires a number between 0 and 1'
+			if heater_frac_temp > 1 or heater_frac_temp < 0:
+				return 'ERROR: Requires a number between 0 and 1'
 			self.heater_frac=heater_frac_temp
 		else: return 'ERROR: Requires a number between 0 and 1'
         
