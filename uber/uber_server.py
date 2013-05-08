@@ -394,7 +394,7 @@ class UberServer:
 			return 0
 		print 'orientation of the sidecamera set.'
 		distance=1000
-		while distance>1.0:
+		while distance>0.5:
 			try: self.sidecam_client.send_command('imageCube test 10')
 			except Exception: 
 				print 'ERROR: Failed to take images to work out where the star is at the moment'
