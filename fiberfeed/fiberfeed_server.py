@@ -28,7 +28,7 @@ class FiberFeedServer:
 				 # I *think* you just add this number (when calculated) to all Iraf mags and you're set.
 	
 	# The central pixel coordinates
-	target_xpixel = 234.5   # 640 x pixel width
+	target_xpixel = 240.5   # 640 x pixel width
 	target_ypixel = 229.4   # 480 y pixel height
 	north_move_arcmins = 1
 	east_move_arcmins = 1
@@ -526,6 +526,7 @@ class FiberFeedServer:
 		commands = str.split(the_command)
 		if len(commands) != 1 : return 'error: this function does not take inputs.'
 		self.exposing=True
+		os.system('rm guiding_stats.txt')
 		return 'Image being taken'
 
 	def cmd_imagingStatus(self,the_command):
@@ -534,13 +535,6 @@ class FiberFeedServer:
 		if len(commands)>1: return 'Error: this function does not take inputs'
 		else: return str(self.exposing)
 		
-	def cmd_guidingReturn(self,the_command):
-		#function that returns the current guiding parameters
-		commands=str.split(the_command)
-		if len(commands)>1: return 'Error: this function does not take inputs'
-		else: return str(self.HFD)+' '+str(self.movement[0])+' '+str(self.movement[1])
-		
-
 	def imaging_loop(self):
 		#function that takes an image and then sets the imaging boolean off
 		if self.exposing==True:
@@ -569,5 +563,6 @@ class FiberFeedServer:
 			else:
 				self.movement=[0.0,0.0]
 				self.HFD=0.0
-
+			fileline=[self.HFD,self.movement[0],self.movement[1]]
+			numpy.savetxt('guiding_stats.txt',fileline)
 			self.exposing=False

@@ -44,7 +44,7 @@ class LabjackU6Server:
         pcm_time=0.5
         heater_frac=0.0
         delT_int = 0.0
-        T_targ = 23.5
+        T_targ = 22
         heater_gain=5
         integral_gain=0.1
 #*************************************** List of user commands ***************************************#
@@ -125,7 +125,7 @@ class LabjackU6Server:
                  a1 = LJ.getAIN(1,resolutionIndex=9,gainIndex=0,settlingFactor=0)   #Temp_sensor_1 (bridge)
                  a2 = LJ.getAIN(2,resolutionIndex=9,gainIndex=0,settlingFactor=0)   #voltage reference (5V)
                  a3 = LJ.getAIN(3,resolutionIndex=9,gainIndex=0,settlingFactor=0)   #Temp_sensor_3
-                                                   
+                 #print a0,a1, a2,a3                                 
                  r3 = 1 * (a2-a3)/a3         #ambient temperature
 
                  dR = 2*9.09*a0/(a2-a0)      #differential change
@@ -134,6 +134,7 @@ class LabjackU6Server:
                  T0 = 298
                  B = 3920
                  R0 = 10
+		 #print T0, r1, R0, B
                  T1 = 1.0/T0 + math.log(r1/R0)/B   #equation for PTC resistors (see Wikipedia)
                  T1 = 1/T1 - 273
                
@@ -157,7 +158,7 @@ class LabjackU6Server:
                  integral_term = self.integral_gain*self.delT_int #integral term (int_gain * delta_T)
                  #Full range is 0.7 mK/s. So a gain of 10 will set
                  #0.7 mK/s for a 100mK temperature difference.
-                 self.heater_frac =  self.heater_gain*delT - integral_term   #see equation in notebook
+                 self.heater_frac = 0.5 - self.heater_gain*delT - integral_term   #see equation in notebook
 
                  self.loop_count=0
                            

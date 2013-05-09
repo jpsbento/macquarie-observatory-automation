@@ -13,4 +13,3 @@ centerIsHere
 currentExposure
 guide
 imagingStatus
-guidingReturn

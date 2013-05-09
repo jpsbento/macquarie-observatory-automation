@@ -9,12 +9,12 @@ labjacku6
 setDomeTracking
 orientateCamera
 offset
-centerStar
 focusStar
 focusIRAF
 override_wx
 guiding
 spiral
+centerStar
 masterAlign
 Imaging
 Imsettings

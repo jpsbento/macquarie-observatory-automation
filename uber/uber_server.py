@@ -5,6 +5,7 @@ import os
 import client_socket
 import time, math
 import pyfits
+import numpy
 
 class UberServer:
 	
@@ -202,30 +203,6 @@ class UberServer:
 		return 'Telescope successfully offset to new coordinates.'
 		
 
-	def cmd_centerStar(self, the_command):
-		'''This pulls together commands from the camera server and the telescope server so we can
-		center and focus a bright star with just one call to this command. It is recommended that you 
-		focus the star before attemping to center it for more accurate results'''
-		sidecam_client.send_command('captureImages centering_image 1')
-		response = sidecam_client.send_command('starDistanceFromCenter centering_image')
-		try: dNorth, dEast = response
-		except Exception: "Error with star centering"
-
-		if dNorth >= 0: 
-			jog_response = self.telescope_client.send_command('jog N '+str(dNorth))
-			if jog_response == 'ERROR': return 'ERROR'
-		else: 
-			jog_response = self.telescope_client.send_command('jog S '+str(float(dNorth)*-1)) # Always send a postive jog distance
-			if jog_response == 'ERROR': return 'ERROR'
-		if aAz >= 0: 
-			jog_response = self.telescope_client.send_command('jog E '+str(dEast))
-			if jog_response == 'ERROR': return 'ERROR'
-		else: 
-			jog_response = self.telescope_client.send_command('jog W '+str(float(dEast)*-1))
-			if jog_response == 'ERROR': return 'ERROR'
-
-		return 'Successful centering of star'
-
 	def cmd_focusStar(self, the_command):
 		'''This pulls together commands from the telescope servers and the camera server to focus a bright star.'''
 		move_focus_amount = 100
@@ -285,6 +262,7 @@ class UberServer:
 				return 'Guiding loop disabled'
 			elif commands[1]=='on':
 				self.guiding_bool=True
+				os.system('cp ../fiberfeed/guiding_initial.txt ../fiberfeed/guiding_stats.txt')
 				self.guiding_camera='fiberfeed'
 				self.telescope_client.send_command("focusSetAmount " + str(200))
 				return 'Guiding loop enabled using the '+self.guiding_camera
@@ -296,6 +274,7 @@ class UberServer:
 				return 'Guiding loop enabled using the '+self.guiding_camera
 			elif commands[2]=='fiberfeed':
 				self.guiding_camera='fiberfeed'
+				os.system('cp ../fiberfeed/guiding_initial.txt ../fiberfeed/guiding_stats.txt')
 				self.telescope_client.send_command("focusSetAmount " + str(200))
 				return 'Guiding loop enabled using the '+self.guiding_camera
 			else: return 'invalid camera selection'
@@ -367,6 +346,55 @@ class UberServer:
 		#  controlled by the variable 'n' and the motion direction is inverted by multiplying the amount by 1 or -1 depending on the
 		#  iteration.
 		#
+
+
+	def cmd_centerStar(self, the_command):
+		'''Function to move improve the pointing for TPoint model purposes. Based on the MasterAlign function.
+
+		This function will require more thorough checks along the way. This will be added whilst this is being tested.'''
+		try: self.sidecam_client.send_command('Chop on')
+		except Exception: 
+			print 'ERROR: Failed to set the image chopping on the sidecam'
+			return 0
+		print 'image chopping activated.'
+		try: self.sidecam_client.send_command('setCameraValues default')
+		except Exception: 
+			print 'ERROR: Failed to set the default values for the sidecam'
+			return 0
+		print 'default values for sidecam set.'
+		try: self.sidecam_client.send_command('adjustExposure')
+		except Exception: 
+			print 'ERROR: Failed to adjust the exposure of the sidecam'
+			return 0
+		print 'exposure adjusted for sidecam.'
+		try: self.cmd_orientateCamera('orientateCamera sidecam')
+		except Exception: 
+			print 'ERROR: Failed to set the orientation of the sidecam'
+			return 0
+		print 'orientation of the sidecamera set.'
+		distance=1000
+		while distance>0.3:
+			try: self.sidecam_client.send_command('imageCube test 10')
+			except Exception: 
+				print 'ERROR: Failed to take images to work out where the star is at the moment'
+				return 0
+			print 'current location images taken for sidecam.'
+			try: 
+				moving=str.split(self.sidecam_client.send_command('starDistanceFromCenter test'))
+				dummy=float(moving[0])
+			except Exception: 
+				print 'ERROR: Failed to work out what the stellar distance to the optimal coordinates is'
+				return 0
+			print 'Stellar distance to center found.'
+			distance=math.sqrt(float(moving[0])**2+float(moving[1])**2)
+			print 'Distance to be moved: ',distance
+			try: 
+				self.telescope_client.send_command('jog North '+moving[0])
+				self.telescope_client.send_command('jog East '+moving[1])
+			except Exception:
+				print 'ERROR: Failed to move telescope to desired coordinates'
+				return 0
+		print 'successfully moved telescope to location'
 
 
 	def cmd_masterAlign(self, the_command):
@@ -556,14 +584,25 @@ class UberServer:
 	def watchdog_slits(self):
 		self.labjack_client.send_command('ok')		
 
+	def guidingReturn(self,the_command):
+		#function that returns the current guiding parameters from a file written by the fiberfeed server
+		commands=str.split(the_command)
+		if len(commands)>1: return 'Error: this function does not take inputs'
+		try: stats=numpy.loadtxt('../fiberfeed/guiding_stats.txt')
+		except Exception: return 'Could not load the guiding_stats file'
+		return stats
+		
 
 	def guiding_loop(self):
 		'''This is the function that does the guiding loop''' 
-		if self.guiding_bool and ('False' in self.fiberfeed_client.send_command('imagingStatus')):
-			guidingReturn=str.split(self.fiberfeed_client.send_command('guidingReturn'))
-			HFD=float(guidingReturn[0])
-			moving=[float(guidingReturn[1]),float(guidingReturn[2])]
+		if self.guiding_bool and os.path.exists('../fiberfeed/guiding_stats.txt'):
+			'''guidingReturn=self.guidingReturn('guidingReturn')
+			try: 
+				HFD=float(guidingReturn[0])
+				moving=[float(guidingReturn[1]),float(guidingReturn[2])]
+			except Exception: print 'Could not convert the values in the guiding_stats file into floats'
 			if HFD==0.0 and moving==[0.0,0.0]:
+				print 'No guide star found'
 				if self.guiding_failures>10:
 					print 'guide star lost, stopping the guiding loop'
 					self.guiding_bool=False
@@ -581,7 +620,8 @@ class UberServer:
 				if 'Focussing' not in result: print 'Something went wrong with the focussing instruction'
 			result=self.fiberfeed_client.send_command('guide')
 			if 'being taken' not in result: print 'Something went wrong with the image instruction'
-
+'''
+			print 'guiding active'
 
 
 	def imaging_loop(self):
@@ -613,9 +653,9 @@ class UberServer:
 				h.update('NIGHT', 'place_holder', 'Night index')
 				im.flush()
 				self.old_filename='None'
-		if self.exposing==True and ('False' in self.camera_client.send_command('imagingStatus')) and self.old_filename=='None':
+		if self.exposing and self.old_filename=='None':
 			localtime=time.localtime(time.time())
 			self.filename=str(localtime[0])+str(localtime[1]).zfill(2)+str(localtime[2]).zfill(2)+str(localtime[3]).zfill(2)+str(localtime[4]).zfill(2)+str(localtime[5]).zfill(2)
 			result=self.camera_client.send_command('imageInstruction '+str(self.exptime)+' '+str(self.shutter_position)+' '+self.filename)
-			if self.old_filename=='None': self.old_filename=self.filename
+			self.old_filename=self.filename
 			if 'being taken' not in result: print 'Something went wrong with the image instruction'
