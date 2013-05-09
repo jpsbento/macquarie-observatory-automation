@@ -20,6 +20,7 @@ class SideCameraServer:
 		for i in unicap.enumerate_devices():
 			if (i['model_name']=='DMx 21AU04.AS')&(i['vendor_name']==''):
 				dev = unicap.Device(i) # I am assuming this will be the camera used on the side of the telescope (old model)
+		print dev
 	except Exception: print 'Could not find the right camera. Check that it is connected.'
 
 	magnitude_conversion = 0 # How to convert from the magnitude iraf gives out and the actual magnitude of a star.
@@ -114,20 +115,21 @@ class SideCameraServer:
 	def cmd_adjustExposure(self, the_command):
 		'''This function will adjust the exposure time of the camera until the brightest pixel is between a given range, close to the 8 bit resolution maximum of the imagingsource cameras (255)'''
 		max_pix=0
+		direction=0
+		direction_old=0
+		deviation=100
 		print 'Adjusting exposure time. Please wait.'
 		while (max_pix < 200)|(max_pix>245):
-			try: dummy = self.cmd_captureImages('captureImages exposure_adjust 5 no')
+			try: dummy = self.cmd_captureImages('captureImages exposure_adjust 1 no')
 			except Exception: print 'Could not capture image'
-			im=pyfits.getdata('exposure_adjust_4.fits')
+			im=pyfits.getdata('exposure_adjust.fits')
 			max_pix=im.max()
 			print 'max_pix=',max_pix
 			if max_pix < 200:
 				prop = self.dev.get_property('Exposure (Absolute)')
-				if prop['value'] < 10000:
-					if max_pix < 100:
-						prop['value']+=100
-					else: 
-						prop['value']+=10
+				direction=1
+				if prop['value'] < 100000:
+					prop['value']+=deviation
 					print 'Exposure=',prop['value']/10.,'ms'
 					self.dev.set_property( prop )
 					self.set_values[2]=prop['value']
@@ -135,8 +137,9 @@ class SideCameraServer:
 					return 'Exposure too big already, maybe there is no star in the field...'
 			if max_pix > 245:
 				prop = self.dev.get_property('Exposure (Absolute)')
+				direction=-1
 				if prop['value']> 51:
-					prop['value']-=50
+					prop['value']-=deviation
 					print 'Exposure=',prop['value']/10.,'ms'
 					self.dev.set_property( prop )
 					self.set_values[2]=prop['value']
@@ -146,6 +149,9 @@ class SideCameraServer:
 					self.dev.set_property( prop )
 					self.set_values[2]=prop['value']
 				else: return 'Exposure too short to reduce. Maybe this is too bright?'
+			if direction_old==direction: deviation*=2
+			else: deviation/=2
+			direction_old=direction
 		return 'Finished adjusting exposure'
 		
 	def cmd_setCameraValues(self,the_command):

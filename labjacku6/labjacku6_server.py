@@ -44,7 +44,7 @@ class LabjackU6Server:
         pcm_time=0.5
         heater_frac=0.0
         delT_int = 0.0
-        T_targ = 22
+        T_targ = 26.5
         heater_gain=5
         integral_gain=0.1
 #*************************************** List of user commands ***************************************#

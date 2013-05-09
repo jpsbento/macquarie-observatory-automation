@@ -596,7 +596,7 @@ class UberServer:
 	def guiding_loop(self):
 		'''This is the function that does the guiding loop''' 
 		if self.guiding_bool and os.path.exists('../fiberfeed/guiding_stats.txt'):
-			'''guidingReturn=self.guidingReturn('guidingReturn')
+			guidingReturn=self.guidingReturn('guidingReturn')
 			try: 
 				HFD=float(guidingReturn[0])
 				moving=[float(guidingReturn[1]),float(guidingReturn[2])]
@@ -620,13 +620,13 @@ class UberServer:
 				if 'Focussing' not in result: print 'Something went wrong with the focussing instruction'
 			result=self.fiberfeed_client.send_command('guide')
 			if 'being taken' not in result: print 'Something went wrong with the image instruction'
-'''
-			print 'guiding active'
+
 
 
 	def imaging_loop(self):
 		#Function that sets the camera going if the imaging boolean is true
 		if os.path.exists('../sbig/images/'+self.old_filename+'.fits'):
+			time.sleep(0.5)
 			a=pyfits.getheader('../sbig/images/'+self.old_filename+'.fits')
 			if not a.has_key('TELESCOP'):
 				im=pyfits.open('../sbig/images/'+self.old_filename+'.fits',mode='update')
