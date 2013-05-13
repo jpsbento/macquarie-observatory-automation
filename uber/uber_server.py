@@ -535,6 +535,7 @@ class UberServer:
 		tracking is turned on.'''
 		#set this as a background task when setting up uber_main
 		if self.dome_tracking:
+			print self.telescope_client.send_command('IsGoToComplete')
 			domeAzimuth = str.split(self.labjack_client.send_command('dome location'))[0]
 #			print domeAzimuth
 			VirtualDome = str.split(self.telescope_client.send_command('SkyDomeGetAz'),'|')[0]

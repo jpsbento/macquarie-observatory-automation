@@ -28,9 +28,11 @@ class BisqueMountServer:
 	dome_slewing_enabled = 0 #can enable disable automatic dome slewing
 
 	#parameters to do with the focus adjustment
+	#Current amount by which the focusser should move
 	move_focus_amount = 200
+	#current value of Half-flux Diameter (HFD)
 	sharp_value = 0
-	sharp_count =0
+	#Boolean that is activated when the focuser should make an adjustment. This triggers the adjustFocus function when True.
 	focussing=False
 	
 #**************************************SERIAL COMMANDS FOR THE FOCUSER **************************************#
@@ -200,7 +202,7 @@ class BisqueMountServer:
 		return ser.read(1)
 
 	def cmd_focusTelescope(self,the_command):
-		#function that activates the focus adjustment function
+		'''function that activates the focus adjustment loop function (see below). Is essentially sets the global variable self.focussing to true, which should trigger the contents of the function adjustFocus.'''
 		commands = str.split(the_command)
 		if len(commands)!=2: return 'ERROR:, this function just needs the half-flux diameter value as input'
 		try: self.HFD=float(commands[1])
@@ -210,7 +212,7 @@ class BisqueMountServer:
 		
 	
 	def cmd_focusSetAmount(self,the_command):
-		#function to reset the amount by which the focuser is moving
+		'''function to reset the amount by which the focuser is moving. This can be used by the uber server user to reset the focussing amount when it needs to be more than 1.'''
 		commands = str.split(the_command)
 		if len(commands)!=2: return 'ERROR: this function just needs the focussing amount in counts'
 		try: self.move_focus_amount=int(commands[1])
@@ -218,12 +220,13 @@ class BisqueMountServer:
 		return 'New focus amount set'
 		
 	def adjustFocus(self):
-		#routine to adjust the focuser position based on a new half-flux diameter measurement
+		'''routine to adjust the focuser position based on a new half-flux diameter measurement. This function is here to ensure that the focussing routine runs independently of the uber server.'''
 		if self.focussing:
 			focusposition = self.cmd_focusReadPosition("focusReadPosition")
 			try: focusposition = int(focusposition)
 			except Exception: return 'ERROR: can not convert focus position to integer'
 			print focusposition, self.HFD, self.move_focus_amount
+			#if the HFD has increased since last time, reverse the direction of motion and half the amount. Otherwise, just leave as is and then move the focuser. 
 			if self.HFD >= self.sharp_value: 
 				self.move_focus_amount = int((self.move_focus_amount*-1)/2)
 				if self.move_focus_amount==0: self.move_focus_amount=1
