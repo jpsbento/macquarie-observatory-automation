@@ -548,6 +548,13 @@ class BisqueMountServer:
 		return self.messages()
 
 
+	def cmd_IsDomeGoToComplete(self,the_command):
+		'''Check whether the dome movement is done in the Sky virtual dome.'''
+		TheSkyXCommand = self.readscript('IsGoToComplete.js')
+		client_socket.send(TheSkyXCommand)
+		return self.messages()
+
+
 
 #************************************** END OF USER COMMANDS **************************************#
 
