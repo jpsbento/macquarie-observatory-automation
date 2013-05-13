@@ -27,7 +27,7 @@ class UberServer:
 	
 	weather_counts = 1 #integer that gets incremented if the slits are open, the override_wx is false and the weather station returns an unsafe status. If this gets above 3, close slits (see function where this is used)
 	dome_last_sync=time.time()
-	dome_frequency = 30 #This parameters sets how often the SkyX virtual dome is told to align with the telescope pointing.
+	dome_frequency = 5 #This parameters sets how often the SkyX virtual dome is told to align with the telescope pointing.
 	guiding_bool=False
 	guiding_camera='fiberfeed'
 	guiding_failures=0
@@ -535,7 +535,6 @@ class UberServer:
 		tracking is turned on.'''
 		#set this as a background task when setting up uber_main
 		if self.dome_tracking:
-			print self.telescope_client.send_command('IsGoToComplete')
 			domeAzimuth = str.split(self.labjack_client.send_command('dome location'))[0]
 #			print domeAzimuth
 			VirtualDome = str.split(self.telescope_client.send_command('SkyDomeGetAz'),'|')[0]
@@ -551,7 +550,7 @@ class UberServer:
 			if abs(float(domeAzimuth) - float(VirtualDome)) > 2.5:
 				print 'go to azimuth:'+str(VirtualDome)+' because of an offset. Dome azimuth is currently: '+str(domeAzimuth)
 				self.labjack_client.send_command('dome '+str(VirtualDome))
-			if (math.fabs(time.time() - self.dome_last_sync) > self.dome_frequency ):
+			if (math.fabs(time.time() - self.dome_last_sync) > self.dome_frequency ) and ('Done' in self.telescope_client.send_command('IsDomeGoToComplete')):
 				try: ForceTrack=self.telescope_client.send_command('SkyDomeForceTrack') #Forces the virtual dome to track the telescope every self.dome_frequency seconds
 				except Exception: print 'Unable to force the virtual dome tracking'
 				self.dome_last_sync=time.time()

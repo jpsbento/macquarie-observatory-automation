@@ -10,6 +10,7 @@ focusSetZeroPosition
 focusMove
 fs
 focusTelescope
+focusSetAmount
 find
 getTargetRaDec
 mountGetRaDec
@@ -32,3 +33,4 @@ slewToAzAlt
 tracking
 sendSomething
 telescopeConnect
+IsDomeGoToComplete
