@@ -12,6 +12,8 @@ fs
 focusTelescope
 focusSetAmount
 find
+objInfo
+slewToObject
 getTargetRaDec
 mountGetRaDec
 SkyDomeGetAz

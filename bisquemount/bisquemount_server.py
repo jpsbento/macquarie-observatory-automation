@@ -10,7 +10,7 @@ import socket
 from datetime import datetime
 import time
 import serial
-import binascii
+import binascii, ast
 
 #Open port 0 at "9600,8,N,1", timeout of 5 seconds
 #Open port connected to the mount
@@ -251,6 +251,39 @@ class BisqueMountServer:
 				return self.messages()
 			else: return 'ERROR with files'
 		else: return 'ERROR, invalid input.'
+
+	def cmd_objInfo(self,the_command):
+		'''Will return a string containing a dictionary with the current target's info.'''
+		commands = str.split(the_command)
+		if len(commands)>1: return 'This function does not take arguments'
+		try:
+			script = self.readscript('ObjInfo.js')
+			client_socket.send(script)
+			dummy=self.messages()
+			dum=dummy.split(';')
+		except Exception: return 'Something went wrong with reading the output from the SkyX regarding the object information'
+		params=[ 'NAME1', 'NAME2', 'NAME3', 'NAME4', 'NAME5', 'NAME6', 'NAME7', 'NAME8', 'NAME9', 'NAME10', 'CATALOG_ID', 'ALL_INFO', 'OBJ_TYPE', 'RISE_SET_INFO', 'STAR_SPECTRAL', 'STAR_BAYER_FLAMSTEED', 'SATELLITE_NAME', 'SATELLITE_TLE1', 'SATELLITE_TLE2', 'SOURCE_CATALOG', 'DB_FIELD_0', 'DB_FIELD_1', 'DB_FIELD_2', 'DB_FIELD_3', 'DB_FIELD_4', 'DB_FIELD_5', 'DB_FIELD_6', 'DB_FIELD_7', 'DB_FIELD_8', 'DB_FIELD_9', 'DB_FIELD_10', 'DB_FIELD_11', 'DB_FIELD_12', 'DB_FIELD_13', 'DB_FIELD_14', 'DB_FIELD_15', 'TEXT_LINE', 'DATE', 'TIME', 'OBSERVING_NOTES', 'CATID', 'OBJECTTYPE', 'STAR_ID', 'STAR_GSC_BLOCK', 'STAR_GSC_NUM', 'INDEX', 'NGC_IC_NEG_ID', 'SKIP_INDEX', 'NST_FIELD_CNT', 'PERINFO_TEXTPOSN', 'ACTIVE', 'SATELLITE_ECLIPSED', 'SATELLITE_IS_EXT', 'CATALOG', 'RA_NOW', 'DEC_NOW', 'RA_2000', 'DEC_2000', 'AZM', 'ALT', 'MAJ_AXIS_MINS', 'MIN_AXIS_MINS', 'EARTH_DIST_KM', 'SUN_DIST_AU', 'PA', 'MAG', 'PHASE_PERC', 'RISE_TIME', 'TRANSIT_TIME', 'SET_TIME', 'HA_HOURS', 'AIR_MASS', 'STAR_MAGB', 'STAR_MAGV', 'STAR_MAGR', 'SCREEN_X', 'SCREEN_Y', 'RA_RATE_ASPERSEC', 'DEC_RATE_ASPERSEC', 'ALT_RATE_ASPERSEC', 'AZIM_RATE_ASPERSEC', 'AZIM_RISE_DEGS', 'AZIM_SET_DEGS', 'MPL_ACTIVE', 'MPL_EPOCH_M', 'MPL_EPOCH_D', 'MPL_EPOCH_Y', 'MPL_MA', 'MPL_ECCENT', 'MPL_SEMIMAJOR', 'MPL_INCLIN', 'MPL_LAN', 'MPL_LONG_PERI', 'MPL_ECLIP', 'MPL_MAGPARM1', 'MPL_MAGPARM2', 'COMET_PERIH_M', 'COMET_PERIH_D', 'COMET_PERIH_Y', 'COMET_ECCENT', 'COMET_PERIDIST', 'COMET_INCLIN', 'COMET_LAN', 'COMET_LONG_PERI', 'COMET_ECLIP', 'COMET_MAGPARM1', 'COMET_MAGPARM2', 'PLANET_SHELIO_L', 'PLANET_SHELIO_B', 'PLANET_SHELIO_R', 'PLANET_SGEO_L', 'PLANET_SGEO_B', 'PLANET_SGEO_R', 'PLANET_SGEOMEAN_L', 'PLANET_SGEOMEAN_B', 'PLANET_SGEOMEAN_R', 'PLANET_TRUE_RA', 'PLANET_TRUE_DEC', 'PLANET_ALTWREFRACT', 'PLANET_APPMAG', 'PLANET_APPANGDIAM', 'MOON_TRUE_ECLIP_L', 'MOON_TRUE_ECLIP_B', 'MOON_TRUE_ECLIP_R', 'MOON_PARALLAX', 'MOON_ANGDIAM', 'MOON_DIST_KM', 'MOON_TRUE_EQ_RA', 'MOON_TRUE_EQ_DEC', 'MOON_TOPO_ANG_DIAM', 'MOON_ALT_WREFRACT', 'MOON_TOTAL_LIBR_L', 'MOON_TOTAL_LIBR_B', 'MOON_OPTICAL_LIBR_L', 'MOON_OPTICAL_LIBR_B', 'MOON_PHYS_LIBR_L', 'MOON_PHYS_LIBR_B', 'MOON_POS_ANGLE', 'MOON_PHASE_ANGLE', 'MOON_PABL', 'SUN_POS_ANGLE', 'SUN_HELIO_LONG', 'SUN_HELIO_LAT', 'DECL_SUN', 'DECL_EARTH', 'POLAR_DIAM', 'LCM_I', 'LCM_II', 'MARS_DEFECT_ILLUM', 'JUPITER_CRCT_PHASE', 'SATURN_ARING_AXIS', 'SATURN_BRING_AXIS', 'SAT_JD', 'SAT_LAT', 'SAT_LON', 'SAT_EARTH_ALT', 'SAT_RANGE', 'SAT_RANGE_RATE', 'SAT_DEPTH_EC', 'STAR_PARALLAX', 'STAR_PM_RA', 'STAR_PM_DEC', 'STAR_POS_ERR_RA', 'STAR_POS_ERR_DEC', 'STAR_POS_ERR_PRLX', 'STAR_PM_POS_ERR_RA', 'STAR_PM_POS_ERR_DEC', 'TWIL_CIVIL_START', 'TWIL_CIVIL_END', 'TWIL_NAUT_START', 'TWIL_NAUT_END', 'TWIL_ASTRON_START', 'TWIL_ASTRON_END', 'SIDEREAL', 'JUL_DATE', 'CLICK_DIST', 'POINT3D_X', 'POINT3D_Y', 'POINT3D_Z', 'FRAME_SIZE_MINS', 'SUN_DIST_LY', 'DIST_PARSEC', 'SCALE_ASPIX', 'HEIGHT', 'WIDTH', 'UMBRA_RAD', 'PENUMBRA_RAD', 'ANG_SEP_PRIOR', 'PA_PRIOR', 'COUNT' ]
+		if len(params)==len(dum):
+			d=dict()
+			for p,j in zip(params,dum):
+				dummy={p:j}
+				d.update(dummy)
+		else: return 'The params list and the parameter output from TheSky are not the same size'
+		return str(d)
+				
+	def cmd_slewToObject(self,the_command):
+		'''Function that will take an object as input and use the find and objInfo functions to slew to it'''
+		commands = str.split(the_command)
+		if len(commands)!=2: return 'This function takes a single argument with the object name'
+		dummy=self.cmd_find('find '+commands[1])
+		if 'ERROR' in dummy: return 'Unsuccessful attempt at finding object of interest' 
+		#get the dictionary of object properties from TheSkyX
+		d=ast.literal_eval(self.cmd_objInfo('objInfo'))
+		if d['ALT']<0.0: return 'Unable to slew. Object below the horizon!'
+		#slew the telescope
+		result=self.cmd_slewToRaDec('slewToRaDec '+str(d['RA_2000'])+' '+str(d['DEC_2000']))
+		if 'ERROR' in result: return 'Unable to slew the telescope to the intended target'
+		return 'Telescope Slewing'
 
 	def cmd_getTargetRaDec(self,the_command): #***************************
 		'''Returns the RA and dec of the target.'''
