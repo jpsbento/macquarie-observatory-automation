@@ -81,7 +81,8 @@ class FiberFeedServer:
 	def cmd_captureImages(self, the_command):
 		'''This takes the photos to be used for science. Input the name of the images to capture (images will then be
 		numbered: ie filename1.fits filename2.fits) and the number of images to capture. Note: when specifying a filename
-		you do not need to include the extention: ie input "filename" not "filename.fits". Optional input is to force the routine to not show the images once it has taken them. Just add 'no' at the end of the call. '''
+		you do not need to include the extention: ie input "filename" not "filename.fits". Optional input is to force the 
+		routine to not show the images once it has taken them. Just add 'no' at the end of the call. '''
 		comands = str.split(the_command)
 		if len(comands) < 3: return 'Please input number of images to capture.'
 		try: int(comands[2])
@@ -102,16 +103,17 @@ class FiberFeedServer:
 	def cmd_brightStarCoords(self, the_command):
 		'''This takes one photo to be used to detect the brightest star and find its coordinates. '''
 		comands=str.split(the_command)
-		if len(comands) >2: return 'Hm, this function does not take 3 arguments (in this version, anyway)...'
+		if len(comands) >2: return 'This function does not take 3 arguments (in this version, anyway)...'
 		elif len(comands) == 2 and comands[1]=='high':
 			try: dummy = self.cmd_imageCube('imageCube brightstar high')
 			except Exception: print 'Could not capture images'
 		else: 
 			try: dummy = self.cmd_imageCube('imageCube brightstar 10')
 			except Exception: print 'Could not capture images'
-		#analyse the image using iraf and find the brightest star. This step requires iraf's daofind to be fully setup with stuff on eparam/
 		localtime=time.localtime(time.time())
+		#for the purposes of testing the guiding, save each image as a separate file. 
 		filename='guiding_'+str(localtime[0])+str(localtime[1]).zfill(2)+str(localtime[2]).zfill(2)+str(localtime[3]).zfill(2)+str(localtime[4]).zfill(2)+str(localtime[5]).zfill(2)
+		#analyse the image using whatever software we are using at the moment and find the brightest star. 
 		try: 
 			brightcoords = self.analyseImage('program_images/brightstar.fits','program_images/brightstar.txt')
 			os.system('cp program_images/brightstar.fits program_images/'+filename+'.fits')
@@ -122,18 +124,23 @@ class FiberFeedServer:
 
 
 	def cmd_adjustExposure(self, the_command):
-		'''This function will adjust the exposure time of the camera until the brightest pixel is between a given range, close to the 8 bit resolution maximum of the imagingsource cameras (255)'''
+		'''This function will adjust the exposure time of the camera until the brightest pixel is between a given range, 
+		close to the 8 bit resolution maximum of the imagingsource cameras (255)'''
 		max_pix=0
 		direction=0
 		direction_old=0
 		deviation=100
 		print 'Adjusting exposure time. Please wait.'
 		while (max_pix < 200)|(max_pix>245):
+			#take one image but do not display it
 			try: dummy = self.cmd_captureImages('captureImages exposure_adjust 1 no')
 			except Exception: print 'Could not capture image'
 			im=pyfits.getdata('exposure_adjust.fits')
+			#find out what the maximum flux of the image is
 			max_pix=im.max()
 			print 'max_pix=',max_pix
+			#Now use an asymptotic approach to find the exposure time that will yield a value between 200 and 255
+			#Make sure that exposure never gets above 100000 or below 51
 			if max_pix < 200:
 				prop = self.dev.get_property('Exposure (Absolute)')
 				direction=1
@@ -361,6 +368,7 @@ class FiberFeedServer:
 		'''We need a way to also convert the magnitudes from IRAF to actual magnitudes. Do this by centering on a star with
 		a known magnitude, reading out the maginitude from IRAF and then calculating the conversion to use for all
 		future stars.'''
+		'''Currently unused by any part of the software, but potentially useful for a later stage if we want to find fainter targets'''
 		comands = str.split(the_command)
 		if len(comands) != 2: return 'ERROR, input actual star magnitude'
 		try: star_magnitude = float(comands[1])
@@ -377,7 +385,9 @@ class FiberFeedServer:
 		return 'Magnitude correction calibrated'
 
 	def cmd_imageCube(self, the_command):
-		'''This function can be used to pull a series of images from the camera and coadd them in a simple way. This is slightly better process for measuring the position of a star for the purposes of guiding. In essence, this will take 10 images, average them and create a master image for analysis to be perfomed on.'''
+		'''This function can be used to pull a series of images from the camera and coadd them in a simple way. 
+		This is slightly better process for measuring the position of a star for the purposes of guiding. 
+		In essence, this will take 10 images, average them and create a master image for analysis to be perfomed on.'''
 		comands = str.split(the_command)
 		if len(comands) != 3: return 'Please specify the name of the final image and the number of images to median through. Alternatively, specify "high" instead of the number of images to acquire a high enough number of average over scintilation.'
 		if comands[2]=='high': nims=30 #3E4/self.set_values[2]
@@ -402,7 +412,8 @@ class FiberFeedServer:
 		return 'Final image created. It is image program_images/'+base_filename+'.fits'
 
 	def cmd_defineCenter(self, the_command):
-		'''This function can be used to define the pixel coordinates that coincide with the optical axis of the telescope (or where we want the guide star to be at all times). use the option 'show' to query the current central coordinates.'''
+		'''This function can be used to define the pixel coordinates that coincide with the optical axis of the telescope 
+		(or where we want the guide star to be at all times). use the option 'show' to query the current central coordinates.'''
 		comands=str.split(the_command)
 		if len(comands) > 3: return 'Please specify the x and y coordinates as separate values'
 		if len(comands)==2 and comands[1]=='show':
@@ -416,7 +427,9 @@ class FiberFeedServer:
 		return 'Central coordinates updated'
 
 	def cmd_centerIsHere(self, the_command):
-		'''This function can be used to define the pixel coordinates that coincide with the optical axis of the telescope (or where we want the guide star to be at all times) by taking images and working out where the bright star is. Very similar to cmd_defineCenter, but takes the images as well and defines the bright star coordinates as the central coords.'''
+		'''This function can be used to define the pixel coordinates that coincide with the optical axis of the telescope 
+		(or where we want the guide star to be at all times) by taking images and working out where the bright star is. 
+		Very similar to cmd_defineCenter, but takes the images as well and defines the bright star coordinates as the central coords.'''
 		comands=str.split(the_command)
 		if len(comands) != 1: return 'no input needed for this function'
 		dummy=self.cmd_imageCube('imageCube central')
@@ -443,15 +456,6 @@ class FiberFeedServer:
 		you do not need to include the extention: ie input "filename" not "filename.fits"'''
 		try: upperlimit=int(upperlimit)
 		except Exception: return False
-
-# plt.draw()
-# dev.start_capture()
-# imgbuf = dev.wait_buffer( 10 ) 
-# b = bytearray(imgbuf.to_string())
-# a = np.array(b)
-# a = a.reshape(480,640)
-# im = np.array(bytearray(imgbuf.tostring())).reshape(480,640)
-# dev.stop_capture
 		self.dev.start_capture()
 		imgbuf = self.dev.wait_buffer( 10 ) 
 		for i in range( 0, upperlimit ):
@@ -473,21 +477,7 @@ class FiberFeedServer:
 		return True
 
 	def analyseImage(self, input_image, outfile):
-#		iraf.noao(_doprint=0)     # load noao
-#		iraf.digiphot(_doprint=0) # load digiphot
-#		iraf.apphot(_doprint=0)   # load apphot
-#		#iraf.daofind.setParam('image',FitsFileName)		#Set ImageName
-#		iraf.daofind.setParam('verify','no')			#Don't verify
-#		iraf.daofind.setParam('interactive','no')		#Interactive
-		#these parameters have to be set everytime because whenever any routine uses iraf, the settings get changed for all functions. THerefore, if the other camera changes any of the parameters, these would be set identically is daofind was attempted.
-#		iraf.daofind.setParam('scale',3)    #plate scale in arcsecs
-#		iraf.daofind.setParam('fwhmpsf',30)  #FWHM of PSF in arcsecs
-#		iraf.daofind.setParam('datamin',100)  #Minimum flux for a detection of star. adjustExposure should be ran before this is attempted, making sure the star of interest is bright enough. IF the flux drops below this point then we have a problem (maybe clouds?)
-#		iraf.daofind.setParam('sigma',0.5)    #standard deviation of the background counts
-#		iraf.daofind.setParam('emission','Yes') #stellar features are positive
-#		iraf.daofind.setParam('datamax',255)  #Need to have somewhere else in the code that adjusts the exposure if a star saturates
-#		iraf.daofind.setParam('threshold',10.0)  #threshold above background where a detection is valid
-#		iraf.daofind.setParam('nsigma',1.5)     #Width of convolution kernel in sigma
+		'''Analyse the image using sextractor'''
 		self.check_if_file_exists(outfile)
 		try: os.system('sex '+input_image+' -c fiberfeed.sex -CATALOG_NAME '+outfile) #iraf.daofind(image = input_image, output = outfile)
 		except Exception: return 0
@@ -502,6 +492,7 @@ class FiberFeedServer:
 			return False
 
 	def find_brightest_star(self, readinfile):
+		'''Routine to find the brightest star from a sextractor catalog file'''
 		try: starfile = open(readinfile)
 		except Exception: return 'ERROR; Unable to open file' # <-- change this to returning a number
 		startemp = starfile.readlines()
@@ -522,7 +513,7 @@ class FiberFeedServer:
 		except Exception: return 0
 
 	def check_if_file_exists(self, filename):
-		#i = 0 # counter to stop this going on forever
+		'''Self explanatory'''
 		if os.path.isfile(filename): os.remove(filename)
 		return filename
 
@@ -541,7 +532,7 @@ class FiberFeedServer:
 		else: return str(self.exposing)
 		
 	def imaging_loop(self):
-		#function that takes an image and then sets the imaging boolean off
+		#function that takes an image and then sets the imaging boolean off. This is to make sure this runs outside of uber.
 		if self.exposing==True:
 			try: result=self.cmd_brightStarCoords('brightStarCoords high')
 			except Exception: print 'Something did not go down well with the exposure!'

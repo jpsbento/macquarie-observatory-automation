@@ -120,7 +120,8 @@ class SBigUDrv:
 		sb.SBIGUnivDrvCommand(sb.CC_GET_CCD_INFO,p,r)
 		width = r.readoutInfo[0].width
 		height = r.readoutInfo[0].height
-		#This is because the spectrograph camera does not return the correct width and height from GetCCDInfoParams. This is probably ok since it is unlikely we will ever have a camera with 1000x1000 pixels exactly.
+		#This is because the spectrograph camera does not return the correct width and height from GetCCDInfoParams, but returns 1000x1000
+		#This is probably ok since it is unlikely we will ever have a camera with 1000x1000 pixels exactly.
 		if height==1000 and width==1000:
 			width = 3326
 			height = 2504
@@ -198,6 +199,7 @@ class SBigUDrv:
 		hdu = pyfits.PrimaryHDU(im)
 
 		#sets up fits header. Most things are self explanatory
+		#This ensures that any headers that can be populated at this time are actually done.
 		hdu.header.update('EXPTIME', float(exposureTime), comment='The frame exposure time in seconds')	
 		hdu.header.update('NAXIS1', width, comment='Width of the CCD in pixels')
 		hdu.header.update('NAXIS2', height, comment='Height of the CCD in pixels')
@@ -244,13 +246,13 @@ class SBigUDrv:
 		hdu.header.update('IMGTYPE', imtype, 'Image type')
 		'''
 		hdu.header.update('FILTER', , 'NEED to query this')
-'''
+		'''
 		hdu.writeto(self.fullpath)
 
 
 	
 	def cmd_closeLink(self,the_command):
-		#turns of the temperature regualtion, if not already done, before closing the lin
+		#turns of the temperature regualtion, if not already done, before closing the link
 		b = sb.SetTemperatureRegulationParams()
 		b.regulation = 0
 		b.ccdSetpoint = 1000
@@ -396,12 +398,14 @@ class SBigUDrv:
 		return 'Exposure Complete'
 
 	def cmd_focusCalculate(self,command):
-		#This function will return the best focus position interpolating between images 1,2,3,4 and 5
+		#This function will return the best focus position interpolating between images 1,2,3,4 and 5. 
+		#At the moment, obviously, it does nothing of the sort. Currently unused.
 		return str(2.0)
 		
 	def cmd_focusImages(self,command):	
 		# This function takes a dark image and a serious of images at different focai. 
 		# The user enters a root name and the iamges are saved to a focus folder with appropriate suffixes
+		#At the moment, untested and not used.
 		commands = str.split(command)
 		if len(commands) < 2 : return 'error: enter a root filename (with optional directory address)'
 		#stores root of filename
@@ -460,7 +464,8 @@ class SBigUDrv:
 
 
 	def imaging_loop(self):
-		#function that takes an image and then sets the imaging boolean off
+		#function that takes an image and then sets the imaging boolean off.
+		#This is here to ensure that the (potentially long) imaging process is done separately from the uber server
 		if self.exposing==True:
 			try: result=self.cmd_exposeAndWait('exposeAndWait '+str(self.exptime)+' '+str(self.shutter_position)+' '+self.filename)
 			except Exception: print 'Something did not go down well with the exposure!'

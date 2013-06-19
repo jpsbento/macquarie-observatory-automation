@@ -50,6 +50,7 @@ class BisqueMountServer:
 			echo = ser.read(1) #then communicates again when command is either completed or terminated
 			print echo
 			focusresponse = ''
+			#wait for a response
 			while focusresponse == '':focusresponse = str(ser.read(1))
 			if focusresponse == 'c': return 'Command complete'
 			elif focusresponse == 'r': return 'Motor or encoder not working, operation terminated.'
@@ -59,7 +60,6 @@ class BisqueMountServer:
 
 	def cmd_focusReadPosition(self,the_command):
 		'''This will read the position of the focuser.'''
-		
 		ser.write('p')
 		echo = ser.read(1)
 		#responsetemp = self.recvamount(2)
@@ -202,30 +202,34 @@ class BisqueMountServer:
 		return ser.read(1)
 
 	def cmd_focusTelescope(self,the_command):
-		'''function that activates the focus adjustment loop function (see below). Is essentially sets the global variable self.focussing to true, which should trigger the contents of the function adjustFocus.'''
+		'''function that activates the focus adjustment loop function (see below). 
+		Is essentially sets the global variable self.focussing to true, which should 
+		trigger the contents of the function adjustFocus.'''
 		commands = str.split(the_command)
 		if len(commands)!=2: return 'ERROR:, this function just needs the half-flux diameter value as input'
 		try: self.HFD=float(commands[1])
-		except Exception: return 'could not convert HFD into float'
+		except Exception: return 'HFD value must be a float.'
 		self.focussing=True
 		return 'Focussing'
 		
 	
 	def cmd_focusSetAmount(self,the_command):
-		'''function to reset the amount by which the focuser is moving. This can be used by the uber server user to reset the focussing amount when it needs to be more than 1.'''
+		'''function to reset the amount by which the focuser is moving. 
+		This can be used by the uber server user to reset the focussing amount when it needs to be more than 1.'''
 		commands = str.split(the_command)
 		if len(commands)!=2: return 'ERROR: this function just needs the focussing amount in counts'
 		try: self.move_focus_amount=int(commands[1])
-		except Exception: return 'could not convert focus amount into integer'
+		except Exception: return 'Could not convert focus amount into integer'
 		return 'New focus amount set'
 		
 	def adjustFocus(self):
-		'''routine to adjust the focuser position based on a new half-flux diameter measurement. This function is here to ensure that the focussing routine runs independently of the uber server.'''
+		'''routine to adjust the focuser position based on a new half-flux diameter measurement. This is the actual function that adjusts the focus.
+		This function is here to ensure that the focussing routine runs independently of the uber server.'''
 		if self.focussing:
-			focusposition = self.cmd_focusReadPosition("focusReadPosition")
+			focusposition = self.cmd_focusReadPosition("focusReadPosition")     #read current focus position
 			try: focusposition = int(focusposition)
 			except Exception: return 'ERROR: can not convert focus position to integer'
-			print focusposition, self.HFD, self.move_focus_amount
+			print focusposition, self.HFD, self.move_focus_amount              #print the values of the focuser position, HFD and amount of adjustment for monitoring purposes.
 			#if the HFD has increased since last time, reverse the direction of motion and half the amount. Otherwise, just leave as is and then move the focuser. 
 			if self.HFD >= self.sharp_value: 
 				self.move_focus_amount = int((self.move_focus_amount*-1)/2)
@@ -239,7 +243,7 @@ class BisqueMountServer:
 		
 
 	def cmd_find(self,the_command):
-		'''Will find an object in TheSky's Star chart and return data.'''
+		'''Will find an object in TheSky's Star chart and return data. It will spill out all the info on the target in a string.'''
 		commands = str.split(the_command)
 		if len(commands) == 2:
 			obj = commands[1]
@@ -253,7 +257,7 @@ class BisqueMountServer:
 		else: return 'ERROR, invalid input.'
 
 	def cmd_objInfo(self,the_command):
-		'''Will return a string containing a dictionary with the current target's info.'''
+		'''Will return a string containing a dictionary with the current target's info, in a more manageable manner'''
 		commands = str.split(the_command)
 		if len(commands)>1: return 'This function does not take arguments'
 		try:
@@ -262,6 +266,7 @@ class BisqueMountServer:
 			dummy=self.messages()
 			dum=dummy.split(';')
 		except Exception: return 'Something went wrong with reading the output from the SkyX regarding the object information'
+		#This is a list of all the parameters that a target can possibly have.
 		params=[ 'NAME1', 'NAME2', 'NAME3', 'NAME4', 'NAME5', 'NAME6', 'NAME7', 'NAME8', 'NAME9', 'NAME10', 'CATALOG_ID', 'ALL_INFO', 'OBJ_TYPE', 'RISE_SET_INFO', 'STAR_SPECTRAL', 'STAR_BAYER_FLAMSTEED', 'SATELLITE_NAME', 'SATELLITE_TLE1', 'SATELLITE_TLE2', 'SOURCE_CATALOG', 'DB_FIELD_0', 'DB_FIELD_1', 'DB_FIELD_2', 'DB_FIELD_3', 'DB_FIELD_4', 'DB_FIELD_5', 'DB_FIELD_6', 'DB_FIELD_7', 'DB_FIELD_8', 'DB_FIELD_9', 'DB_FIELD_10', 'DB_FIELD_11', 'DB_FIELD_12', 'DB_FIELD_13', 'DB_FIELD_14', 'DB_FIELD_15', 'TEXT_LINE', 'DATE', 'TIME', 'OBSERVING_NOTES', 'CATID', 'OBJECTTYPE', 'STAR_ID', 'STAR_GSC_BLOCK', 'STAR_GSC_NUM', 'INDEX', 'NGC_IC_NEG_ID', 'SKIP_INDEX', 'NST_FIELD_CNT', 'PERINFO_TEXTPOSN', 'ACTIVE', 'SATELLITE_ECLIPSED', 'SATELLITE_IS_EXT', 'CATALOG', 'RA_NOW', 'DEC_NOW', 'RA_2000', 'DEC_2000', 'AZM', 'ALT', 'MAJ_AXIS_MINS', 'MIN_AXIS_MINS', 'EARTH_DIST_KM', 'SUN_DIST_AU', 'PA', 'MAG', 'PHASE_PERC', 'RISE_TIME', 'TRANSIT_TIME', 'SET_TIME', 'HA_HOURS', 'AIR_MASS', 'STAR_MAGB', 'STAR_MAGV', 'STAR_MAGR', 'SCREEN_X', 'SCREEN_Y', 'RA_RATE_ASPERSEC', 'DEC_RATE_ASPERSEC', 'ALT_RATE_ASPERSEC', 'AZIM_RATE_ASPERSEC', 'AZIM_RISE_DEGS', 'AZIM_SET_DEGS', 'MPL_ACTIVE', 'MPL_EPOCH_M', 'MPL_EPOCH_D', 'MPL_EPOCH_Y', 'MPL_MA', 'MPL_ECCENT', 'MPL_SEMIMAJOR', 'MPL_INCLIN', 'MPL_LAN', 'MPL_LONG_PERI', 'MPL_ECLIP', 'MPL_MAGPARM1', 'MPL_MAGPARM2', 'COMET_PERIH_M', 'COMET_PERIH_D', 'COMET_PERIH_Y', 'COMET_ECCENT', 'COMET_PERIDIST', 'COMET_INCLIN', 'COMET_LAN', 'COMET_LONG_PERI', 'COMET_ECLIP', 'COMET_MAGPARM1', 'COMET_MAGPARM2', 'PLANET_SHELIO_L', 'PLANET_SHELIO_B', 'PLANET_SHELIO_R', 'PLANET_SGEO_L', 'PLANET_SGEO_B', 'PLANET_SGEO_R', 'PLANET_SGEOMEAN_L', 'PLANET_SGEOMEAN_B', 'PLANET_SGEOMEAN_R', 'PLANET_TRUE_RA', 'PLANET_TRUE_DEC', 'PLANET_ALTWREFRACT', 'PLANET_APPMAG', 'PLANET_APPANGDIAM', 'MOON_TRUE_ECLIP_L', 'MOON_TRUE_ECLIP_B', 'MOON_TRUE_ECLIP_R', 'MOON_PARALLAX', 'MOON_ANGDIAM', 'MOON_DIST_KM', 'MOON_TRUE_EQ_RA', 'MOON_TRUE_EQ_DEC', 'MOON_TOPO_ANG_DIAM', 'MOON_ALT_WREFRACT', 'MOON_TOTAL_LIBR_L', 'MOON_TOTAL_LIBR_B', 'MOON_OPTICAL_LIBR_L', 'MOON_OPTICAL_LIBR_B', 'MOON_PHYS_LIBR_L', 'MOON_PHYS_LIBR_B', 'MOON_POS_ANGLE', 'MOON_PHASE_ANGLE', 'MOON_PABL', 'SUN_POS_ANGLE', 'SUN_HELIO_LONG', 'SUN_HELIO_LAT', 'DECL_SUN', 'DECL_EARTH', 'POLAR_DIAM', 'LCM_I', 'LCM_II', 'MARS_DEFECT_ILLUM', 'JUPITER_CRCT_PHASE', 'SATURN_ARING_AXIS', 'SATURN_BRING_AXIS', 'SAT_JD', 'SAT_LAT', 'SAT_LON', 'SAT_EARTH_ALT', 'SAT_RANGE', 'SAT_RANGE_RATE', 'SAT_DEPTH_EC', 'STAR_PARALLAX', 'STAR_PM_RA', 'STAR_PM_DEC', 'STAR_POS_ERR_RA', 'STAR_POS_ERR_DEC', 'STAR_POS_ERR_PRLX', 'STAR_PM_POS_ERR_RA', 'STAR_PM_POS_ERR_DEC', 'TWIL_CIVIL_START', 'TWIL_CIVIL_END', 'TWIL_NAUT_START', 'TWIL_NAUT_END', 'TWIL_ASTRON_START', 'TWIL_ASTRON_END', 'SIDEREAL', 'JUL_DATE', 'CLICK_DIST', 'POINT3D_X', 'POINT3D_Y', 'POINT3D_Z', 'FRAME_SIZE_MINS', 'SUN_DIST_LY', 'DIST_PARSEC', 'SCALE_ASPIX', 'HEIGHT', 'WIDTH', 'UMBRA_RAD', 'PENUMBRA_RAD', 'ANG_SEP_PRIOR', 'PA_PRIOR', 'COUNT' ]
 		if len(params)==len(dum):
 			d=dict()
@@ -438,59 +443,6 @@ class BisqueMountServer:
 		client_socket.send(script)
 		return self.messages()
 
-#	def XXX_setWhenWhere(self,the_command): #THIS ISN'T DONE PROPERLY YET.
-#		'''This can be used to specify the location, date and time to be used by the sky.
-#		Input should look like: double(JulianDay) int(IDSTOption) int(IUseSystemClock)
-#		String(IpszDescripton) double(longitude) double(latitude) double(TimeZone)
-#		double(Elevation). double means a number allowing decimal points, int means an
-#		integer and string means a string of words. JulianDay = a double that specifies
-#		the Julian Day at which to view the sky, IDSTOption = a long value that specifies
-#		the daylight saving time option to use. IUSe System Clock = a long value that informs
-#		TheSky to use the computers internal time for TheSky's time, longitude = a double
-#		value that specifies TheSky's longitude setting, latitude = a double value to specify
-#		TheSky's latitude setting. TimeZone = a double that specifies TheSky's time zone,
-#		elevation = a double value that specifies the elevation used by TheSky.'''
-#		commands = str.split(the_command)
-#		dJulianDay = 0.0
-#		IDSTOption = 0
-#		IUseSystemClock = 0
-#		IpszDescription = ''
-#		dLongitude = 0.0
-#		dLatitude = 0.0
-#		dTimeZone = 0.0
-#		dElevation = 0.0
-#		linestoreplace = ['var dJulianDate = 0.0;\n','var IDSTOption = 0;\n','var IUseSystemClock = 0;\n',"var IpszDescription = '';\n",'var dLongitude = 0.0;\n','var dLatitude = 0.0;\n','var dTimeZone = 0.0;\n','var dElevation = 0.0;\n']
-#		if len(commands) == 9:
-#			IpszDescription = commands[4]
-#			if self.is_float_try(commands[1]):
-#				dJulianDay = commands[1]
-#			else: return 'ERROR, invalid input'
-#			if commands[2].isdigit():
-#				IDSTOption = commands[2]
-#			else: return 'ERROR invalid input'
-#			if commands[3].isdigit():
-#				IUseSystemClock = commands[3]
-#			else: return 'ERROR, invalid input'
-#			if self.is_float_try(commands[5]):
-#				dLongitude = commands[5]
-#			else: return 'ERROR invalid input'
-#			if self.is_float_try(commands[6]):
-#				dLatitide = commands[6]
-#			else: return 'ERROR invalid input'
-#			if self.is_float_try(commands[7]):
-#				dTimeZone = commands[7]
-#			else: return 'ERROR, invalid input'
-#			if self.is_float_try(commands[8]):
-#				dElevation = commands[8]
-#			else: return 'ERROR invalid input'
-#			newlines = ['var dJulianDate = '+dJulianDay+';\n','var IDSTOption = '+IDSTOption+';\n','var IUseSystemClock = '+IUseSystemClock+';\n','var IpszDescription = '+IpszDescription+';\n','var dLongitude = '+dLongitude+';\n','var dLatitude = '+dLatitude+';\n','var dTimeZone = '+dTimeZone+';\n','var dElevation = '+dElevation+';\n']
-#			if self.editscript('SetWhenWhere.template','SetWhenWhere.js',linestoreplace,newlines):
-#				script = self.readscript('SetWhenWhere.js')
-#				client_socket.send(script)
-#				return self.messages()
-#			else: return 'ERROR, could not read/make file.'
-#		else: return 'ERROR, invalid input'
-			
 
 	def cmd_s(self,the_command):
 		'''Stops all telescope motion.'''
@@ -562,6 +514,7 @@ class BisqueMountServer:
 				
 
 	def cmd_sendSomething(self, the_command):
+		'''Not quite sure what the point of this function is.'''
 		commands = str.split(the_command)
 		if len(commands) > 1:
 			info = ''
@@ -582,7 +535,8 @@ class BisqueMountServer:
 
 
 	def cmd_IsDomeGoToComplete(self,the_command):
-		'''Check whether the dome movement is done in the Sky virtual dome.'''
+		'''Check whether the dome movement is done in the Sky virtual dome. 
+		This function is very useful to make sure no telescope motion is ordered before the telescope has stopped moving.'''
 		TheSkyXCommand = self.readscript('IsGoToComplete.js')
 		client_socket.send(TheSkyXCommand)
 		return self.messages()

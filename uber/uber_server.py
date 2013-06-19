@@ -50,13 +50,15 @@ class UberServer:
 #***************************** A list of user commands *****************************#
 
 	def cmd_finishSession(self,the_command):
-		'''Close the slits, home the dome, home the telescope, put telescope in sleep mode.'''
-		# actual stuffs for this to come
-		dummy = self.labjack_client.send_command('slits close')
-		self.dome_tracking=False
-		dummy = self.labjack_client.send_command('dome home')
-		dummy = self.telescope_client.send_command('park')
-		self.override_wx=False
+		'''Close the slits, home the dome, home the telescope, put telescope in park mode.'''
+		try:
+			dummy = self.labjack_client.send_command('slits close')
+			self.dome_tracking=False
+			dummy = self.labjack_client.send_command('dome home')
+			dummy = self.telescope_client.send_command('park')
+			self.override_wx=False
+		except Exception: print 'Failed to finish the session sucessfully'
+		return 'Sucessfully finished session'
 
 	def cmd_labjack(self,the_command):
 		'''A user can still access the low level commands from the labjack using this command. ie
