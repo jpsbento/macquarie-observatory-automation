@@ -39,14 +39,14 @@ LJ.getFeedback(u6.BitStateWrite(3,0)) #Start off with no LED.
 #***********************************************************************#
 #2) Now define our main class, the LabjackServer.
 class LabjackU6Server:
-        loop_count=0
-        feedback_freq=3
-        pcm_time=0.5
-        heater_frac=0.0
-        delT_int = 0.0
-        T_targ = 26.5
-        heater_gain=5
-        integral_gain=0.1
+        loop_count=0        #iterator for the frequency counter
+	feedback_freq=3     #spectrograph heater update frequency
+        pcm_time=0.5        #Heater timer
+        heater_frac=0.0     #Fraction of heating during time
+        delT_int = 0.0      #Temperature variation integral
+        T_targ = 26.5       #Intended spectrograph temperature
+        heater_gain=5       #heater gain
+        integral_gain=0.1   #Don't know what this is
 #*************************************** List of user commands ***************************************#
 
 	def cmd_ljtemp(self,the_command):
@@ -91,7 +91,7 @@ class LabjackU6Server:
                 else:
 #                    LJ.getFeedback(u6.BitStateWrite(2,1))
                     LJ.getFeedback(u6.DAC0_8(255))
-                #Wait
+                #Wait the required fraction of time before switching the heater off
                 time.sleep(self.pcm_time*self.heater_frac)
                 #Switch the heater off...
                 if self.heater_frac==1:
@@ -100,7 +100,7 @@ class LabjackU6Server:
                 else:
 #                    LJ.getFeedback(u6.BitStateWrite(2,0))
                     LJ.getFeedback(u6.DAC0_8(0))
-                #Wait
+                #Wait until cycle finishes
                 time.sleep(self.pcm_time*(1.0 - self.heater_frac))
                 
 	def feedbackLoop(self):

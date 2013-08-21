@@ -1,7 +1,7 @@
 import sys
 import string
 import select
-import socket
+import socket, platform
 from datetime import datetime
 
 class ClientSocket:
@@ -37,7 +37,8 @@ class ClientSocket:
 			self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 			self.client.connect(ADS)
 			self.client.settimeout(600)
-			self.client.setsockopt(1, 2, 1)
+			if platform.system()=='Linux':
+				self.client.setsockopt(1, 2, 1)
 			self.client.setsockopt(6, 1, 1)
 		except Exception: print 'ERROR: Could not connect to server responsible for '+self.device+'. Please check that the server is running.'
 
