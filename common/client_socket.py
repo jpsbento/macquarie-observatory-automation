@@ -1,7 +1,7 @@
 import sys
 import string
 import select
-import socket, platform
+import socket
 from datetime import datetime
 
 class ClientSocket:
@@ -9,7 +9,7 @@ class ClientSocket:
 	def __init__(self,device,telescope_type):
 		#Set up the class properties "server", "input", "hardware_name" and "hardware_object"
 		self.device = device
-		try: devicefile = open('../device_list.txt')
+		try: devicefile = open('../common/device_list.txt')
 		except Exception: print 'ERROR: file "device_list.txt" not found'
 		device_list = devicefile.readlines()
 		devicefile.close()
@@ -37,8 +37,7 @@ class ClientSocket:
 			self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 			self.client.connect(ADS)
 			self.client.settimeout(600)
-			if platform.system()=='Linux':
-				self.client.setsockopt(1, 2, 1)
+			#self.client.setsockopt(1, 2, 1)
 			self.client.setsockopt(6, 1, 1)
 		except Exception: print 'ERROR: Could not connect to server responsible for '+self.device+'. Please check that the server is running.'
 

@@ -2,7 +2,7 @@
 #This is the main program. It should be *very* simple.
 import uber_server
 import sys
-#sys.path.append('../common')
+sys.path.append('../common')
 import server_socket
 ub=uber_server.UberServer()
 ss=server_socket.ServerSocket(23555, 'Super User', ub)

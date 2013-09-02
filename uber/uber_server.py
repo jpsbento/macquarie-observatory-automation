@@ -1,7 +1,8 @@
  # This will do EVERYTHING
 # will make a way to give it a script
 
-import os
+import os, sys
+sys.path.append('../common/')
 import client_socket
 import time, math
 import pyfits
