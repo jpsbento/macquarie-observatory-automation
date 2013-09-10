@@ -105,6 +105,8 @@ class LabjackServer:
 		relative changes. Type "dome location" to get the current location.'''
 		commands=str.split(the_command)
 
+		if len(commands) == 2 and commands[1]== 'moving':
+			return str(self.dome_moving)
 		if len(commands) == 2 and commands[1] == 'location':
 			return str(self.current_position/self.counts_per_degree)+' total counts: '+str(self.total_counts)+' num homes: '+str(self.home_sensor_count)
 		elif len(commands) == 2 and commands[1] == 'stop':

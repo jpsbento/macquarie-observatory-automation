@@ -1,0 +1,10 @@
+#Example Scheduler file with inputs for the scheduler. The parameters are comma separated for clarity.
+#Any spaces in the parameters themselves will be removed. 
+#
+#The list of parameters is obviously dependent on the type of job that is required
+#
+#
+#Type,	date,		time,		Target,	RA,	DEC,	Mode,	ExposureTime,	NExps,	Filter	
+Cal, 	2013-09-11 	21:30:00, 	Bias,	NA,	NA,	NA,	30,		10,	NA
+Obj,	2013-09-11 	21:40:00,	Altair,	Lookup, Lookup, Rhea,	60,		2,	NA
+	

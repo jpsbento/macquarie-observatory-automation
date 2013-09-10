@@ -4,9 +4,11 @@
 import os, sys
 sys.path.append('../common/')
 import client_socket
-import time, math
+import time, math, datetime, csv
 import pyfits
 import numpy
+from apscheduler.scheduler import Scheduler
+from apscheduler.jobstores.shelve_store import ShelveJobStore
 
 class UberServer:
 	
@@ -47,6 +49,17 @@ class UberServer:
 	sharp_value = 0
 	sharp_count =0
 	initial_focus_position=0
+
+	#Scheduler parameters
+	sched=Scheduler()
+	sched.add_jobstore(ShelveJobStore('schedfile'),'schedfile')
+	Target='None'
+	RA='None'
+	DEC='None'
+	Mode='None'
+	ExposureTime='0'
+	NExps='0'
+	Filter='None'
 	
 #***************************** A list of user commands *****************************#
 
@@ -530,6 +543,133 @@ class UberServer:
 			self.shutter_position=commands[2]
 			return 'Finished updating camera settings'
 	
+	
+	
+#**************************** Scheduler specific commands ***********************#
+	
+	def cmd_Sched(self,the_command):
+		#function to act upon the Scheduler
+		commands=str.split(the_command)
+		if len(commands)==1:
+			return str(self.sched.running)
+		if len(commands)==2:
+			if commands[1]=='on':
+				self.sched.start()
+				return 'Scheduler active'
+			elif commands[1]=='off':
+				self.sched.shutdown()
+				return 'Scheduler stopped'
+			elif commands[1]=='print':
+				jobs=self.sched.get_jobs()
+				for i in jobs:
+					print str(i), i
+			elif commands[1]=='help':
+				return 'Type "Sched on" to start the scheduler, "Sched off" to shut it down, and "Sched print" to view the current jobs and indices'
+			else: return 'Invalid option'
+
+	def cmd_AddJob(self,the_command):
+		#Adds jobs to the scheduler
+		commands=str.split(the_command)
+		if commands[1]=='file':
+			#do whatever you need to get the file in
+			try: ifile=open(commands[2])
+			except Exception: return 'Could not open the file.'
+			reader=csv.reader(ifile)
+			try: 
+				for row in reader:
+					if '#' not in row[0]:
+						c=[]
+						for i in row:
+							#get rid of any spaces or tabs
+							c.append("".join(i.split()))
+						l=c[3:]
+						if c[0]=='Cal':
+							try: self.sched.add_date_job(self.SchedCalibration,c[1]+' '+c[2],l)
+							except Exception: return 'unable to add this calibration job to the queue. Check the help for the correct syntax.'
+						if c[0]=='Obj':
+							try: self.sched.add_date_job(self.SchedObject,c[1]+' '+c[2],l)
+							except Exception: return 'unable to add this object job to the queue. Check the help for the correct syntax.'
+						else: return 'Invalid job type. It should either be "Cal" or "Obj"'
+			except Exception: return 'Unable to add jobs in file to the queue.'
+			return 'Sucessfully imported schedule file and updated the queue'
+		else:
+			l=commands[4:]
+			if commands[1]=='Cal':
+				try: self.sched.add_date_job(self.SchedCalibration,commands[2]+' '+commands[3],l)
+				except Exception: return 'unable to add this calibration job to the queue. Check the help for the correct syntax.'
+			if commands[1]=='Obj':
+				try: self.sched.add_date_job(self.SchedObject,commands[2]+' '+commands[3],l)
+				except Exception: return 'unable to add this object job to the queue. Check the help for the correct syntax.'
+			else: return 'Invalid job type. It should either be "Cal" or "Obj"'
+			return 'Successfully added the job to the queue.'
+				
+
+	def SchedObject(self,options):
+		#Routine that triggers the telescope to move to an object and start stuff. 
+		try: self.Target,self.RA,self.DEC,self.Mode,self.ExposureTime,self.NExps,self.Filter=options
+		except Exception: print 'Unable to define the job settings' 
+		if self.Mode=='RheaGuiding':
+			response = self.checkIfReady(Weather=True,Dome=True,Telescope=True,Fiberfeed=True,Sidecam=True,Camera=True,Focuser=True,labjacku6=True)
+			if not 'Ready' in response: 
+				print response
+				return 0
+			try: response = self.telescope_client.send_command('SlewToObject '+self.Target)
+			except Exception: 
+				print 'Something went wrong with trying to slew directly to target name'
+			if not 'Telescope Slewing' in response:
+				print 'CONTINUEHERETOMORROW!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+
+		#response = self.checkIfReady(
+		return 1
+
+	def SchedCalibration(self,options):
+		#Routine to take calibration frames, depending on the options.
+		return 1
+
+	def checkIfReady(self,Weather=False,Dome=False,Telescope=False,Fiberfeed=False,Sidecam=False,Camera=False,Focuser=False,labjacku6=False):
+		#This function will perform checks on the whole system to determine if the observatory is ready to be used for a specific job.
+		#All the options refer to things that may be called upon to be checked. they are by default all False, and should be activated by the calling of the function,
+		#depending on the requirements of each job
+		if Weather==True:
+			try: weather = self.weatherstation_client.send_command('safe')
+			except Exception: return 'Weatherstation not contactable.'
+			if not '1' in weather: return 'Weather unsuitable to observe'
+		if Dome==True:
+			try: response = self.labjack_client.send_command('dome moving')
+			except Exception: return 'Could not communicate with labjack'
+			if 'True' in response: return 'Dome moving!'
+			response = self.labjack_client.send_command('slits')
+			if 'False' in response: return 'Slits closed'
+		if Telescope==True:
+			try: response = self.telescope_client.send_command('telescopeConnect')
+			except Exception: return 'Could not communicate with the telescope'
+			if not 'OK' in response: return 'Telescope not ready'
+		if Fiberfeed==True:
+			try: response = self.fiberfeed_client.send_command('setCameraValues default')
+			except Exception: return 'Unable to communicate with the fiberfeed server'
+			if not 'Default' in response: return 'Unable to work with fiberfeed camera'
+		if Sidecam==True:
+			try: response = self.sidecam_client.send_command('setCameraValues default')
+			except Exception: return 'Unable to communicate with the sidecam server'
+			if not 'Default' in response: return 'Unable to work with sidecam camera'
+		if Camera==True:
+			try: response = self.camera_client.send_command('imagingStatus')
+			except Exception: return 'Unable to communicate with the camera server'
+			if 'True' in response: return 'Camera busy exposing'
+		if Focuser==True:
+			try: pos = int(self.telescope_client.send_command('focusReadPosition'))
+			except Exception: return 'Unable to communicate with the camera server'
+			try: response = self.telescope_client.send_command('focusGoToPosition '+str(pos+1))
+			except Exception: return 'Unable to move focuser'
+			if not 'complete' in response: return 'Unable to move focuser'
+		if labjacku6==True:
+			try: response = self.labjacku6_client.send_command('ljtemp')
+			except Exception: return 'Could not communicate with labjacku6'
+			try: int(response)
+			except Exception: return 'Something wrong with the labjacku6'
+		return 'Ready'
+
+
 
 #***************************** End of User Commands *****************************#
 
@@ -571,11 +711,11 @@ class UberServer:
 		if (not self.override_wx) & (slits_opened=='True'):
 			try: weather = self.weatherstation_client.send_command('safe')
 			except Exception: 
-				response = self.labjack_client.send_command('slits close')
+				response = self.cmd_finishSession('finishSession')
 				print 'ERROR: Communication with the WeatherStation failed. Closing Slits for safety.'
 			if not "1" in weather:
 				if self.weather_counts > 3:
-					response = self.labjack_client.send_command('slits close')
+					response = self.cmd_finishSession('finishSession')
 					print 'Weather not suitable for observing. Closing Slits.'
 				else:
 					self.weather_counts+=1
