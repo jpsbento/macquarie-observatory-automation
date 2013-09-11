@@ -516,11 +516,11 @@ class UberServer:
 			print 'ERROR: Failed to move telescope to desired coordinates (fiberfeed)'
 			return 0
 		print 'sucessfully moved telescope'
-		try: self.fiberfeed_client.send_command('captureImages program_images/visual 1')
+		try: self.fiberfeed_client.send_command('captureImages program_images/visual no')
 		except Exception: 
 			print 'Failed to capture an image to show you where the star currently lies in. Not too much of a problem...'
 		self.guiding_failures=0
-		return 'Finished the master alignment. You can now inspect the image and decide if this is good enough. '
+		return 'Finished the master alignment.'
 		
 	def cmd_Imaging(self,the_command):
 		#sets the state of the boolean for the imaging_loop function COMPLETE!!!!!
@@ -606,10 +606,12 @@ class UberServer:
 
 	def SchedObject(self,options):
 		#Routine that triggers the telescope to move to an object and start stuff. 
+		dummy=self.cmd_Imaging('Imaging off')
+		dummy=self.cmd_guiding('guiding off')
 		try: self.Target,self.RA,self.DEC,self.Mode,self.ExposureTime,self.NExps,self.Filter=options
 		except Exception: print 'Unable to define the job settings' 
 		if self.Mode=='RheaGuiding':
-			response = self.checkIfReady(Weather=True,Dome=True,Telescope=True,Fiberfeed=True,Sidecam=True,Camera=True,Focuser=True,labjacku6=True)
+			response = self.cmd_checkIfReady(Weather=True,Dome=True,Telescope=True,Fiberfeed=True,Sidecam=True,Focuser=True)
 			if not 'Ready' in response: 
 				print response
 				return 0
@@ -617,16 +619,84 @@ class UberServer:
 			except Exception: 
 				print 'Something went wrong with trying to slew directly to target name'
 			if not 'Telescope Slewing' in response:
-				print 'CONTINUEHERETOMORROW!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
-
-		#response = self.checkIfReady(
-		return 1
+				if ':' in self.RA:
+					#convert the hh:mm:ss.s and dd:mm:sec format to decimal hours and degrees for the slewToRaDec function
+					temp=numpy.float64(self.RA.split(':'))
+					newRA=str(temp[0]+temp[1]/60.+temp[2]/3600.)
+					temp=numpy.float64(self.DEC.split(':'))
+					newDEC=str(temp[0]+temp[1]/60.+temp[2]/3600.)
+					try: response=self.telescope_client.send_command('slewToRaDec '+newRA+' '+newDEC)
+					except Exception: return 'Unable to intruct to telescope to slew to an RA and DEC'
+				else:
+					try: response=self.telescope_client.send_command('slewToRaDec '+self.RA+' '+self.DEC)
+					except Exception: return 'Unable to intruct to telescope to slew to an RA and DEC'
+			while not 'Done' in self.telescope_client.send_command('IsSlewComplete'): time.sleep(1)
+			try: response=self.cmd_masterAlign('masterAlign')
+			except Exception: return 'For some reason could not get the master Align routine to work'
+			if not 'Finished the master' in response: return 'Failed the master align with the error: '+response
+			try: response = self.cmd_guiding('guiding on')
+			except Exception: return 'Something went wrong with activating the guiding'
+			if not 'enabled' in response: return 'Guiding loop not enabled'
+		elif self.Mode=='RheaFull':
+			#THIS PART IS NOT FINISHED YET. 
+			response = self.cmd_checkIfReady(Weather=True,Dome=True,Telescope=True,Fiberfeed=True,Sidecam=True,Camera=True,Focuser=True,labjacku6=True)
+			if not 'Ready' in response: 
+				print response
+				return 0
+			try: response = self.telescope_client.send_command('SlewToObject '+self.Target)
+			except Exception: 
+				print 'Something went wrong with trying to slew directly to target name'
+			if not 'Telescope Slewing' in response:
+				if ':' in self.RA:
+					#convert the hh:mm:ss.s and dd:mm:sec format to decimal hours and degrees for the slewToRaDec function
+					temp=numpy.float64(self.RA.split(':'))
+					newRA=str(temp[0]+temp[1]/60.+temp[2]/3600.)
+					temp=numpy.float64(self.DEC.split(':'))
+					newDEC=str(temp[0]+temp[1]/60.+temp[2]/3600.)
+					try: response=self.telescope_client.send_command('slewToRaDec '+newRA+' '+newDEC)
+					except Exception: return 'Unable to intruct to telescope to slew to an RA and DEC'
+				else:
+					try: response=self.telescope_client.send_command('slewToRaDec '+self.RA+' '+self.DEC)
+					except Exception: return 'Unable to intruct to telescope to slew to an RA and DEC'
+			while not 'Done' in self.telescope_client.send_command('IsSlewComplete'): time.sleep(1)
+			try: response=self.cmd_masterAlign('masterAlign')
+			except Exception: return 'For some reason could not get the master Align routine to work'
+			if not 'Finished the master' in response: return 'Failed the master align with the error: '+response
+			try: response = self.cmd_guiding('guiding on')
+			except Exception: return 'Something went wrong with activating the guiding'
+			if not 'enabled' in response: return 'Guiding loop not enabled'
+			#Add more stuff related to how the imaging and labjacku6 routines are going to work
+		elif self.Mode=='Phot':
+			#THIS PART IS NOT FINISHED YET. NEED TO UPDATE WHEN OTHER THINGS BECOME DECIDED
+			response = self.cmd_checkIfReady(Weather=True,Dome=True,Telescope=True,Sidecam=True,Camera=True)
+			if not 'Ready' in response: 
+				print response
+				return 0
+			try: response = self.telescope_client.send_command('SlewToObject '+self.Target)
+			except Exception: 
+				print 'Something went wrong with trying to slew directly to target name'
+			if not 'Telescope Slewing' in response:
+				if ':' in self.RA:
+					#convert the hh:mm:ss.s and dd:mm:sec format to decimal hours and degrees for the slewToRaDec function
+					temp=numpy.float64(self.RA.split(':'))
+					newRA=str(temp[0]+temp[1]/60.+temp[2]/3600.)
+					temp=numpy.float64(self.DEC.split(':'))
+					newDEC=str(temp[0]+temp[1]/60.+temp[2]/3600.)
+					try: response=self.telescope_client.send_command('slewToRaDec '+newRA+' '+newDEC)
+					except Exception: return 'Unable to intruct to telescope to slew to an RA and DEC'
+				else:
+					try: response=self.telescope_client.send_command('slewToRaDec '+self.RA+' '+self.DEC)
+					except Exception: return 'Unable to intruct to telescope to slew to an RA and DEC'
+			while not 'Done' in self.telescope_client.send_command('IsSlewComplete'): time.sleep(1)
+			#ADD STUFF HERE ABOUT HOW THE CAMERA IS GOING TO RUN
+		else: return 'Unrecognised observing object mode specified'
+		return 'Succesfull Object job executed.'
 
 	def SchedCalibration(self,options):
 		#Routine to take calibration frames, depending on the options.
 		return 1
 
-	def checkIfReady(self,Weather=False,Dome=False,Telescope=False,Fiberfeed=False,Sidecam=False,Camera=False,Focuser=False,labjacku6=False):
+	def cmd_checkIfReady(self,Weather=False,Dome=False,Telescope=False,Fiberfeed=False,Sidecam=False,Camera=False,Focuser=False,labjacku6=False):
 		#This function will perform checks on the whole system to determine if the observatory is ready to be used for a specific job.
 		#All the options refer to things that may be called upon to be checked. they are by default all False, and should be activated by the calling of the function,
 		#depending on the requirements of each job
@@ -644,6 +714,9 @@ class UberServer:
 			try: response = self.telescope_client.send_command('telescopeConnect')
 			except Exception: return 'Could not communicate with the telescope'
 			if not 'OK' in response: return 'Telescope not ready'
+			try: response = self.telescope_client.send_command('IsSlewComplete')
+			except Exception: return 'Could not query whether the telescope is moving'
+			if not 'Done' in response: return 'Telescope still moving'
 		if Fiberfeed==True:
 			try: response = self.fiberfeed_client.send_command('setCameraValues default')
 			except Exception: return 'Unable to communicate with the fiberfeed server'

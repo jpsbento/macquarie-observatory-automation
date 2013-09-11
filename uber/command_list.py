@@ -28,13 +28,13 @@ def execute_command(the_command, m):
     '''Find the_command amongst the list of commands like cmd_one in module m
     
     This returns a string containing the response, or a -1 if a quit is commanded.'''
-    the_functions = dict(finishSession=m.cmd_finishSession,labjack=m.cmd_labjack,telescope=m.cmd_telescope,weatherstation=m.cmd_weatherstation,camera=m.cmd_camera,sidecam=m.cmd_sidecam,fiberfeed=m.cmd_fiberfeed,labjacku6=m.cmd_labjacku6,setDomeTracking=m.cmd_setDomeTracking,orientateCamera=m.cmd_orientateCamera,offset=m.cmd_offset,focusStar=m.cmd_focusStar,focusIRAF=m.cmd_focusIRAF,override_wx=m.cmd_override_wx,guiding=m.cmd_guiding,spiral=m.cmd_spiral,centerStar=m.cmd_centerStar,masterAlign=m.cmd_masterAlign,Imaging=m.cmd_Imaging,Imsettings=m.cmd_Imsettings)
+    the_functions = dict(finishSession=m.cmd_finishSession,labjack=m.cmd_labjack,telescope=m.cmd_telescope,weatherstation=m.cmd_weatherstation,camera=m.cmd_camera,sidecam=m.cmd_sidecam,fiberfeed=m.cmd_fiberfeed,labjacku6=m.cmd_labjacku6,setDomeTracking=m.cmd_setDomeTracking,orientateCamera=m.cmd_orientateCamera,offset=m.cmd_offset,focusStar=m.cmd_focusStar,focusIRAF=m.cmd_focusIRAF,override_wx=m.cmd_override_wx,guiding=m.cmd_guiding,spiral=m.cmd_spiral,centerStar=m.cmd_centerStar,masterAlign=m.cmd_masterAlign,Imaging=m.cmd_Imaging,Imsettings=m.cmd_Imsettings,Sched=m.cmd_Sched,AddJob=m.cmd_AddJob,checkIfReady=m.cmd_checkIfReady)
     commands = string.split(the_command)
     if len(commands) == 0:
         return ""
     if commands[0] == "help":
         if (len(commands) == 1):
-            return 'finishSession\nlabjack\ntelescope\nweatherstation\ncamera\nsidecam\nfiberfeed\nlabjacku6\nsetDomeTracking\norientateCamera\noffset\nfocusStar\nfocusIRAF\noverride_wx\nguiding\nspiral\ncenterStar\nmasterAlign\nImaging\nImsettings'
+            return 'finishSession\nlabjack\ntelescope\nweatherstation\ncamera\nsidecam\nfiberfeed\nlabjacku6\nsetDomeTracking\norientateCamera\noffset\nfocusStar\nfocusIRAF\noverride_wx\nguiding\nspiral\ncenterStar\nmasterAlign\nImaging\nImsettings\nSched\nAddJob\ncheckIfReady'
         elif commands[1] in the_functions:
             td=pydoc.TextDoc()
             return td.docroutine(the_functions[commands[1]])

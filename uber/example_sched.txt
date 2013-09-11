@@ -3,8 +3,21 @@
 #
 #The list of parameters is obviously dependent on the type of job that is required
 #
+#Types can be:
+#      Cal: Calibration frame(s). Can be, in the future, lots of stuff, like 'Bias', 'Flat', 'Dark', 'Arc', 'Lamp'
+#      Obj: Object observing job
+#      Flip: Meridian flip routine to ensure that the telescope is rotated when the object crosses the meridian. 
 #
-#Type,	date,		time,		Target,	RA,	DEC,	Mode,	ExposureTime,	NExps,	Filter	
-Cal, 	2013-09-11 	21:30:00, 	Bias,	NA,	NA,	NA,	30,		10,	NA
-Obj,	2013-09-11 	21:40:00,	Altair,	Lookup, Lookup, Rhea,	60,		2,	NA
-	
+#RA and Dec can either be given in the format hh:mm:ss/dd:mm:ss or decimal hours and decimal degrees
+#
+#Modes can be: 
+#      RheaGuiding: Mode where just the guiding loop is activated upon finding a star (no spectrograph connected)
+#      RheaFull: Full working Rhea spectrograph mode
+#      Phot: Mode where a CCD camera is connected directly on the telescope
+#
+#Filter options not integrated yet. 
+#
+#Type,	date,		time,		Target,	RA,		DEC,		Mode,		ExposureTime,	NExps,	Filter	
+Cal, 	2013-09-11 	21:30:00, 	Bias,	NA,		NA,		NA,		30,		10,	NA
+Obj,	2013-09-11 	21:40:00,	Altair,	00:00:00.0, 	00:00:00.0, 	RheaGuiding,	60,		2,	NA
+

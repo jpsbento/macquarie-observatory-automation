@@ -541,6 +541,12 @@ class BisqueMountServer:
 		client_socket.send(TheSkyXCommand)
 		return self.messages()
 
+	def cmd_IsSlewComplete(self,the_command):
+		'''Check whether the telescope movement is done in the Sky. 
+		This function is very useful to make sure no telescope motion is ordered before the telescope has stopped moving.'''
+		TheSkyXCommand = self.readscript('IsSlewComplete.js')
+		client_socket.send(TheSkyXCommand)
+		return self.messages()
 
 
 #************************************** END OF USER COMMANDS **************************************#

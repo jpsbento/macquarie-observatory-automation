@@ -36,3 +36,4 @@ tracking
 sendSomething
 telescopeConnect
 IsDomeGoToComplete
+IsSlewComplete
