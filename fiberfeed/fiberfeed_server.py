@@ -155,7 +155,7 @@ class FiberFeedServer:
 				prop = self.dev.get_property('Exposure (Absolute)')
 				direction=-1
 				if prop['value']> 51:
-					prop['value']=abs(prop['value']-deviation)
+					prop['value']-=deviation
 					print 'Exposure=',prop['value']/10.,'ms'
 					self.dev.set_property( prop )
 					self.set_values[2]=prop['value']

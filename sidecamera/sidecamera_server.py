@@ -224,12 +224,11 @@ class SideCameraServer:
 		print vector_to_move 
 		translated_N = self.transformation_matrix[0]*x_distance + self.transformation_matrix[1]*y_distance
 		translated_E =  (self.transformation_matrix[2]*x_distance + self.transformation_matrix[3]*y_distance)*self.axis_flip
-
 		#Need to convert distance into coordinates for the telescope orientation
-
 		# we should have it in RA Dec
 		dArcminN = translated_N/self.oneArcmininPixelsN
 		dArcminE = translated_E/self.oneArcmininPixelsE # Now we convert where to move a positive is a move East
+		print dArcminN, dArcminE
 		return str(dArcminN)+' '+str(dArcminE)
 		# ^ This returns the distance between the central pixel and the brightest star in arcmins in the North and East directions		
 		
