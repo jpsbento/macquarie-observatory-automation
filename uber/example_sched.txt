@@ -18,6 +18,6 @@
 #Filter options not integrated yet. 
 #
 #Type,	date,		time,		Target,	RA,		DEC,		Mode,		ExposureTime,	NExps,	Filter	
-Cal, 	2013-09-11 	21:30:00, 	Bias,	NA,		NA,		NA,		30,		10,	NA
-Obj,	2013-09-11 	21:40:00,	Altair,	00:00:00.0, 	00:00:00.0, 	RheaGuiding,	60,		2,	NA
+#Cal, 	2013-09-11, 	21:30:00, 	Bias,	NA,		NA,		NA,		30,		10,	NA
+Obj,	2013-09-24, 	22:15:00,	Achernar,	00:00:00.0, 	00:00:00.0, 	RheaGuiding,	60,		2,	NA
 

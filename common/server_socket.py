@@ -101,7 +101,7 @@ class ServerSocket:
 						if s==sys.stdin:
 							print response
 						else:
-							s.send(response + '\n> ')
+							s.send(response + '\n')
 			for the_job in self.jobs:
 				message=the_job()
 				if message:

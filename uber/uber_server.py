@@ -9,6 +9,8 @@ import pyfits
 import numpy
 from apscheduler.scheduler import Scheduler
 from apscheduler.jobstores.shelve_store import ShelveJobStore
+import logging
+logging.basicConfig()
 
 class UberServer:
 	
@@ -561,8 +563,10 @@ class UberServer:
 				return 'Scheduler stopped'
 			elif commands[1]=='print':
 				jobs=self.sched.get_jobs()
+				l=0
 				for i in jobs:
-					print str(i), i
+					print str(l), i
+					l+=1
 			elif commands[1]=='help':
 				return 'Type "Sched on" to start the scheduler, "Sched off" to shut it down, and "Sched print" to view the current jobs and indices'
 			else: return 'Invalid option'
@@ -604,11 +608,11 @@ class UberServer:
 			return 'Successfully added the job to the queue.'
 				
 
-	def SchedObject(self,options):
+	def SchedObject(self,target,ra,dec,mode,exp,nexps,f):
 		#Routine that triggers the telescope to move to an object and start stuff. 
 		dummy=self.cmd_Imaging('Imaging off')
 		dummy=self.cmd_guiding('guiding off')
-		try: self.Target,self.RA,self.DEC,self.Mode,self.ExposureTime,self.NExps,self.Filter=options
+		try: self.Target,self.RA,self.DEC,self.Mode,self.ExposureTime,self.NExps,self.Filter=target,ra,dec,mode,exp,nexps,f
 		except Exception: print 'Unable to define the job settings' 
 		if self.Mode=='RheaGuiding':
 			response = self.cmd_checkIfReady(Weather=True,Dome=True,Telescope=True,Fiberfeed=True,Sidecam=True,Focuser=True)
@@ -659,6 +663,7 @@ class UberServer:
 					try: response=self.telescope_client.send_command('slewToRaDec '+self.RA+' '+self.DEC)
 					except Exception: return 'Unable to intruct to telescope to slew to an RA and DEC'
 			while not 'Done' in self.telescope_client.send_command('IsSlewComplete'): time.sleep(1)
+			#NEED TO WAIT FOR DOME TO CATCH UP. PERHAPS ANOTHER checkIfReady call here would be useful.
 			try: response=self.cmd_masterAlign('masterAlign')
 			except Exception: return 'For some reason could not get the master Align routine to work'
 			if not 'Finished the master' in response: return 'Failed the master align with the error: '+response
@@ -731,7 +736,7 @@ class UberServer:
 			if 'True' in response: return 'Camera busy exposing'
 		if Focuser==True:
 			try: pos = int(self.telescope_client.send_command('focusReadPosition'))
-			except Exception: return 'Unable to communicate with the camera server'
+			except Exception: return 'Unable to communicate with the focuser'
 			try: response = self.telescope_client.send_command('focusGoToPosition '+str(pos+1))
 			except Exception: return 'Unable to move focuser'
 			if not 'complete' in response: return 'Unable to move focuser'
