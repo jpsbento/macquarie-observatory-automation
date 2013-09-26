@@ -11,6 +11,7 @@ from apscheduler.scheduler import Scheduler
 from apscheduler.jobstores.shelve_store import ShelveJobStore
 import logging
 logging.basicConfig()
+from timeout import timeout
 
 class UberServer:
 	
@@ -64,10 +65,12 @@ class UberServer:
 	Filter='None'
 	
 #***************************** A list of user commands *****************************#
-
+	@timeout(60)
 	def cmd_finishSession(self,the_command):
 		'''Close the slits, home the dome, home the telescope, put telescope in park mode.'''
 		try:
+			dummy = self.cmd_Sched('Sched off')
+			dummy = self.cmd_guiding('guiding off')
 			dummy = self.labjack_client.send_command('slits close')
 			self.dome_tracking=False
 			dummy = self.labjack_client.send_command('dome home')
@@ -75,7 +78,8 @@ class UberServer:
 			self.override_wx=False
 		except Exception: print 'Failed to finish the session sucessfully'
 		return 'Sucessfully finished session'
-
+	
+	@timeout()
 	def cmd_labjack(self,the_command):
 		'''A user can still access the low level commands from the labjack using this command. ie
 		type 'labjack help' to get all the available commands for the labjack server.'''
@@ -87,6 +91,7 @@ class UberServer:
 			return str(response)
 		else: return 'To get a list of commands for the labjack type "labjack help".'
 
+	@timeout()
 	def cmd_telescope(self,the_command):
 		'''A user can still access the low level commands from the telescope using this command. ie
 		type 'telescope help' to get all the available commands for the telescope server.'''
@@ -98,6 +103,7 @@ class UberServer:
 			return str(response)
 		else: return 'To get a list of commands for the telescope type "telescope help".'
 
+	@timeout(30)
 	def cmd_weatherstation(self,the_command):
 		'''A user can still access the low level commands from the weatherstation using this command. ie
 		type 'weatherstation help' to get all the available commands for the weatherstation server.'''
@@ -109,6 +115,7 @@ class UberServer:
 			return str(response)
 		else: return 'To get a list of commands for the weatherstation type "weatherstation help".'
 
+	@timeout()
 	def cmd_camera(self,the_command):
 		'''A user can still access the low level commands from the imaging source camera using this command. ie
 		type 'camera help' to get all the available commands for the imaging source camera server.'''
@@ -120,6 +127,7 @@ class UberServer:
 			return str(response)
 		else: return 'To get a list of commands for the camera type "camera help".'
 
+	@timeout()
 	def cmd_sidecam(self,the_command):
 		'''A user can still access the low level commands from the imaging source camera using this command. ie
 		type 'sidecam help' to get all the available commands for the imaging source camera server.'''
@@ -131,6 +139,7 @@ class UberServer:
 			return str(response)
 		else: return 'To get a list of commands for the sidecam type "sidecam help".'
 
+	@timeout()
 	def cmd_fiberfeed(self,the_command):
 		'''A user can still access the low level commands from the fiber feed imaging source camera using this command. ie
 		type 'fiberfeed help' to get all the available commands for the imaging source camera server.'''
@@ -142,6 +151,7 @@ class UberServer:
 			return str(response)
 		else: return 'To get a list of commands for the fiberfeed type "fiberfeed help".'
 
+	@timeout()
 	def cmd_labjacku6(self,the_command):
 		'''A user can still access the low level commands from the labjacku6 using this command. ie
 		type 'labjacku6 help' to get all the available commands for the labjack server.'''
@@ -153,7 +163,7 @@ class UberServer:
 			return str(response)
 		else: return 'To get a list of commands for the labjacku6 type "labjacku6 help".'
 
-		
+	@timeout()	
 	def cmd_setDomeTracking(self,the_command):
 		'''Can set the dome tracking to be on or off'''
 		commands = str.split(the_command)
@@ -165,6 +175,7 @@ class UberServer:
 		elif commands[1] == 'off': self.dome_tracking = False
 		else: return 'Invalid input, on/off expected.'
 
+	@timeout()
 	def cmd_orientateCamera(self, the_command):
 		'''This will control the camera and the telescope to get the camera orientation.'''
 		commands=str.split(the_command)
@@ -189,7 +200,8 @@ class UberServer:
 		cam_client.send_command('orientationCapture East '+jog_amount) # Should add some responses here to keep track
 		response = cam_client.send_command('calculateCameraOrientation')
 		return response
-
+	
+	@timeout(600)
 	def cmd_offset(self, the_command):
 		'''This pulls together commands from the camera server and the telescope server so that we can move the telescope to a given known pixel position which corresponds to the centre of the telescope field of view'''
 		#These are the known coordinates of the centre of the telescope field of view. These need to be changed every time anything is put on the back of the telescope. 
@@ -220,7 +232,7 @@ class UberServer:
 		except Exception: print'ERROR: Telescope failed to move to new coordinates'
 		return 'Telescope successfully offset to new coordinates.'
 		
-
+	@timeout(300)
 	def cmd_focusStar(self, the_command):
 		'''This pulls together commands from the telescope servers and the camera server to focus a bright star.'''
 		move_focus_amount = 100
@@ -239,7 +251,8 @@ class UberServer:
 			# we are moving the focuser the wrong way
 			if sharp_value >= old_sharp_value: move_focus_amount = (move_focus_amount*-1)/2
 		return str(focusposition) # return the best focus position
-				
+	
+	
 	def cmd_focusIRAF(self, the_command):
 		'''This pulls together commands from the telescope servers and the camera server to focus a bright star using IRAF.'''
 		move_focus_amount = 100
@@ -263,7 +276,8 @@ class UberServer:
 		focusposition = int(focusposition + (bestimage-3)*move_focus_amount)
 	        self.telescope_client.send_command("focusGoToPosition " + str(focusposition))
 		return str(focusposition) # return the best focus position
-				
+	
+	@timeout(30)
 	def cmd_override_wx(self, the_command):
 		commands=str.split(the_command)
 		if len(commands) == 2 and (commands[1] == 'off' or commands[1]=='0'):
@@ -271,6 +285,7 @@ class UberServer:
 		else: self.override_wx=True
 		return str(self.override_wx)
 
+	@timeout(30)
 	def cmd_guiding(self, the_command):
 		'''This function is used to activate or decativate the guiding loop. Usage is 'guiding <on/off> <camera>', where option is either 'on' or 'off' and camera is either 'sidecam' or 'fiberfeed' (default). For the 'off' option, no camera needs to be specified.'''
 		commands=str.split(the_command)
@@ -299,7 +314,8 @@ class UberServer:
 		else: return 'invalid number of arguments'
 			
 		#Still needs to be completed. 
-		
+	
+	@timeout(600)
 	def cmd_spiral(self, the_command):
 		'''This function is used to spiral the telescope until the fiberfeed camera finds a star close to the center of the chip. Usage is 'guiding <amount>', where amount is the offset in arcmins of each spiral motion. A default amount is set'''
 		default=2.0
@@ -365,7 +381,7 @@ class UberServer:
 		#  iteration.
 		#
 
-
+	@timeout(200)
 	def cmd_centerStar(self, the_command):
 		'''Function to move improve the pointing for TPoint model purposes. Based on the MasterAlign function.
 
@@ -414,7 +430,7 @@ class UberServer:
 				return 0
 		print 'successfully moved telescope to location'
 
-
+	@timeout(600)
 	def cmd_masterAlign(self, the_command):
 		'''Awesome!! function that can be ran to trigger the improvement in the alignment. This is supposed to be ran once the telescope has been instructed to point at a star and the dome has finished moving to it, and it will improve the pointing using the sidecam, put the star in the fiberfeed cam and start the guiding. It is mostly a collection of existing functions. It is also highly customisable.
 
@@ -523,7 +539,8 @@ class UberServer:
 			print 'Failed to capture an image to show you where the star currently lies in. Not too much of a problem...'
 		self.guiding_failures=0
 		return 'Finished the master alignment.'
-		
+	
+	@timeout(30)
 	def cmd_Imaging(self,the_command):
 		#sets the state of the boolean for the imaging_loop function COMPLETE!!!!!
 		commands=str.split(the_command)
@@ -533,6 +550,7 @@ class UberServer:
 		else: return 'Incorrect usage of function. Activate Imaging using "on" or "off".'
 		return 'Imaging status set to '+str(self.exposing)
 
+	@timeout(30)
 	def cmd_Imsettings(self,the_command):
 		#sets the camera settings for the exposing loop
 		commands=str.split(the_command)
@@ -545,10 +563,8 @@ class UberServer:
 			self.shutter_position=commands[2]
 			return 'Finished updating camera settings'
 	
-	
-	
 #**************************** Scheduler specific commands ***********************#
-	
+	@timeout(30)
 	def cmd_Sched(self,the_command):
 		#function to act upon the Scheduler
 		commands=str.split(the_command)
@@ -571,6 +587,7 @@ class UberServer:
 				return 'Type "Sched on" to start the scheduler, "Sched off" to shut it down, and "Sched print" to view the current jobs and indices'
 			else: return 'Invalid option'
 
+	@timeout()
 	def cmd_AddJob(self,the_command):
 		#Adds jobs to the scheduler
 		commands=str.split(the_command)
@@ -581,7 +598,9 @@ class UberServer:
 			reader=csv.reader(ifile)
 			try: 
 				for row in reader:
-					if '#' not in row[0]:
+					print row
+					if not '#' in row[0] and len(row)>1:
+						print row
 						c=[]
 						for i in row:
 							#get rid of any spaces or tabs
@@ -606,8 +625,8 @@ class UberServer:
 				except Exception: return 'unable to add this object job to the queue. Check the help for the correct syntax.'
 			else: return 'Invalid job type. It should either be "Cal" or "Obj"'
 			return 'Successfully added the job to the queue.'
-				
-
+	
+	@timeout(600)
 	def SchedObject(self,target,ra,dec,mode,exp,nexps,f):
 		#Routine that triggers the telescope to move to an object and start stuff. 
 		dummy=self.cmd_Imaging('Imaging off')
@@ -634,7 +653,11 @@ class UberServer:
 				else:
 					try: response=self.telescope_client.send_command('slewToRaDec '+self.RA+' '+self.DEC)
 					except Exception: return 'Unable to intruct to telescope to slew to an RA and DEC'
+			#Wait for slew
 			while not 'Done' in self.telescope_client.send_command('IsSlewComplete'): time.sleep(1)
+			#Slew dome to telescope
+			while abs(float(str.split(self.labjack_client.send_command('dome location'))[0]) - float(str.split(self.telescope_client.send_command('SkyDomeGetAz'),'|')[0])) > 2.5: self.dome_track()
+			while not 'Ready' in self.cmd_checkIfReady(Weather=True,Dome=True,Telescope=True,Fiberfeed=True,Sidecam=True,Focuser=True): time.sleep(1)
 			try: response=self.cmd_masterAlign('masterAlign')
 			except Exception: return 'For some reason could not get the master Align routine to work'
 			if not 'Finished the master' in response: return 'Failed the master align with the error: '+response
@@ -701,6 +724,7 @@ class UberServer:
 		#Routine to take calibration frames, depending on the options.
 		return 1
 
+	@timeout()
 	def cmd_checkIfReady(self,Weather=False,Dome=False,Telescope=False,Fiberfeed=False,Sidecam=False,Camera=False,Focuser=False,labjacku6=False):
 		#This function will perform checks on the whole system to determine if the observatory is ready to be used for a specific job.
 		#All the options refer to things that may be called upon to be checked. they are by default all False, and should be activated by the calling of the function,
@@ -831,7 +855,9 @@ class UberServer:
 			else:
 				self.guiding_failures=0
 				try: 
+					while not 'Done' in self.telescope_client.send_command('IsSlewComplete'): time.sleep(0.3)
 					dummy=self.telescope_client.send_command('jog North '+str(float(moving[0])/2.))
+					while not 'Done' in self.telescope_client.send_command('IsSlewComplete'): time.sleep(0.3)
 					dummy=self.telescope_client.send_command('jog East '+str(float(moving[1])/2.))
 				except Exception: 
 					print 'For some reason communication with the telescope is not working.'  

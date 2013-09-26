@@ -19,5 +19,5 @@
 #
 #Type,	date,		time,		Target,	RA,		DEC,		Mode,		ExposureTime,	NExps,	Filter	
 #Cal, 	2013-09-11, 	21:30:00, 	Bias,	NA,		NA,		NA,		30,		10,	NA
-Obj,	2013-09-24, 	22:15:00,	Achernar,	00:00:00.0, 	00:00:00.0, 	RheaGuiding,	60,		2,	NA
-
+#Obj,	2013-09-25, 	22:09:30,	Achernar,	01:37:42.92, 	-57:14:12.87, 	RheaGuiding,	60,		2,	NA
+Obj,	2013-09-25, 	22:21:00,	Fomalhaut,	22:57:39.34, 	-29:37:22.30, 	RheaGuiding,	60,		2,	NA
