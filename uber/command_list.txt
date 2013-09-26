@@ -18,6 +18,4 @@ centerStar
 masterAlign
 Imaging
 Imsettings
-Sched
-AddJob
 checkIfReady

@@ -1,10 +1,7 @@
-
-
 class FindPort:
 
 	def findPort(self, device):
 		self.device = device
-
               	try: devicefile = open('../common/device_list.txt','r')
 		except Exception: print 'ERROR file "device_list.txt" not found'
 		device_list = devicefile.readlines()
