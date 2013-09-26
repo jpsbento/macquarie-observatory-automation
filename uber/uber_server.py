@@ -58,14 +58,13 @@ class UberServer:
 	def cmd_finishSession(self,the_command):
 		'''Close the slits, home the dome, home the telescope, put telescope in park mode.'''
 		try:
-			dummy = self.cmd_Sched('Sched off')
 			dummy = self.cmd_guiding('guiding off')
 			dummy = self.labjack_client.send_command('slits close')
 			self.dome_tracking=False
 			dummy = self.labjack_client.send_command('dome home')
 			dummy = self.telescope_client.send_command('park')
 			self.override_wx=False
-		except Exception: print 'Failed to finish the session sucessfully'
+		except Exception: return 'Failed to finish the session sucessfully'
 		return 'Sucessfully finished session'
 	
 	def cmd_labjack(self,the_command):
