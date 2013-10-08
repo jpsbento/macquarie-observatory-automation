@@ -535,8 +535,9 @@ class BisqueMountServer:
 
 
 	def cmd_IsDomeGoToComplete(self,the_command):
+		#This function doesn't actually work, since it returns that the dome is finished regardless of the motion of the dome!!!!!!
 		'''Check whether the dome movement is done in the Sky virtual dome. 
-		This function is very useful to make sure no telescope motion is ordered before the telescope has stopped moving.'''
+		This function is very useful to make sure no dome motion is ordered before it has stopped moving.'''
 		TheSkyXCommand = self.readscript('IsGoToComplete.js')
 		client_socket.send(TheSkyXCommand)
 		return self.messages()

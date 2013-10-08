@@ -34,6 +34,8 @@ class UberServer:
 	weather_counts = 1 #integer that gets incremented if the slits are open, the override_wx is false and the weather station returns an unsafe status. If this gets above 3, close slits (see function where this is used)
 	dome_last_sync=time.time()
 	dome_frequency = 5 #This parameters sets how often the SkyX virtual dome is told to align with the telescope pointing.
+	dome_az=0.0
+
 	guiding_bool=False
 	guiding_camera='fiberfeed'
 	guiding_failures=0
@@ -396,7 +398,9 @@ class UberServer:
 			distance=math.sqrt(float(moving[0])**2+float(moving[1])**2)
 			print 'Distance to be moved: ',distance
 			try: 
+				while not 'Done' in self.telescope_client.send_command('IsSlewComplete'): time.sleep(0.3)
 				self.telescope_client.send_command('jog North '+moving[0])
+				while not 'Done' in self.telescope_client.send_command('IsSlewComplete'): time.sleep(0.3)
 				self.telescope_client.send_command('jog East '+moving[1])
 			except Exception:
 				print 'ERROR: Failed to move telescope to desired coordinates'
@@ -407,50 +411,9 @@ class UberServer:
 		'''Awesome!! function that can be ran to trigger the improvement in the alignment. This is supposed to be ran once the telescope has been instructed to point at a star and the dome has finished moving to it, and it will improve the pointing using the sidecam, put the star in the fiberfeed cam and start the guiding. It is mostly a collection of existing functions. It is also highly customisable.
 
 		This function will require more thorough checks along the way. This will be added whilst this is being tested.'''
-		try: self.sidecam_client.send_command('Chop on')
-		except Exception: 
-			print 'ERROR: Failed to set the image chopping on the sidecam'
-			return 0
-		print 'image chopping activated.'
-		try: self.sidecam_client.send_command('setCameraValues default')
-		except Exception: 
-			print 'ERROR: Failed to set the default values for the sidecam'
-			return 0
-		print 'default values for sidecam set.'
-		try: self.sidecam_client.send_command('adjustExposure')
-		except Exception: 
-			print 'ERROR: Failed to adjust the exposure of the sidecam'
-			return 0
-		print 'exposure adjusted for sidecam.'
-		try: self.cmd_orientateCamera('orientateCamera sidecam')
-		except Exception: 
-			print 'ERROR: Failed to set the orientation of the sidecam'
-			return 0
-		print 'orientation of the sidecamera set.'
-		distance=1000
-		while distance>0.5:
-			try: self.sidecam_client.send_command('imageCube test 10')
-			except Exception: 
-				print 'ERROR: Failed to take images to work out where the star is at the moment'
-				return 0
-			print 'current location images taken for sidecam.'
-			try: 
-				moving=str.split(self.sidecam_client.send_command('starDistanceFromCenter test'))
-				dummy=float(moving[0])
-			except Exception: 
-				print 'ERROR: Failed to work out what the stellar distance to the optimal coordinates is'
-				return 0
-			print 'Stellar distance to center found.'
-			distance=math.sqrt(float(moving[0])**2+float(moving[1])**2)
-			print 'Distance to be moved: ',distance
-			try: 
-				self.telescope_client.send_command('jog North '+moving[0])
-				self.telescope_client.send_command('jog East '+moving[1])
-			except Exception:
-				print 'ERROR: Failed to move telescope to desired coordinates'
-				return 0
-		print 'successfully moved telescope to location'
-		#Set the focus position back to the initial value
+		try: dummy=self.cmd_centerStar('centerStar')
+		except Exception: return 'Could not center star'
+#Set the focus position back to the initial value
 		if self.initial_focus_position==0:
 			self.initial_focus_position=self.telescope_client.send_command("focusReadPosition").split('\n')[0]
 		else: 
@@ -604,12 +567,12 @@ class UberServer:
 			if abs(float(domeAzimuth) - float(VirtualDome)) > 2.5:
 				print 'go to azimuth:'+str(VirtualDome)+' because of an offset. Dome azimuth is currently: '+str(domeAzimuth)
 				self.labjack_client.send_command('dome '+str(VirtualDome))
-			if (math.fabs(time.time() - self.dome_last_sync) > self.dome_frequency ) and ('Done' in self.telescope_client.send_command('IsDomeGoToComplete')):
+			if (math.fabs(time.time() - self.dome_last_sync) > self.dome_frequency ) and (self.dome_az==float(str.split(self.telescope_client.send_command('SkyDomeGetAz'),'|')[0])):
 				try: ForceTrack=self.telescope_client.send_command('SkyDomeForceTrack') #Forces the virtual dome to track the telescope every self.dome_frequency seconds
 				except Exception: print 'Unable to force the virtual dome tracking'
 				self.dome_last_sync=time.time()
 				#print 'Dome Synced'
-
+			else: self.dome_az=float(str.split(self.telescope_client.send_command('SkyDomeGetAz'),'|')[0])
 
 	def waiting_messages(self): # I don't think this will work...
 		self.labjack_client.waiting_messages()
