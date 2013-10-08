@@ -31,7 +31,7 @@ MASK_TYPE        CORRECT        # type of detection MASKing: can be one of
 #------------------------------ Photometry -----------------------------------
 
 PHOT_FLUXFRAC    0.5 		# Fraction of flux inside aperture radius 
-PHOT_APERTURES   5              # MAG_APER aperture diameter(s) in pixels
+PHOT_APERTURES   50              # MAG_APER aperture diameter(s) in pixels
 PHOT_AUTOPARAMS  2.5, 3.5       # MAG_AUTO parameters: <Kron_fact>,<min_radius>
 PHOT_PETROPARAMS 2.0, 3.5       # MAG_PETRO parameters: <Petrosian_fact>,
                                 # <min_radius>
@@ -45,7 +45,7 @@ PIXEL_SCALE      0.25            # size of pixel in arcsec (0=use FITS WCS info)
  
 #------------------------- Star/Galaxy Separation ----------------------------
  
-SEEING_FWHM      5            # stellar FWHM in arcsec
+SEEING_FWHM      10            # stellar FWHM in arcsec
 STARNNW_NAME     default.nnw    # Neural-Network_Weight table filename
  
 #------------------------------ Background -----------------------------------

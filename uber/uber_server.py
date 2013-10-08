@@ -414,6 +414,8 @@ class UberServer:
 		try: dummy=self.cmd_centerStar('centerStar')
 		except Exception: return 'Could not center star'
 #Set the focus position back to the initial value
+		try: self.telescope_client.send_command("focusGoToPosition 4000")
+		except Exception: print 'Could not get the focusser to its initial position'; return 0
 		if self.initial_focus_position==0:
 			self.initial_focus_position=self.telescope_client.send_command("focusReadPosition").split('\n')[0]
 		else: 
@@ -565,7 +567,7 @@ class UberServer:
 				self.dome_tracking = False
 				return 'Virtual Dome not giving out what is expected'
 			if abs(float(domeAzimuth) - float(VirtualDome)) > 2.5:
-				print 'go to azimuth:'+str(VirtualDome)+' because of an offset. Dome azimuth is currently: '+str(domeAzimuth)
+				#print 'go to azimuth:'+str(VirtualDome)+' because of an offset. Dome azimuth is currently: '+str(domeAzimuth)
 				self.labjack_client.send_command('dome '+str(VirtualDome))
 			if (math.fabs(time.time() - self.dome_last_sync) > self.dome_frequency ) and (self.dome_az==float(str.split(self.telescope_client.send_command('SkyDomeGetAz'),'|')[0])):
 				try: ForceTrack=self.telescope_client.send_command('SkyDomeForceTrack') #Forces the virtual dome to track the telescope every self.dome_frequency seconds
