@@ -32,7 +32,6 @@ class SchedServer:
 	NExps='0'
 	Filter='None'
 	
-	@timeout()
 	def cmd_uber(self,the_command):
 		'''A user can still access the low level commands from the imaging source camera using this command. ie
 		type 'camera help' to get all the available commands for the imaging source camera server.'''
@@ -45,7 +44,6 @@ class SchedServer:
 		else: return 'To get a list of commands for the camera type "camera help".'
 	
 #**************************** Scheduler specific commands ***********************#
-	@timeout(30)
 	def cmd_Sched(self,the_command):
 		#function to act upon the Scheduler
 		commands=str.split(the_command)
@@ -68,7 +66,6 @@ class SchedServer:
 				return 'Type "Sched on" to start the scheduler, "Sched off" to shut it down, and "Sched print" to view the current jobs and indices'
 			else: return 'Invalid option'
 
-	@timeout()
 	def cmd_AddJob(self,the_command):
 		#Adds jobs to the scheduler
 		commands=str.split(the_command)
@@ -107,19 +104,25 @@ class SchedServer:
 			else: return 'Invalid job type. It should either be "Cal" or "Obj"'
 			return 'Successfully added the job to the queue.'
 	
-	@timeout(600)
 	def SchedObject(self,target,ra,dec,mode,exp,nexps,f):
+		print time.asctime(),'Started job'
 		#Routine that triggers the telescope to move to an object and start stuff. 
-		dummy=self.cmd_Imaging('Imaging off')
-		dummy=self.cmd_guiding('guiding off')
+		dummy=self.uber_client.send_command('Imaging off')
+		dummy=self.uber_client.send_command('guiding off')
 		try: self.Target,self.RA,self.DEC,self.Mode,self.ExposureTime,self.NExps,self.Filter=target,ra,dec,mode,exp,nexps,f
 		except Exception: print 'Unable to define the job settings' 
 		if self.Mode=='RheaGuiding':
-			response = self.cmd_checkIfReady(Weather=True,Dome=True,Telescope=True,Fiberfeed=True,Sidecam=True,Focuser=True)
+			try: 
+				response = self.uber_client.send_command('labjack slits')
+				if not 'True' in response: dummy=self.uber_client.send_command('labjack slits open')
+				response = self.uber_client.send_command('telescope telescopeConnect')
+				response = self.uber_client.send_command('checkIfReady Weather Dome Telescope Fiberfeed Sidecam Focuser')
+			except Exception: print 'Something went wrong with checking if the slits are open or the telescope is connected'
+			response = self.uber_client.send_command('checkIfReady Weather Dome Telescope Fiberfeed Sidecam Focuser')
 			if not 'Ready' in response: 
 				print response
 				return 0
-			try: response = self.telescope_client.send_command('SlewToObject '+self.Target)
+			try: response = self.uber_client.send_command('telescope SlewToObject '+self.Target)
 			except Exception: 
 				print 'Something went wrong with trying to slew directly to target name'
 			if not 'Telescope Slewing' in response:
@@ -129,20 +132,22 @@ class SchedServer:
 					newRA=str(temp[0]+temp[1]/60.+temp[2]/3600.)
 					temp=numpy.float64(self.DEC.split(':'))
 					newDEC=str(temp[0]+temp[1]/60.+temp[2]/3600.)
-					try: response=self.telescope_client.send_command('slewToRaDec '+newRA+' '+newDEC)
+					try: response=self.uber_client.send_command('telescope slewToRaDec '+newRA+' '+newDEC)
 					except Exception: return 'Unable to intruct to telescope to slew to an RA and DEC'
 				else:
-					try: response=self.telescope_client.send_command('slewToRaDec '+self.RA+' '+self.DEC)
+					try: response=self.uber_client.send_command('telescope slewToRaDec '+self.RA+' '+self.DEC)
 					except Exception: return 'Unable to intruct to telescope to slew to an RA and DEC'
 			#Wait for slew
-			while not 'Done' in self.telescope_client.send_command('IsSlewComplete'): time.sleep(1)
+			while not 'Done' in self.uber_client.send_command('telescope IsSlewComplete'): time.sleep(1)
 			#Slew dome to telescope
-			while abs(float(str.split(self.labjack_client.send_command('dome location'))[0]) - float(str.split(self.telescope_client.send_command('SkyDomeGetAz'),'|')[0])) > 2.5: self.dome_track()
-			while not 'Ready' in self.cmd_checkIfReady(Weather=True,Dome=True,Telescope=True,Fiberfeed=True,Sidecam=True,Focuser=True): time.sleep(1)
-			try: response=self.cmd_masterAlign('masterAlign')
+			while abs(float(str.split(self.uber_client.send_command('labjack dome location'))[0]) - float(str.split(self.uber_client.send_command('telescope SkyDomeGetAz'),'|')[0])) > 2.5: time.sleep(1)
+			while not 'Ready' in self.uber_client.send_command('checkIfReady Weather Dome Telescope Fiberfeed Sidecam Focuser'): time.sleep(1)
+			try: response=self.uber_client.send_command('masterAlign')
 			except Exception: return 'For some reason could not get the master Align routine to work'
 			if not 'Finished the master' in response: return 'Failed the master align with the error: '+response
-			try: response = self.cmd_guiding('guiding on')
+			else: time.sleep(1)
+			while not 'Ready' in self.uber_client.send_command('checkIfReady Weather Dome Telescope Fiberfeed Sidecam Focuser'): time.sleep(1)
+			try: response = self.uber_client.send_command('guiding on')
 			except Exception: return 'Something went wrong with activating the guiding'
 			if not 'enabled' in response: return 'Guiding loop not enabled'
 		elif self.Mode=='RheaFull':

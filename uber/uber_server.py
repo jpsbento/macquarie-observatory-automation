@@ -398,10 +398,10 @@ class UberServer:
 			distance=math.sqrt(float(moving[0])**2+float(moving[1])**2)
 			print 'Distance to be moved: ',distance
 			try: 
-				while not 'Done' in self.telescope_client.send_command('IsSlewComplete'): time.sleep(0.3)
-				self.telescope_client.send_command('jog North '+moving[0])
-				while not 'Done' in self.telescope_client.send_command('IsSlewComplete'): time.sleep(0.3)
-				self.telescope_client.send_command('jog East '+moving[1])
+				while not 'Done' in self.telescope_client.send_command('IsSlewComplete'): time.sleep(1)
+				dummy=self.telescope_client.send_command('jog North '+moving[0])
+				while not 'Done' in self.telescope_client.send_command('IsSlewComplete'): time.sleep(1)
+				dummy=self.telescope_client.send_command('jog East '+moving[1])
 			except Exception:
 				print 'ERROR: Failed to move telescope to desired coordinates'
 				return 0
@@ -546,7 +546,6 @@ class UberServer:
 		return 'Ready'
 
 
-
 #***************************** End of User Commands *****************************#
 
 	def dome_track(self):
@@ -629,10 +628,10 @@ class UberServer:
 			else:
 				self.guiding_failures=0
 				try: 
-					while not 'Done' in self.telescope_client.send_command('IsSlewComplete'): time.sleep(0.3)
-					dummy=self.telescope_client.send_command('jog North '+str(float(moving[0])/2.))
-					while not 'Done' in self.telescope_client.send_command('IsSlewComplete'): time.sleep(0.3)
-					dummy=self.telescope_client.send_command('jog East '+str(float(moving[1])/2.))
+					while not 'Done' in self.telescope_client.send_command('IsSlewComplete'): time.sleep(1)
+					self.telescope_client.send_command('jog North '+str(float(moving[0])/2.))
+					while not 'Done' in self.telescope_client.send_command('IsSlewComplete'): time.sleep(1)
+					self.telescope_client.send_command('jog East '+str(float(moving[1])/2.))
 				except Exception: 
 					print 'For some reason communication with the telescope is not working.'  
 					self.guiding_bool=False
