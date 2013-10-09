@@ -168,12 +168,16 @@ class UberServer:
 			cam_client=self.sidecam_client
 			jog_amount=str(20)
 		else: return 'Invalid camera selection'
-		cam_client.send_command('orientationCapture base')
+		try: cam_client.send_command('orientationCapture base')
+		except Exception: return 'Unable to capture images from camera'
+		while not 'Done' in self.telescope_client.send_command('IsSlewComplete'): time.sleep(1)
 		jog_response = self.telescope_client.send_command('jog North '+jog_amount)  # jogs the telescope 1 arcsec (or arcmin??) north
 		if jog_response == 'ERROR': return 'ERROR in telescope movement.'
 		print 'sleeping 5 seconds'
 		time.sleep(5)
-		cam_client.send_command('orientationCapture North '+jog_amount)
+		try: cam_client.send_command('orientationCapture North '+jog_amount)
+		except Exception: return 'Could not capture images from camera'
+		while not 'Done' in self.telescope_client.send_command('IsSlewComplete'): time.sleep(1)
 		jog_response = self.telescope_client.send_command('jog East '+jog_amount)
 		print 'sleeping 5 seconds'
 		time.sleep(5)
@@ -333,6 +337,7 @@ class UberServer:
 							 return 'Spiral sucessful. Star is now at coordinates '+str(xcoord)+', '+str(ycoord)
 						 else: print 'Still not good enough. Continuing...'
 					else: print 'Star not found, Continuing...'
+					while not 'Done' in self.telescope_client.send_command('IsSlewComplete'): time.sleep(1)
 					jog_response=self.telescope_client.send_command('jog '+direction+' '+str(sign*offset))
 					print direction, sign*offset
 					time.sleep(3)
@@ -405,7 +410,7 @@ class UberServer:
 			except Exception:
 				print 'ERROR: Failed to move telescope to desired coordinates'
 				return 0
-		print 'successfully moved telescope to location'
+		return 'successfully moved telescope to location'
 
 	def cmd_masterAlign(self, the_command):
 		'''Awesome!! function that can be ran to trigger the improvement in the alignment. This is supposed to be ran once the telescope has been instructed to point at a star and the dome has finished moving to it, and it will improve the pointing using the sidecam, put the star in the fiberfeed cam and start the guiding. It is mostly a collection of existing functions. It is also highly customisable.
@@ -465,7 +470,9 @@ class UberServer:
 			return 0
 		print 'worked out the stellar distance to center'
 		try: 
+			while not 'Done' in self.telescope_client.send_command('IsSlewComplete'): time.sleep(1)
 			self.telescope_client.send_command('jog North '+moving[0])
+			while not 'Done' in self.telescope_client.send_command('IsSlewComplete'): time.sleep(1)
 			self.telescope_client.send_command('jog East '+moving[1])
 		except Exception:
 			print 'ERROR: Failed to move telescope to desired coordinates (fiberfeed)'
