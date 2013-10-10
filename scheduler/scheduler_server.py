@@ -51,10 +51,12 @@ class SchedServer:
 			return str(self.sched.running)
 		if len(commands)==2:
 			if commands[1]=='on':
-				self.sched.start()
+				try: self.sched.start()
+				except Exception: return 'Scheduler already running'
 				return 'Scheduler active'
 			elif commands[1]=='off':
-				self.sched.shutdown()
+				try: self.sched.shutdown()
+				except Exception: return 'Scheduler already shutdown'
 				return 'Scheduler stopped'
 			elif commands[1]=='print':
 				jobs=self.sched.get_jobs()

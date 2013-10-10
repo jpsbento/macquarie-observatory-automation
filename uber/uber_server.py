@@ -368,37 +368,31 @@ class UberServer:
 		This function will require more thorough checks along the way. This will be added whilst this is being tested.'''
 		try: self.sidecam_client.send_command('Chop on')
 		except Exception: 
-			print 'ERROR: Failed to set the image chopping on the sidecam'
-			return 0
+			return 'ERROR: Failed to set the image chopping on the sidecam'
 		print 'image chopping activated.'
 		try: self.sidecam_client.send_command('setCameraValues default')
 		except Exception: 
-			print 'ERROR: Failed to set the default values for the sidecam'
-			return 0
+			return 'ERROR: Failed to set the default values for the sidecam'
 		print 'default values for sidecam set.'
 		try: self.sidecam_client.send_command('adjustExposure')
 		except Exception: 
-			print 'ERROR: Failed to adjust the exposure of the sidecam'
-			return 0
+			return 'ERROR: Failed to adjust the exposure of the sidecam'
 		print 'exposure adjusted for sidecam.'
 		try: self.cmd_orientateCamera('orientateCamera sidecam')
 		except Exception: 
-			print 'ERROR: Failed to set the orientation of the sidecam'
-			return 0
+			return 'ERROR: Failed to set the orientation of the sidecam'
 		print 'orientation of the sidecamera set.'
 		distance=1000
 		while distance>0.3:
 			try: self.sidecam_client.send_command('imageCube test 10')
 			except Exception: 
-				print 'ERROR: Failed to take images to work out where the star is at the moment'
-				return 0
+				return 'ERROR: Failed to take images to work out where the star is at the moment'
 			print 'current location images taken for sidecam.'
 			try: 
 				moving=str.split(self.sidecam_client.send_command('starDistanceFromCenter test'))
 				dummy=float(moving[0])
 			except Exception: 
-				print 'ERROR: Failed to work out what the stellar distance to the optimal coordinates is'
-				return 0
+				return 'ERROR: Failed to work out what the stellar distance to the optimal coordinates is'
 			print 'Stellar distance to center found.'
 			distance=math.sqrt(float(moving[0])**2+float(moving[1])**2)
 			print 'Distance to be moved: ',distance
@@ -408,8 +402,7 @@ class UberServer:
 				while not 'Done' in self.telescope_client.send_command('IsSlewComplete'): time.sleep(1)
 				dummy=self.telescope_client.send_command('jog East '+moving[1])
 			except Exception:
-				print 'ERROR: Failed to move telescope to desired coordinates'
-				return 0
+				return 'ERROR: Failed to move telescope to desired coordinates'
 		return 'successfully moved telescope to location'
 
 	def cmd_masterAlign(self, the_command):
@@ -420,7 +413,7 @@ class UberServer:
 		except Exception: return 'Could not center star'
 #Set the focus position back to the initial value
 		try: self.telescope_client.send_command("focusGoToPosition 4000")
-		except Exception: print 'Could not get the focusser to its initial position'; return 0
+		except Exception: return 'Could not get the focusser to its initial position'
 		if self.initial_focus_position==0:
 			self.initial_focus_position=self.telescope_client.send_command("focusReadPosition").split('\n')[0]
 		else: 
@@ -429,45 +422,37 @@ class UberServer:
 			sidecam_exposure=self.sidecam_client.send_command('currentExposure')
 			fiberfeed_exposure=str(int(float(str.split(sidecam_exposure)[0])*1E4/self.side_fiber_exp_ratio))
 		except Exception:
-			print 'ERROR: Failed to query current sidecam exposure time'
-			return 0
+			return 'ERROR: Failed to query current sidecam exposure time'
 		print 'Got the sidecamera exposure'
 		try: self.fiberfeed_client.send_command('setCameraValues default')
 		except Exception: 
-			print 'ERROR: Failed to set the default values for the fiberfeed'
-			return 0
+			return 'ERROR: Failed to set the default values for the fiberfeed'
 		print 'Set default values for fiberfeed'
 		try: self.fiberfeed_client.send_command('setCameraValues ExposureAbs '+fiberfeed_exposure)
 		except Exception:
-			print 'ERROR: Failed set the fiberfeed camera exposure time'
-			return 0
+			return 'ERROR: Failed set the fiberfeed camera exposure time'
 		print 'set exposure time for fiberfeed'
 		try: self.cmd_spiral('spiral')
 		except Exception:
-			print 'ERROR: Failed to spiral for some reason. Check the output '
-			return 0
+			return 'ERROR: Failed to spiral for some reason. Check the output '
 		print 'spiralling complete'
 		try: self.fiberfeed_client.send_command('adjustExposure')
 		except Exception:
-			print 'ERROR: Failed to adjust exposure for the fiberfeed camera'
-			return 0
+			return 'ERROR: Failed to adjust exposure for the fiberfeed camera'
 		print 'adjusted exposure for fiberfeed'
 		try: self.cmd_orientateCamera('orientateCamera fiberfeed')
 		except Exception: 
-			print 'ERROR: Failed to set the orientation of the fiberfeed camera'
-			return 0
+			return 'ERROR: Failed to set the orientation of the fiberfeed camera'
 		print 'orientation of fiberfeed found'
 		try: self.fiberfeed_client.send_command('imageCube test 10')
 		except Exception: 
-			print 'ERROR: Failed to take images to work out where the star is at the moment in the fiberfeed camera'
-			return 0
+			return 'ERROR: Failed to take images to work out where the star is at the moment in the fiberfeed camera'
 		print 'got the images of current location of star'
 		try: 
 			moving=str.split(self.fiberfeed_client.send_command('starDistanceFromCenter test'))
 			dummy=float(moving[0])
 		except Exception: 
-			print 'ERROR: Failed to work out what the stellar distance to the optimal coordinates is on the fiberfeed camera'
-			return 0
+			return 'ERROR: Failed to work out what the stellar distance to the optimal coordinates is on the fiberfeed camera'
 		print 'worked out the stellar distance to center'
 		try: 
 			while not 'Done' in self.telescope_client.send_command('IsSlewComplete'): time.sleep(1)
@@ -475,12 +460,11 @@ class UberServer:
 			while not 'Done' in self.telescope_client.send_command('IsSlewComplete'): time.sleep(1)
 			self.telescope_client.send_command('jog East '+moving[1])
 		except Exception:
-			print 'ERROR: Failed to move telescope to desired coordinates (fiberfeed)'
-			return 0
+			return 'ERROR: Failed to move telescope to desired coordinates (fiberfeed)'
 		print 'sucessfully moved telescope'
 		try: self.fiberfeed_client.send_command('captureImages program_images/visual no')
 		except Exception: 
-			print 'Failed to capture an image to show you where the star currently lies in. Not too much of a problem...'
+			return 'Failed to capture an image to show you where the star currently lies in. Not too much of a problem...'
 		self.guiding_failures=0
 		return 'Finished the master alignment.'
 	
