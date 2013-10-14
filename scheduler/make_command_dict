@@ -1,9 +1,0 @@
-#!/bin/bash
-THESTRINGS=$1=m.cmd_$1
-shift
-while [ $# -gt 0 ] 
-do
- THESTRINGS=${THESTRINGS}','$1=m.cmd_$1
- shift
-done
-echo ${THESTRINGS}
