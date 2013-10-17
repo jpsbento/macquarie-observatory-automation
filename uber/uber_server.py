@@ -69,6 +69,18 @@ class UberServer:
 		except Exception: return 'Failed to finish the session sucessfully'
 		return 'Sucessfully finished session'
 	
+	def cmd_startSession(self,the_command):
+		'''Close the slits, home the dome, home the telescope, put telescope in park mode.'''
+		try:
+			dummy = self.cmd_guiding('guiding off')
+			dummy = self.labjack_client.send_command('slits open')
+			self.dome_tracking=True
+			dummy = self.labjack_client.send_command('dome home')
+			dummy = self.telescope_client.send_command('findHome')
+			self.override_wx=False
+		except Exception: return 'Failed to initiate the session sucessfully'
+		return 'Sucessfully initiated session. You should wait a little bit for the dome and telescope to stop moving before trying anything else.'
+
 	def cmd_labjack(self,the_command):
 		'''A user can still access the low level commands from the labjack using this command. ie
 		type 'labjack help' to get all the available commands for the labjack server.'''
@@ -153,8 +165,8 @@ class UberServer:
 			if self.dome_tracking: return 'Dome tracking enabled.'
 			else: return 'Dome tracking disabled.' 
 		elif len(commands) != 2: return 'Invalid input'
-		if commands[1] == 'on': self.dome_tracking = True
-		elif commands[1] == 'off': self.dome_tracking = False
+		if commands[1] == 'on': self.dome_tracking = True; return 'Dome Tracking turned on'
+		elif commands[1] == 'off': self.dome_tracking = False; return 'Dome Tracking turned off'
 		else: return 'Invalid input, on/off expected.'
 
 	def cmd_orientateCamera(self, the_command):
