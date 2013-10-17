@@ -10,23 +10,19 @@ import client_socket
 
 client='uber'
 #Setup the connection for the labjack. This script can only be ran from inside campus
-try: 
-    uber_client = client_socket.ClientSocket("uber","bisquemount")
-    uber_client.send_command('setDomeTracking off')
-    uber_client.send_command('override_wx')
-    print 'Successfully connected to the uber server'
-except Exception: 
-    try: 
-        labjack_client = client_socket.ClientSocket("labjack","bisquemount")
-        client='labjack'
-        labjack_client.send_command('ok')
-        print 'Successfully connected to the labjack server'
-    except Exception:
+uber_client = client_socket.ClientSocket("uber","bisquemount")
+result1= uber_client.send_command('setDomeTracking off')
+result2= uber_client.send_command('override_wx')
+if ('Error' in result1) or ('Error' in result2):
+    labjack_client = client_socket.ClientSocket("labjack","bisquemount")
+    client='labjack'
+    result=labjack_client.send_command('ok')
+    if 'Error' in result:
         tkMessageBox.showinfo('ERROR','Unsucessful attempt connecting to any server')
         client='None'
         sys.exit()
 
-
+print 'Connected to the '+client+' client'
 #Generate the window, with a minimum size and title
 root=Tkinter.Tk()
 root.minsize(200,100)
