@@ -184,7 +184,7 @@ class UberServer:
 		else: return 'Invalid camera selection'
 		try: cam_client.send_command('orientationCapture base')
 		except Exception: return 'Unable to capture images from camera'
-		while not 'Done' in self.telescope_client.send_command('IsSlewComplete'): time.sleep(1)
+		while (not 'Done') in self.telescope_client.send_command('IsSlewComplete'): time.sleep(1)
 		jog_response = self.telescope_client.send_command('jog North '+jog_amount)  # jogs the telescope 1 arcsec (or arcmin??) north
 		if jog_response == 'ERROR': return 'ERROR in telescope movement.'
 		print 'sleeping 5 seconds'
@@ -629,6 +629,7 @@ class UberServer:
 				if self.guiding_failures>10:
 					print 'guide star lost, stopping the guiding loop'
 					self.guiding_bool=False
+					self.exposing=False
 				else: self.guiding_failures+=1
 			else:
 				self.guiding_failures=0
@@ -640,6 +641,7 @@ class UberServer:
 				except Exception: 
 					print 'For some reason communication with the telescope is not working.'  
 					self.guiding_bool=False
+					self.exposing=False
 				print 'Guiding has offset the telescope by amounts: '+str(moving[0])+' arcmins Nrth and '+str(moving[1])+' arcmins East'
 				result=self.telescope_client.send_command('focusTelescope '+str(HFD))
 				if 'Focussing' not in result: print 'Something went wrong with the focussing instruction'
