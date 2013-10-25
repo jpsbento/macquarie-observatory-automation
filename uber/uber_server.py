@@ -184,7 +184,7 @@ class UberServer:
 		else: return 'Invalid camera selection'
 		try: cam_client.send_command('orientationCapture base')
 		except Exception: return 'Unable to capture images from camera'
-		while (not 'Done') in self.telescope_client.send_command('IsSlewComplete'): time.sleep(1)
+		while not 'Done' in self.telescope_client.send_command('IsSlewComplete'): time.sleep(1)
 		jog_response = self.telescope_client.send_command('jog North '+jog_amount)  # jogs the telescope 1 arcsec (or arcmin??) north
 		if jog_response == 'ERROR': return 'ERROR in telescope movement.'
 		print 'sleeping 5 seconds'
@@ -620,9 +620,12 @@ class UberServer:
 		'''This is the function that does the guiding loop''' 
 		if self.guiding_bool and os.path.exists('../fiberfeed/guiding_stats.txt'):
 			guidingReturn=self.guidingReturn('guidingReturn')
+			print guidingReturn
 			try: 
 				HFD=float(guidingReturn[0])
+				print HFD
 				moving=[float(guidingReturn[1]),float(guidingReturn[2])]
+				print moving
 			except Exception: print 'Could not convert the values in the guiding_stats file into floats'
 			if HFD==0.0 and moving==[0.0,0.0]:
 				print 'No guide star found'

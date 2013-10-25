@@ -11,6 +11,7 @@ from datetime import datetime
 import time
 import serial
 import binascii, ast
+import numpy as np
 
 #Open port 0 at "9600,8,N,1", timeout of 5 seconds
 #Open port connected to the mount
@@ -250,7 +251,7 @@ class BisqueMountServer:
 					if self.move_focus_amount==0: self.move_focus_amount=1
 			#This is introduced to force the focusser to the minimum HFD position with a 1/50 probability. This is an attempt to try to make sure the system is usually close to the optimal focus.
 			if np.random.rand()<(1/50.): 
-				self.cmd_focusGoToPosition"focusGoToPosition "+str(int(self.focus_min))
+				self.cmd_focusGoToPosition("focusGoToPosition "+str(int(self.focus_min)))
 				print 'Focuser forced to go to last minimum setting'
 			else: self.cmd_focusGoToPosition("focusGoToPosition "+str(int(focusposition)+self.move_focus_amount))
 			self.sharp_value=self.HFD
