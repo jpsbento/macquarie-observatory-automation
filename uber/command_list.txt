@@ -1,4 +1,5 @@
 finishSession
+startSession
 labjack
 telescope
 weatherstation

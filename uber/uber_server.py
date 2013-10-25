@@ -61,6 +61,7 @@ class UberServer:
 		'''Close the slits, home the dome, home the telescope, put telescope in park mode.'''
 		try:
 			dummy = self.cmd_guiding('guiding off')
+			dummy = self.cmd_Imaging('Imaging off')
 			dummy = self.labjack_client.send_command('slits close')
 			self.dome_tracking=False
 			dummy = self.labjack_client.send_command('dome home')
@@ -78,6 +79,7 @@ class UberServer:
 			dummy = self.labjack_client.send_command('dome home')
 			dummy = self.telescope_client.send_command('findHome')
 			self.override_wx=False
+			dummy = self.telescope_client.send_command('focusGoToPosition 4000')
 		except Exception: return 'Failed to initiate the session sucessfully'
 		return 'Sucessfully initiated session. You should wait a little bit for the dome and telescope to stop moving before trying anything else.'
 

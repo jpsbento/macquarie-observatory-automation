@@ -28,8 +28,8 @@ class FiberFeedServer:
 				 # I *think* you just add this number (when calculated) to all Iraf mags and you're set.
 	
 	# The central pixel coordinates
-	target_xpixel = 240.5   # 640 x pixel width
-	target_ypixel = 229.4   # 480 y pixel height
+	target_xpixel = 235.6   # 640 x pixel width
+	target_ypixel = 232.7   # 480 y pixel height
 	north_move_arcmins = 1
 	east_move_arcmins = 1
 	oneArcmininPixelsN = 100  # This tells us how many pixels there are to one arcsecond in the North/South direction
@@ -154,13 +154,10 @@ class FiberFeedServer:
 			if max_pix > 245:
 				prop = self.dev.get_property('Exposure (Absolute)')
 				direction=-1
-				if prop['value']> 51:
-					prop['value']-=deviation
-					print 'Exposure=',prop['value']/10.,'ms'
-					self.dev.set_property( prop )
-					self.set_values[2]=prop['value']
-				elif prop['value']<51 and prop['value']>2: 
-					prop['value']-=1
+				if prop['value']> 2:
+					if (prop['value']-deviation)>0:
+						prop['value']-=deviation
+					else: prop['value']-=1
 					print 'Exposure=',prop['value']/10.,'ms'
 					self.dev.set_property( prop )
 					self.set_values[2]=prop['value']
