@@ -28,8 +28,8 @@ class FiberFeedServer:
 				 # I *think* you just add this number (when calculated) to all Iraf mags and you're set.
 	
 	# The central pixel coordinates
-	target_xpixel = 235.6   # 640 x pixel width
-	target_ypixel = 232.7   # 480 y pixel height
+	target_xpixel = 408.1  # 640 x pixel width
+	target_ypixel = 169.2   # 480 y pixel height
 	north_move_arcmins = 1
 	east_move_arcmins = 1
 	oneArcmininPixelsN = 100  # This tells us how many pixels there are to one arcsecond in the North/South direction
@@ -429,7 +429,7 @@ class FiberFeedServer:
 		Very similar to cmd_defineCenter, but takes the images as well and defines the bright star coordinates as the central coords.'''
 		comands=str.split(the_command)
 		if len(comands) != 1: return 'no input needed for this function'
-		dummy=self.cmd_imageCube('imageCube central')
+		dummy=self.cmd_imageCube('imageCube central high')
 		star_info = self.analyseImage('program_images/central.fits', 'program_images/central.txt') # put in these parameters
 		try: 
 			new_x=float(star_info[1])
