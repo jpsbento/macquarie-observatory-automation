@@ -632,6 +632,7 @@ class UberServer:
 				if self.guiding_failures>10:
 					print 'guide star lost, stopping the guiding loop'
 					self.guiding_bool=False
+					self.guiding_failures=0
 					self.exposing=False
 				else: self.guiding_failures+=1
 			else:

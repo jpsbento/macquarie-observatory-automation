@@ -240,15 +240,8 @@ class BisqueMountServer:
 				self.focus_min=focusposition
 			#if the HFD has increased since last time, reverse the direction of motion and half the amount. Otherwise, just leave as is and then move the focuser. 
 			if self.HFD >= self.sharp_value: 
-				#This condition determines that if the HFD value ever gets higher than 1.6 x the minimum, then the focusser is probably defocussing the telescope due to measuring errors. So, the focus motion amount is reset to 200 and the minimum parameters also reset to the current values. In essence, it forces the system to refocus.
-				if self.HFD > (1.6*self.HFD_min):
-					self.move_focus_amount=200
-					self.HFD_min=self.HFD
-					self.focus_min=focusposition
-					print 'Focus degraded, trying to improve it'
-				else:
-					self.move_focus_amount = int((self.move_focus_amount*-1)/2)
-					if self.move_focus_amount==0: self.move_focus_amount=1
+				self.move_focus_amount = int((self.move_focus_amount*-1)/2)
+				if self.move_focus_amount==0: self.move_focus_amount=1
 			#This is introduced to force the focusser to the minimum HFD position with a 1/50 probability. This is an attempt to try to make sure the system is usually close to the optimal focus.
 			if np.random.rand()<(1/50.): 
 				self.cmd_focusGoToPosition("focusGoToPosition "+str(int(self.focus_min)))
@@ -567,7 +560,7 @@ class BisqueMountServer:
 		TheSkyXCommand = self.readscript('IsSlewComplete.js')
 		client_socket.send(TheSkyXCommand)
 		response=self.messages()
-		if '212' in response: response='Done'
+		if '219' in response: response='Done'
 		return response
 
 

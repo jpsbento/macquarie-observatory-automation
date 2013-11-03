@@ -28,8 +28,8 @@ class FiberFeedServer:
 				 # I *think* you just add this number (when calculated) to all Iraf mags and you're set.
 	
 	# The central pixel coordinates
-	target_xpixel = 408.1  # 640 x pixel width
-	target_ypixel = 169.2   # 480 y pixel height
+	target_xpixel = 409.4  # 640 x pixel width
+	target_ypixel = 165.7   # 480 y pixel height
 	north_move_arcmins = 1
 	east_move_arcmins = 1
 	oneArcmininPixelsN = 100  # This tells us how many pixels there are to one arcsecond in the North/South direction
