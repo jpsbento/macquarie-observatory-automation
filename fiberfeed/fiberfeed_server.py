@@ -75,6 +75,7 @@ class FiberFeedServer:
 	exposing=False
 	movement=[0.0,0.0]
 	HFD=0.0
+	filename='empty'
 
 #******************************* The main camera comands ***********************************#
 
@@ -112,7 +113,7 @@ class FiberFeedServer:
 			except Exception: print 'Could not capture images'
 		localtime=time.localtime(time.time())
 		#for the purposes of testing the guiding, save each image as a separate file. 
-		filename='guiding_'+str(localtime[0])+str(localtime[1]).zfill(2)+str(localtime[2]).zfill(2)+str(localtime[3]).zfill(2)+str(localtime[4]).zfill(2)+str(localtime[5]).zfill(2)
+		self.filename='guiding_'+str(localtime[0])+str(localtime[1]).zfill(2)+str(localtime[2]).zfill(2)+str(localtime[3]).zfill(2)+str(localtime[4]).zfill(2)+str(localtime[5]).zfill(2)
 		#analyse the image using whatever software we are using at the moment and find the brightest star. 
 		try: 
 			brightcoords = self.analyseImage('program_images/brightstar.fits','program_images/brightstar.txt')
@@ -556,7 +557,7 @@ class FiberFeedServer:
 			else:
 				self.movement=[0.0,0.0]
 				self.HFD=0.0
-			fileline=[self.HFD,float(self.movement[0]),float(self.movement[1])]
+			fileline=[self.HFD,float(self.movement[0]),float(self.movement[1]),self.filename,self.target_xpixel,self.target_ypixel]
 			print fileline
-			numpy.savetxt('guiding_stats.txt',fileline)
+			numpy.savetxt('guiding_stats.txt',fileline,fmt='%s')
 			self.exposing=False

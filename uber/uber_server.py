@@ -611,7 +611,7 @@ class UberServer:
 		#function that returns the current guiding parameters from a file written by the fiberfeed server
 		commands=str.split(the_command)
 		if len(commands)>1: return 'Error: this function does not take inputs'
-		try: stats=numpy.loadtxt('../fiberfeed/guiding_stats.txt')
+		try: stats=numpy.loadtxt('../fiberfeed/guiding_stats.txt',dtype='str')
 		except Exception: return 'Could not load the guiding_stats file'
 		return stats
 		
@@ -621,6 +621,15 @@ class UberServer:
 		if self.guiding_bool and os.path.exists('../fiberfeed/guiding_stats.txt'):
 			guidingReturn=self.guidingReturn('guidingReturn')
 			print guidingReturn
+			try:
+				a=pyfits.getheader('../fiberfeed/program_images/'+guidingReturn[3]+'.fits')
+				if not a.has_key('FOCUS'):
+					im=pyfits.open('../fiberfeed/program_images/'+guidingReturn[3]+'.fits',mode='update')
+					h=im[0].header
+					h.update('FOCUS',self.telescope_client.send_command('FocusReadPosition'),'Position of the focuser')
+					h.update('LOCXPIX',float(guidingReturn[4]),'guiding X pixel position')
+					h.update('LOCYPIX',float(guidingReturn[5]),'guiding Y pixel position')
+			except Exception: print 'Unable to update guiding image header'
 			try: 
 				HFD=float(guidingReturn[0])
 				print HFD
@@ -665,6 +674,26 @@ class UberServer:
 				h.update('TELESCOP', 'Meade LX200 f/10 16 inch', 'Which telescope used')
 				h.update('LAT', -33.77022, 'Telescope latitude (deg)')
 				h.update('LONG', 151.111075, 'Telescope longitude (deg)')
+				try: 
+					d=eval(self.telescope_client.send_command('objInfo'))
+					h.update('TARGET',d['NAME1'],'Target name')
+					h.update('NAME2',d['NAME2'],'Alternative target IDs')
+					h.update('NAME3',d['NAME3'],'Alternative target IDs')
+					h.update('NAME4',d['NAME4'],'Alternative target IDs')
+					h.update('NAME5',d['NAME5'],'Alternative target IDs')
+					h.update('NAME6',d['NAME6'],'Alternative target IDs')
+					h.update('OBJ_TYPE',d['OBJ_TYPE'],'Target type')
+					h.update('SPECTYPE',d['STAR_SPECTRAL'],'Stellar spectral type')
+					h.update('RA_2000',d['RA_2000'],'Right Ascension of target')
+					h.update('DEC_2000',d['DEC_2000'],'Declination of target')
+					h.update('V_MAG',d['STAR_MAGV'],'Target V Magnitude (0 if unknown)')
+					h.update('R_MAG',d['STAR_MAGR'],'Target R Magnitude (0 if unknown)')
+					h.update('B_MAG',d['STAR_MAGB'],'Target B Magnitude (0 if unknown)')
+					h.update('HA',d['HA_HOURS'],'Hour angle at end of exposure')
+					h.update('MOONPHAS', d['MOON_PHASE_ANGLE'], 'Lunar Phase angle')
+					h.update('MOONRA', d['MOON_TRUE_EQ_RA'], 'Moon RA')
+					h.update('MOONDEC',d['MOON_TRUE_EQ_DEC'],'Moon DEC')
+				except Exception: print 'Unable to get the target header information from TheSkyX'
 				h.update('TEL-RA', float(self.telescope_client.send_command('getRA').split('\n')[0]), 'Telescope pointing Right Ascension')
 				h.update('TEL-DEC', float(self.telescope_client.send_command('getDec').split('\n')[0]) , 'Telescope pointing Declination')
 				telAlt=float(self.telescope_client.send_command('getAltitude').split('\n')[0])
@@ -678,10 +707,6 @@ class UberServer:
 				#From Rozenberg, G. V. 1966. Twilight: A Study in Atmospheric Optics. New York: Plenum Press, 160.
 				airmass= 1/(math.cos(math.radians(zendist)) + 0.025*math.exp(-11*math.cos(math.radians(zendist))))
 				h.update('AIRMASS',airmass , 'Airmass of observation')
-				h.update('MOONPHAS', 'place_holder', 'Lunar Phase (% illumination)')
-				h.update('MOONDIST', 'place_holder', 'Distance to the Moon (deg)')
-				h.update('MOONALT','place_holder' , 'Moon altitude (deg)')
-				h.update('NIGHT', 'place_holder', 'Night index')
 				im.flush()
 				self.old_filename='None'
 		if self.exposing and self.old_filename=='None':
