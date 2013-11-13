@@ -117,7 +117,7 @@ class FiberFeedServer:
 		#analyse the image using whatever software we are using at the moment and find the brightest star. 
 		try: 
 			brightcoords = self.analyseImage('program_images/brightstar.fits','program_images/brightstar.txt')
-			os.system('cp program_images/brightstar.fits program_images/'+filename+'.fits')
+			os.system('cp program_images/brightstar.fits program_images/'+self.filename+'.fits')
 		except Exception: return 'Could not analyse image.'
 		#return the coordinates, magnitude and sharpness
 		if brightcoords == 0: return 'no stars found.'
@@ -158,7 +158,7 @@ class FiberFeedServer:
 				if prop['value']> 2:
 					if (prop['value']-deviation)>0:
 						prop['value']-=deviation
-					else: prop['value']-=1
+					else: prop['value']-=prop['value']/2
 					print 'Exposure=',prop['value']/10.,'ms'
 					self.dev.set_property( prop )
 					self.set_values[2]=prop['value']

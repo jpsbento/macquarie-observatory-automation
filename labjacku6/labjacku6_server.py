@@ -22,8 +22,8 @@ import copy
 #   would then write to the *same* labjack hardware, but could e.g. 
 #   do different parts of the job. You's almost certainly *not* want to do 
 #   this.
-#LJ=u6.U6()
-LJ=u6.U6(serial=360008628)
+LJ=u6.U6()
+#LJ=u6.U6(serial=360008628)
 #Need to set up fancy DAC here for the temperature control
 #LJ.configIO(NumberOfTimersEnabled = 2, EnableCounter0 = 1, TimerCounterPinOffset=8)
 #LJ.getFeedback(u3.Timer0Config(8), u3.Timer1Config(8)) #Sets up the dome tracking wheel
@@ -54,7 +54,7 @@ class LabjackU6Server:    # global variables that can be rewritten
         pcm_time=0.5     #total heating cycle time. probably in seconds
 	heater_frac=0.0     #fraction of the pcm_time that the heater is on
         delT_int = 0.0
-        T_targ = 23
+        T_targ = 24
         heater_gain=4
         integral_gain=0.1
         T1=0
@@ -115,8 +115,8 @@ class LabjackU6Server:    # global variables that can be rewritten
                 '''Execute the feedback loop every feedback_freq times'''
 
                 if self.feedback_freq==0: return
-                #fileName='TLog.log' #'TLog_'+localtime+'.log'
-                #self.f = open(fileName,'a')
+                fileName='TLog_obs.log' #'TLog_'+localtime+'.log'
+                self.f = open(fileName,'a')
                 self.loop_count = self.loop_count + 1
                  
    
@@ -145,10 +145,10 @@ class LabjackU6Server:    # global variables that can be rewritten
 			#self.T3 = 1/T33 - 273
 			
 			lineOut = " %.4f %.4f %.4f %.3f " % (self.T1,a2, self.heater_frac,self.delT_int)
-			print lineOut
+			#print lineOut
 			localtime = time.asctime( time.localtime(time.time()) )
-			#self.f.write(lineOut+' '+localtime+'\n')
-			#self.f.close()
+			self.f.write(lineOut+' '+localtime+'\n')
+			self.f.close()
 
 			  #Spectrograph temperature servo:
 
