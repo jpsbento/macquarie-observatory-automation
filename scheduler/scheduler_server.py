@@ -45,7 +45,9 @@ class SchedServer:
 	
 #**************************** Scheduler specific commands ***********************#
 	def cmd_Sched(self,the_command):
-		#function to act upon the Scheduler
+		'''function to act upon the Scheduler. 
+		USAGE: "Sched" returns the status of the scheduler, "Sched <option>" acts upon the scheduler. 
+		Type "Sched on" to start the scheduler, "Sched off" to shut it down, and "Sched print" to view the current jobs and indices'''
 		commands=str.split(the_command)
 		if len(commands)==1:
 			return str(self.sched.running)
@@ -64,12 +66,13 @@ class SchedServer:
 				for i in jobs:
 					print str(l), i
 					l+=1
-			elif commands[1]=='help':
-				return 'Type "Sched on" to start the scheduler, "Sched off" to shut it down, and "Sched print" to view the current jobs and indices'
 			else: return 'Invalid option'
 
 	def cmd_AddJob(self,the_command):
-		#Adds jobs to the scheduler
+		'''Function to Adds jobs to the scheduler. 
+		   USAGE: 
+		           Option 1: "AddJob file <filename>" where the filename parameter is the name of the file containing a job list (see example_sched.txt for format)
+			   Option 2: "AddJob <Type> <date> <time> <Target> <RA> <DEC> <Mode> <ExposureTime> <NExps> <Filter>"  See example_sched.txt for formats'''
 		commands=str.split(the_command)
 		if commands[1]=='file':
 			#do whatever you need to get the file in
@@ -152,6 +155,7 @@ class SchedServer:
 			try: response = self.uber_client.send_command('guiding on')
 			except Exception: return 'Something went wrong with activating the guiding'
 			if not 'enabled' in response: return 'Guiding loop not enabled'
+			return 'Successfully got a RHEA guiding test going'
 		elif self.Mode=='RheaFull':
 			#THIS PART IS NOT FINISHED YET. 
 			try: 
@@ -184,12 +188,20 @@ class SchedServer:
 			try: response=self.cmd_masterAlign('masterAlign')
 			except Exception: return 'For some reason could not get the master Align routine to work'
 			if not 'Finished the master' in response: return 'Failed the master align with the error: '+response
+			try: response = self.uber_client.send_command('focusStar')
+			except Exception: return 'ERROR: could not focus star'
+			if not 'Successfully optimised' in response: return response 
 			try: response = self.cmd_guiding('guiding on')
 			except Exception: return 'Something went wrong with activating the guiding'
 			if not 'enabled' in response: return 'Guiding loop not enabled'
-			#Add more stuff related to how the imaging and labjacku6 routines are going to work
-			
-
+			#Now activate the imaging
+			try: dummy=self.uber_client.send_command('Imsettings '+str(self.ExposureTime)+' open')
+			except Exception: return 'Something failed when trying to set the exposure settings'
+			if not 'Finished' in dummy: return 'ERROR: could not set the exposure settings'
+			try: dummy=self.uber_client.send_command('Imaging on')
+			except Exception: return 'Something failed when trying to start exposing with RHEA'
+			if not 'Finished' in dummy: return 'ERROR: could not start exposing.'
+			return 'Successfully got a Full RHEA steup going.'
 		elif self.Mode=='Phot':
 			#THIS PART IS NOT FINISHED YET. NEED TO UPDATE WHEN OTHER THINGS BECOME DECIDED
 			response = self.cmd_checkIfReady(Weather=True,Dome=True,Telescope=True,Sidecam=True,Camera=True)

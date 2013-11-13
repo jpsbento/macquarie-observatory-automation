@@ -5,7 +5,8 @@ import os, sys
 sys.path.append('../common/')
 import client_socket
 import time, math, datetime, csv
-import pyfits
+import pyfits,scipy
+import pylab as pl
 import numpy
 from apscheduler.scheduler import Scheduler
 from apscheduler.jobstores.shelve_store import ShelveJobStore
@@ -232,22 +233,41 @@ class UberServer:
 		
 	def cmd_focusStar(self, the_command):
 		'''This pulls together commands from the telescope servers and the camera server to focus a bright star.'''
-		move_focus_amount = 100
-		sharp_value = 0
-		focusing = True
-		camera_client.send_command("focusCapture")
-		old_sharp_value = self.telescope_client.send_command("focusGoToPosition "+str(int(position)+move_focus_amount))
-		while move_focus_amount != 0:
-			focusposition = self.telescope_client.send_command("focusReadPosition")
-			try: focusposition = int(focusposition)
-			except Exception: return 'ERROR'
-			# need to get the sharpness
-			self.telescope_client.send_command("focusGoToPosition "+str(int(position)+move_focus_amount))
-			sharp_value = camera_client.send_command("focusCapture")
-			# as the star becomes more in focus, the sharp_value decreases, so if it increases
-			# we are moving the focuser the wrong way
-			if sharp_value >= old_sharp_value: move_focus_amount = (move_focus_amount*-1)/2
-		return str(focusposition) # return the best focus position
+		focus_amount = 100
+		#Find out which position the focuser is in now
+		try: initial=int(self.telescope_client.send_command('focusReadPosition'))
+		except Exception: return 'ERROR: could not query the focuser position'
+		#create an array with focuser positions to sample a few cases for a quadractic fit
+		positions=numpy.arange(initial-10*focus_amount,initial+10*focus_amount,focus_amount)
+		#now cycle through all the focuser positions and take images, storing the values of the HFD of each
+		HFD=[]
+		for i in positions:
+			try: dummy=self.telescope_client.send_command('focusGoToPosition '+str(i))
+			except Exception: return 'Error: failed to send the focuser to position'+str(i)
+			if not 'Command complete' in dummy: return dummy
+			try: response=self.fiberfeed_client.send_command('brightStarCoords')
+			except Exception: print 'Something did not go down well with the exposure!'
+			if 'no stars found' not in result:
+				starinfo=str.split(result)
+				HFD.append(float(starinfo[3]))
+			else: HFD.append(nan)
+		#Now should have a list of HFD values and an array of positions
+		HFD=numpy.array(HFD)
+		#get rid of any nans
+		positions=positions[HFD==HFD]
+		HFD=HFD[HFD==HFD]
+		#Do a second order polynomial fit to the data and find the minimum focus position
+		a,b,c=scipy.polyfit(positions,HFD,deg=2)
+		pl.plot(positions,HFD,'.')
+		pl.plot(positions,a*positions**2+b*positions+c)
+		min_focus=-b/(2*a)
+		pl.axvline(min_focus)
+		pl.xlabel('focuser positions')
+		pl.ylabel('HFD')
+		pl.draw()
+		try: dummy=self.telescope_client.send_command('focusGoToPosition '+str(min-focus))
+		except Exception: return 'ERROR: unable to instruct the focuser to go to the optimal focus position'
+		return 'Successfully optimised the focus'
 	
 	
 	def cmd_focusIRAF(self, the_command):
