@@ -543,7 +543,7 @@ class UberServer:
 			try: response = self.telescope_client.send_command('focusGoToPosition '+str(pos+1))
 			except Exception: return 'Unable to move focuser'
 			if not 'complete' in response: return 'Unable to move focuser'
-		if ('labjacku6' or 'Labjacku6') in commands:
+		if ('labjacku6' or 'Labjacku6' or 'LabjackU6' or 'labjacku6') in commands:
 			try: response = self.labjacku6_client.send_command('ljtemp')
 			except Exception: return 'Could not communicate with labjacku6'
 			try: int(response)

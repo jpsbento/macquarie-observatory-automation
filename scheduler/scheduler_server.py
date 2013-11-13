@@ -142,7 +142,7 @@ class SchedServer:
 			#Wait for slew
 			while not 'Done' in self.uber_client.send_command('telescope IsSlewComplete'): time.sleep(1)
 			#Slew dome to telescope
-			while abs(float(str.split(self.uber_client.send_command('labjack dome location'))[0]) - float(str.split(self.uber_client.send_command('telescope SkyDomeGetAz'),'|')[0])) > 2.5: time.sleep(1)
+			while abs(float(str.split(self.uber_client.send_command('labjack dome location'))[0]) - float(str.split(self.uber_client.send_command('telescope SkyDomeGetAz'),'|')[0])) > 3.5: time.sleep(1)
 			while not 'Ready' in self.uber_client.send_command('checkIfReady Weather Dome Telescope Fiberfeed Sidecam Focuser'): time.sleep(1)
 			try: response=self.uber_client.send_command('masterAlign')
 			except Exception: return 'For some reason could not get the master Align routine to work'
@@ -154,10 +154,15 @@ class SchedServer:
 			if not 'enabled' in response: return 'Guiding loop not enabled'
 		elif self.Mode=='RheaFull':
 			#THIS PART IS NOT FINISHED YET. 
-			response = self.cmd_checkIfReady(Weather=True,Dome=True,Telescope=True,Fiberfeed=True,Sidecam=True,Camera=True,Focuser=True,labjacku6=True)
-			if not 'Ready' in response: 
+			try: 
+				response = self.uber_client.send_command('labjack slits')
+				if not 'True' in response: dummy=self.uber_client.send_command('labjack slits open')
+				response = self.uber_client.send_command('telescope telescopeConnect')
+				response = self.uber_client.send_command('checkIfReady Weather Dome Telescope Fiberfeed Sidecam Focuser')
+			except Exception: print 'Something went wrong with checking if the slits are open or the telescope is connected'
+			while not 'Ready' in self.uber_client.send_command('checkIfReady Weather Dome Telescope Fiberfeed Sidecam Focuser Camera LabjackU6'):
 				print response
-				return 0
+				time.sleep(1)
 			try: response = self.telescope_client.send_command('SlewToObject '+self.Target)
 			except Exception: 
 				print 'Something went wrong with trying to slew directly to target name'
@@ -174,7 +179,8 @@ class SchedServer:
 					try: response=self.telescope_client.send_command('slewToRaDec '+self.RA+' '+self.DEC)
 					except Exception: return 'Unable to intruct to telescope to slew to an RA and DEC'
 			while not 'Done' in self.telescope_client.send_command('IsSlewComplete'): time.sleep(1)
-			#NEED TO WAIT FOR DOME TO CATCH UP. PERHAPS ANOTHER checkIfReady call here would be useful.
+			while abs(float(str.split(self.uber_client.send_command('labjack dome location'))[0]) - float(str.split(self.uber_client.send_command('telescope SkyDomeGetAz'),'|')[0])) > 3.5: time.sleep(1)
+			while not 'Ready' in self.uber_client.send_command('checkIfReady Weather Dome Telescope Fiberfeed Sidecam Focuser'): time.sleep(1)
 			try: response=self.cmd_masterAlign('masterAlign')
 			except Exception: return 'For some reason could not get the master Align routine to work'
 			if not 'Finished the master' in response: return 'Failed the master align with the error: '+response
@@ -182,6 +188,8 @@ class SchedServer:
 			except Exception: return 'Something went wrong with activating the guiding'
 			if not 'enabled' in response: return 'Guiding loop not enabled'
 			#Add more stuff related to how the imaging and labjacku6 routines are going to work
+			
+
 		elif self.Mode=='Phot':
 			#THIS PART IS NOT FINISHED YET. NEED TO UPDATE WHEN OTHER THINGS BECOME DECIDED
 			response = self.cmd_checkIfReady(Weather=True,Dome=True,Telescope=True,Sidecam=True,Camera=True)

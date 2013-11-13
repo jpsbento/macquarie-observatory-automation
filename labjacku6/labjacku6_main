@@ -1,14 +1,11 @@
 #!/usr/bin/python
 #This is the main program. It should be *very* simple.
-#import os
-#os.chdir('macquarie-observatory-automation\labjacku6')
 import labjacku6_server
 import sys
 import os
 if sys.argv[0][0] != '.':
     os.chdir('/usr/local/obs/labjack/')
 sys.path.append('../common')
-#sys.path.append('..\uber')
 import server_socket
 import find_port
 f = find_port.FindPort()
