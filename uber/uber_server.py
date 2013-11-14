@@ -727,6 +727,8 @@ class UberServer:
 				#From Rozenberg, G. V. 1966. Twilight: A Study in Atmospheric Optics. New York: Plenum Press, 160.
 				airmass= 1/(math.cos(math.radians(zendist)) + 0.025*math.exp(-11*math.cos(math.radians(zendist))))
 				h.update('AIRMASS',airmass , 'Airmass of observation')
+				if self.exposing==False: h.update('FLAG','Interrupted','Warning flag')
+				else: h.update('FLAG','OK','Warning flag')
 				im.flush()
 				self.old_filename='None'
 		if self.exposing and self.old_filename=='None':
@@ -735,3 +737,5 @@ class UberServer:
 			result=self.camera_client.send_command('imageInstruction '+str(self.exptime)+' '+str(self.shutter_position)+' '+self.filename)
 			self.old_filename=self.filename
 			if 'being taken' not in result: print 'Something went wrong with the image instruction'
+
+
