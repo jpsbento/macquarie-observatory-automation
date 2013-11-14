@@ -55,7 +55,7 @@ class LabjackU6Server:    # global variables that can be rewritten
 	heater_frac=0.0     #fraction of the pcm_time that the heater is on
         delT_int = 0.0
         T_targ = 24
-        heater_gain=4
+        heater_gain=5
         integral_gain=0.1
         T1=0
         T3=0
