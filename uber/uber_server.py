@@ -649,6 +649,7 @@ class UberServer:
 					h.update('FOCUS',self.telescope_client.send_command('FocusReadPosition'),'Position of the focuser')
 					h.update('LOCXPIX',float(guidingReturn[4]),'guiding X pixel position')
 					h.update('LOCYPIX',float(guidingReturn[5]),'guiding Y pixel position')
+					im.flush()
 			except Exception: print 'Unable to update guiding image header'
 			try: 
 				HFD=float(guidingReturn[0])
