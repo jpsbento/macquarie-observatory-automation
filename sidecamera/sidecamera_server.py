@@ -520,7 +520,7 @@ class SideCameraServer:
 		'''Function that will return a section of the image that we are interested in. This will just chop off a box of width 'width' centred at middle_x,middle_y. It actually just sets all the values outside this ox to 0'''
 		middle_x=self.target_xpixel
 		middle_y=self.target_ypixel
-		width=60
+		width=30
 		im_temp=im.copy()
 		im_temp[:middle_y-width/2]=0
 		im_temp[middle_y+width/2:]=0

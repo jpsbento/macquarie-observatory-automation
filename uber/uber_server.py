@@ -4,7 +4,7 @@
 import os, sys
 sys.path.append('../common/')
 import client_socket
-import time, math, datetime, csv
+import time, math, datetime, csv, ippower
 import pyfits,scipy
 import pylab as pl
 import numpy
@@ -55,6 +55,11 @@ class UberServer:
 	sharp_value = 0
 	sharp_count =0
 	initial_focus_position=0
+
+	#ipPower options. This is a unit that is used to control power to units.
+	#This dictionary contains which device is plugged into each port. If the connections change, this needs to be changed too! 
+	power_order={'lamp':1,'none':2,'none':3,'none':4}
+	
 
 	
 #***************************** A list of user commands *****************************#
@@ -161,6 +166,23 @@ class UberServer:
 			return str(response)
 		else: return 'To get a list of commands for the labjacku6 type "labjacku6 help".'
 
+	def cmd_ippower(self,the_command):
+		'''Function to control the ippower unit. The first argument is either the name of the relevant device or "show" for the device list. The second argument is optional, either "on" or "off". Leave blank for power status of device.'''
+		commands = str.split(the_command)
+		if commands[1]=='show': return str(self.power_order)
+		try: port=self.power_order[commands[1]]
+		except Exception: return 'Invalid device. type "ippower show" for a list of devices.'
+		if len(commands) == 2:
+			return 'The power status of the port into which the '+commands[1]+' is connected is '+str( ippower.get_power(ippower.Options,port) )
+		elif len(commands) == 3:
+			if commands[2]=='on': s=True
+			elif commands[2]=='off': s=False
+			else: return 'Invalid power status option'
+			try: ippower.set_power(ippower.Options,port,s) 
+			except Exception: return 'Unable to set power status for port'
+			return commands[1]+' successfully switched '+commands[2]
+		else: return 'Invalid command'
+
 	def cmd_setDomeTracking(self,the_command):
 		'''Can set the dome tracking to be on or off'''
 		commands = str.split(the_command)
@@ -181,7 +203,7 @@ class UberServer:
 			jog_amount=str(0.2)
 		elif commands[1]=='sidecam': 
 			cam_client=self.sidecam_client
-			jog_amount=str(20)
+			jog_amount=str(5)
 		else: return 'Invalid camera selection'
 		try: cam_client.send_command('orientationCapture base')
 		except Exception: return 'Unable to capture images from camera'
@@ -247,8 +269,8 @@ class UberServer:
 			if not 'Command complete' in dummy: return dummy
 			try: response=self.fiberfeed_client.send_command('brightStarCoords')
 			except Exception: print 'Something did not go down well with the exposure!'
-			if 'no stars found' not in result:
-				starinfo=str.split(result)
+			if 'no stars found' not in response:
+				starinfo=str.split(response)
 				HFD.append(float(starinfo[3]))
 			else: HFD.append(nan)
 		#Now should have a list of HFD values and an array of positions
@@ -256,16 +278,18 @@ class UberServer:
 		#get rid of any nans
 		positions=positions[HFD==HFD]
 		HFD=HFD[HFD==HFD]
+		print 'HFD',HFD
+		print 'positions',positions
 		#Do a second order polynomial fit to the data and find the minimum focus position
 		a,b,c=scipy.polyfit(positions,HFD,deg=2)
-		pl.plot(positions,HFD,'.')
-		pl.plot(positions,a*positions**2+b*positions+c)
-		min_focus=-b/(2*a)
-		pl.axvline(min_focus)
-		pl.xlabel('focuser positions')
-		pl.ylabel('HFD')
-		pl.draw()
-		try: dummy=self.telescope_client.send_command('focusGoToPosition '+str(min-focus))
+#		pl.plot(positions,HFD,'.')
+#		pl.plot(positions,a*positions**2+b*positions+c)
+		min_focus=int(-b/(2*a))
+#		pl.axvline(min_focus)
+#		pl.xlabel('focuser positions')
+#		pl.ylabel('HFD')
+#		pl.draw()
+		try: dummy=self.telescope_client.send_command('focusGoToPosition '+str(min_focus))
 		except Exception: return 'ERROR: unable to instruct the focuser to go to the optimal focus position'
 		return 'Successfully optimised the focus'
 	
@@ -643,6 +667,7 @@ class UberServer:
 			print guidingReturn
 			try:
 				a=pyfits.getheader('../fiberfeed/program_images/'+guidingReturn[3]+'.fits')
+				print 'opened fine'
 				if not a.has_key('FOCUS'):
 					im=pyfits.open('../fiberfeed/program_images/'+guidingReturn[3]+'.fits',mode='update')
 					h=im[0].header
