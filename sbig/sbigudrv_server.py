@@ -33,7 +33,7 @@ class SBigUDrv:
 	exptime=0
 	shutter_position='Closed'
 	filename='None'
-        
+        imtype='none'
 
         #FUNCTIONS: the following two functions are used in the imaging process, they relate to filenames and prevet crashes 
 	#when there are typos in directories or	duplicate filenames
@@ -447,12 +447,14 @@ class SBigUDrv:
 	def cmd_imageInstruction(self,the_command):
 		#function that sets the exposing boolean to true and gets the imaging parameters from the uber server
 		commands = str.split(the_command)
-		if len(commands) != 4 : return 'error: please specify the exposure time, shutter position and filename'
+		if len(commands) < 4 : return 'error: please specify the exposure time, shutter position and filename'
 		try: 
 			self.exptime=float(commands[1])
 			self.shutter_position=commands[2]
 			self.filename=commands[3]
 		except Exception: return 'Error: could not set imaging parameters on the sbig server'
+		if len(commands) == 5: self.imtype=commands[4]
+		else: return 'Too many arguments'
 		self.exposing=True
 		return 'Image being taken'
 
@@ -467,10 +469,15 @@ class SBigUDrv:
 		#function that takes an image and then sets the imaging boolean off.
 		#This is here to ensure that the (potentially long) imaging process is done separately from the uber server
 		if self.exposing==True:
-			try: result=self.cmd_exposeAndWait('exposeAndWait '+str(self.exptime)+' '+str(self.shutter_position)+' '+self.filename)
-			except Exception: print 'Something did not go down well with the exposure!'
+			if self.imtype=='none':
+				try: result=self.cmd_exposeAndWait('exposeAndWait '+str(self.exptime)+' '+str(self.shutter_position)+' '+self.filename)
+				except Exception: print 'Something did not go down well with the exposure!'
+			else: 
+				try: result=self.cmd_exposeAndWait('exposeAndWait '+str(self.exptime)+' '+str(self.shutter_position)+' '+self.filename+' '+self.imtype)
+				except Exception: print 'Something did not go down well with the exposure!'
 			if not 'Complete' in result:
 				print 'Exposure failed for some reason'
+			self.imtype='none'
 			time.sleep(1)
 			self.exposing=False
 

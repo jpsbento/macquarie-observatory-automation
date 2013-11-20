@@ -45,6 +45,8 @@ class UberServer:
 	side_fiber_exp_ratio=5.
 	
 	exposing=False   #Boolean to determine when the camera should be exposing
+	lamp=False
+	current_imtype='light'
 	exptime=0        #Default exposure time
 	shutter_position='closed'  #Default shutter position
 	filename='None'
@@ -532,7 +534,11 @@ class UberServer:
 		if len(commands)==1: return 'Imaging is set to '+str(self.exposing)
 		elif len(commands)==2 and commands[1]=='on': self.exposing=True
 		elif len(commands)==2 and commands[1]=='off': self.exposing=False
-		else: return 'Incorrect usage of function. Activate Imaging using "on" or "off".'
+		elif len(commands)==3 and commands[1]=='on' and commands[2]=='lamp':
+			self.exposing=True
+			self.lamp=True
+			self.current_imtype='lamp'
+		else: return 'Incorrect usage of function. Activate Imaging using "on" or "off". Optionally select "lamp" for intermittent images using the calibration lamp.'
 		return 'Imaging status set to '+str(self.exposing)
 
 	def cmd_Imsettings(self,the_command):
@@ -593,7 +599,6 @@ class UberServer:
 			try: int(response)
 			except Exception: return 'Something wrong with the labjacku6'
 		return 'Ready'
-
 
 #***************************** End of User Commands *****************************#
 
@@ -720,26 +725,26 @@ class UberServer:
 				h.update('TELESCOP', 'Meade LX200 f/10 16 inch', 'Which telescope used')
 				h.update('LAT', -33.77022, 'Telescope latitude (deg)')
 				h.update('LONG', 151.111075, 'Telescope longitude (deg)')
-# 			        try: 
-#					d=eval(self.telescope_client.send_command('objInfo'))
-#					h.update('TARGET',d['NAME1'],'Target name')
-#					h.update('NAME2',d['NAME2'],'Alternative target IDs')
-#					h.update('NAME3',d['NAME3'],'Alternative target IDs')
-#					h.update('NAME4',d['NAME4'],'Alternative target IDs')
-#					h.update('NAME5',d['NAME5'],'Alternative target IDs')
-#					h.update('NAME6',d['NAME6'],'Alternative target IDs')
-#					h.update('OBJ_TYPE',d['OBJ_TYPE'],'Target type')
-#					h.update('SPECTYPE',d['STAR_SPECTRAL'],'Stellar spectral type')
-#					h.update('RA_2000',d['RA_2000'],'Right Ascension of target')
-#					h.update('DEC_2000',d['DEC_2000'],'Declination of target')
-#					h.update('V_MAG',d['STAR_MAGV'],'Target V Magnitude (0 if unknown)')
-#					h.update('R_MAG',d['STAR_MAGR'],'Target R Magnitude (0 if unknown)')
-#					h.update('B_MAG',d['STAR_MAGB'],'Target B Magnitude (0 if unknown)')
-#					h.update('HA',d['HA_HOURS'],'Hour angle at end of exposure')
-#					h.update('MOONPHAS', d['MOON_PHASE_ANGLE'], 'Lunar Phase angle')
-#					h.update('MOONRA', d['MOON_TRUE_EQ_RA'], 'Moon RA')
-#					h.update('MOONDEC',d['MOON_TRUE_EQ_DEC'],'Moon DEC')
-#				except Exception: print 'Unable to get the target header information from TheSkyX' 
+ 			        try: 
+					d=eval(self.telescope_client.send_command('objInfo'))
+					h.update('TARGET',d['NAME1'],'Target name')
+					h.update('NAME2',d['NAME2'],'Alternative target IDs')
+					h.update('NAME3',d['NAME3'],'Alternative target IDs')
+					h.update('NAME4',d['NAME4'],'Alternative target IDs')
+					h.update('NAME5',d['NAME5'],'Alternative target IDs')
+					h.update('NAME6',d['NAME6'],'Alternative target IDs')
+					h.update('OBJ_TYPE',d['OBJ_TYPE'],'Target type')
+					h.update('SPECTYPE',d['STAR_SPECTRAL'],'Stellar spectral type')
+					h.update('RA_2000',d['RA_2000'],'Right Ascension of target')
+					h.update('DEC_2000',d['DEC_2000'],'Declination of target')
+					h.update('V_MAG',d['STAR_MAGV'],'Target V Magnitude (0 if unknown)')
+					h.update('R_MAG',d['STAR_MAGR'],'Target R Magnitude (0 if unknown)')
+					h.update('B_MAG',d['STAR_MAGB'],'Target B Magnitude (0 if unknown)')
+					h.update('HA',d['HA_HOURS'],'Hour angle at end of exposure')
+					h.update('MOONPHAS', d['MOON_PHASE_ANGLE'], 'Lunar Phase angle')
+					h.update('MOONRA', d['MOON_TRUE_EQ_RA'], 'Moon RA')
+					h.update('MOONDEC',d['MOON_TRUE_EQ_DEC'],'Moon DEC')
+				except Exception: print 'Unable to get the target header information from TheSkyX' 
 				h.update('TEL-RA', float(self.telescope_client.send_command('getRA').split('\n')[0]), 'Telescope pointing Right Ascension')
 				h.update('TEL-DEC', float(self.telescope_client.send_command('getDec').split('\n')[0]) , 'Telescope pointing Declination')
 				telAlt=float(self.telescope_client.send_command('getAltitude').split('\n')[0])
@@ -757,11 +762,28 @@ class UberServer:
 				else: h.update('FLAG','OK','Warning flag')
 				im.flush()
 				self.old_filename='None'
+				if self.lamp==True:
+					if self.current_imtype=='light': self.current_imtype='lamp'
+					if self.current_imtype=='lamp': 
+						dummy=self.cmd_ippower('ippower lamp off')
+						dummy=self.telescope_client.send_command('jog West 5')
+						dummy=self.cmd_guiding('guiding on')
+						self.current_imtype='light'
 		if self.exposing and self.old_filename=='None':
 			localtime=time.localtime(time.time())
 			self.filename=str(localtime[0])+str(localtime[1]).zfill(2)+str(localtime[2]).zfill(2)+str(localtime[3]).zfill(2)+str(localtime[4]).zfill(2)+str(localtime[5]).zfill(2)
-			result=self.camera_client.send_command('imageInstruction '+str(self.exptime)+' '+str(self.shutter_position)+' '+self.filename)
-			self.old_filename=self.filename
-			if 'being taken' not in result: print 'Something went wrong with the image instruction'
+			if self.current_imtype=='lamp':
+				try: 
+					dummy=self.cmd_guiding('guiding off')
+					dummy=self.telescope_client.send_command('jog East 5')
+					dummy=self.cmd_ippower('ippower lamp on')
+					result=self.camera_client.send_command('imageInstruction 120 open '+self.filename+' HgAr')
+					self.old_filename=self.filename
+					if 'being taken' not in result: print 'Something went wrong with the image instruction'
+				except Exception: print 'Unable to start a calibration lamp exposure'
+			else:	
+				result=self.camera_client.send_command('imageInstruction '+str(self.exptime)+' '+str(self.shutter_position)+' '+self.filename)
+				self.old_filename=self.filename
+				if 'being taken' not in result: print 'Something went wrong with the image instruction'
 
 
