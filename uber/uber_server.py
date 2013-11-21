@@ -340,6 +340,10 @@ class UberServer:
 				self.guiding_camera='fiberfeed'
 				self.telescope_client.send_command("focusSetAmount " + str(200))
 				return 'Guiding loop enabled using the '+self.guiding_camera
+			elif commands[1]=='halt':
+				self.guiding_bool=False
+			elif commands[1]=='resume':
+				self.guiding_bool=True
 			else: return 'invalid argument.'
 		if len(commands)==3 and commands[1]=='on':
 			self.guiding_bool=True
@@ -532,8 +536,12 @@ class UberServer:
 		#sets the state of the boolean for the imaging_loop function COMPLETE!!!!!
 		commands=str.split(the_command)
 		if len(commands)==1: return 'Imaging is set to '+str(self.exposing)
-		elif len(commands)==2 and commands[1]=='on': self.exposing=True
-		elif len(commands)==2 and commands[1]=='off': self.exposing=False
+		elif len(commands)==2 and commands[1]=='on': 
+			self.exposing=True
+			self.lamp=False
+		elif len(commands)==2 and commands[1]=='off': 
+			self.exposing=False
+			self.current_imtype='light'
 		elif len(commands)==3 and commands[1]=='on' and commands[2]=='lamp':
 			self.exposing=True
 			self.lamp=True
@@ -764,18 +772,18 @@ class UberServer:
 				self.old_filename='None'
 				if self.lamp==True:
 					if self.current_imtype=='light': self.current_imtype='lamp'
-					if self.current_imtype=='lamp': 
+					elif self.current_imtype=='lamp': 
 						dummy=self.cmd_ippower('ippower lamp off')
-						dummy=self.telescope_client.send_command('jog West 5')
-						dummy=self.cmd_guiding('guiding on')
+						dummy=self.telescope_client.send_command('jog North 5')
+						dummy=self.cmd_guiding('guiding resume')
 						self.current_imtype='light'
 		if self.exposing and self.old_filename=='None':
 			localtime=time.localtime(time.time())
 			self.filename=str(localtime[0])+str(localtime[1]).zfill(2)+str(localtime[2]).zfill(2)+str(localtime[3]).zfill(2)+str(localtime[4]).zfill(2)+str(localtime[5]).zfill(2)
 			if self.current_imtype=='lamp':
 				try: 
-					dummy=self.cmd_guiding('guiding off')
-					dummy=self.telescope_client.send_command('jog East 5')
+					dummy=self.cmd_guiding('guiding halt')
+					dummy=self.telescope_client.send_command('jog South 5')
 					dummy=self.cmd_ippower('ippower lamp on')
 					result=self.camera_client.send_command('imageInstruction 120 open '+self.filename+' HgAr')
 					self.old_filename=self.filename
