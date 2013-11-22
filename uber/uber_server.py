@@ -11,7 +11,7 @@ import numpy
 from apscheduler.scheduler import Scheduler
 from apscheduler.jobstores.shelve_store import ShelveJobStore
 import logging
-logging.basicConfig()
+logging.basicConfig(filename='runtime.log',level=logging.DEBUG,format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 from timeout import timeout
 
 class UberServer:
@@ -557,8 +557,10 @@ class UberServer:
 		elif len(commands)!=3:
 			return 'please input the desired exposure time in seconds and the intended shutter state'
 		else:
-			self.exptime=float(commands[1])
-			self.shutter_position=commands[2]
+			try: self.exptime=float(commands[1])
+			except Exception: return 'Invalid exposure time'
+			if ((commands[2]=='open') or (commands[2]=='closed')):  self.shutter_position=commands[2]
+			else: return 'Invalid shutter status. Use "open" or "closed".'
 			return 'Finished updating camera settings'
 	
 	def cmd_checkIfReady(self,the_command):
@@ -615,6 +617,7 @@ class UberServer:
 		tracking is turned on.'''
 		#set this as a background task when setting up uber_main
 		if self.dome_tracking:
+			logging.warning('dome tracking still running')
 			domeAzimuth = str.split(self.labjack_client.send_command('dome location'))[0]
 #			print domeAzimuth
 			VirtualDome = str.split(self.telescope_client.send_command('SkyDomeGetAz'),'|')[0]
@@ -793,5 +796,4 @@ class UberServer:
 				result=self.camera_client.send_command('imageInstruction '+str(self.exptime)+' '+str(self.shutter_position)+' '+self.filename)
 				self.old_filename=self.filename
 				if 'being taken' not in result: print 'Something went wrong with the image instruction'
-
 
