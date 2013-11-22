@@ -11,8 +11,7 @@ import numpy
 from apscheduler.scheduler import Scheduler
 from apscheduler.jobstores.shelve_store import ShelveJobStore
 import logging
-logging.basicConfig(filename='runtime.log',level=logging.DEBUG,format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
-from timeout import timeout
+logging.basicConfig(filename='runtime.log',level=logging.DEBUG,format='%(asctime)s %(levelname)s %(message)s', datefmt='%d/%m/%Y %I:%M:%S %p')
 
 class UberServer:
 	
@@ -75,7 +74,10 @@ class UberServer:
 			dummy = self.labjack_client.send_command('dome home')
 			dummy = self.telescope_client.send_command('park')
 			self.override_wx=False
-		except Exception: return 'Failed to finish the session sucessfully'
+		except Exception: 
+			logging.error('Failed to finish the session sucessfully')
+			return 'Failed to finish the session sucessfully'
+		logging.info('Sucessfully finished session')
 		return 'Sucessfully finished session'
 	
 	def cmd_startSession(self,the_command):
@@ -88,7 +90,10 @@ class UberServer:
 			dummy = self.telescope_client.send_command('findHome')
 			self.override_wx=False
 			dummy = self.telescope_client.send_command('focusGoToPosition 4000')
-		except Exception: return 'Failed to initiate the session sucessfully'
+		except Exception: 
+			logging.error('Failed to initiate the session sucessfully')
+			return 'Failed to initiate the session sucessfully'
+		logging.info('Sucessfully initiated session. You should wait a little bit for the dome and telescope to stop moving before trying anything else.')
 		return 'Sucessfully initiated session. You should wait a little bit for the dome and telescope to stop moving before trying anything else.'
 
 	def cmd_labjack(self,the_command):
@@ -100,7 +105,8 @@ class UberServer:
 			command_for_labjack = ' '.join(commands)
 			response = self.labjack_client.send_command(command_for_labjack)
 			return str(response)
-		else: return 'To get a list of commands for the labjack type "labjack help".'
+		else: 
+			return 'To get a list of commands for the labjack type "labjack help".'
 
 	def cmd_telescope(self,the_command):
 		'''A user can still access the low level commands from the telescope using this command. ie
@@ -181,7 +187,10 @@ class UberServer:
 			elif commands[2]=='off': s=False
 			else: return 'Invalid power status option'
 			try: ippower.set_power(ippower.Options,port,s) 
-			except Exception: return 'Unable to set power status for port'
+			except Exception: 
+				logging.error('Unable to set power status for port')
+				return 'Unable to set power status for port'
+			logging.info(commands[1]+' successfully switched '+commands[2])
 			return commands[1]+' successfully switched '+commands[2]
 		else: return 'Invalid command'
 
@@ -212,17 +221,20 @@ class UberServer:
 		while not 'Done' in self.telescope_client.send_command('IsSlewComplete'): time.sleep(1)
 		jog_response = self.telescope_client.send_command('jog North '+jog_amount)  # jogs the telescope 1 arcsec (or arcmin??) north
 		if jog_response == 'ERROR': return 'ERROR in telescope movement.'
+		logging.info('sleeping 5 seconds')
 		print 'sleeping 5 seconds'
 		time.sleep(5)
 		try: cam_client.send_command('orientationCapture North '+jog_amount)
 		except Exception: return 'Could not capture images from camera'
 		while not 'Done' in self.telescope_client.send_command('IsSlewComplete'): time.sleep(1)
 		jog_response = self.telescope_client.send_command('jog East '+jog_amount)
+		logging.info('sleeping 5 seconds')
 		print 'sleeping 5 seconds'
 		time.sleep(5)
 		if jog_response == 'ERROR': return 'ERROR in telescope movement'
 		cam_client.send_command('orientationCapture East '+jog_amount) # Should add some responses here to keep track
 		response = cam_client.send_command('calculateCameraOrientation')
+		logging.warning(response)
 		return response
 	
 	def cmd_offset(self, the_command):
@@ -617,7 +629,6 @@ class UberServer:
 		tracking is turned on.'''
 		#set this as a background task when setting up uber_main
 		if self.dome_tracking:
-			logging.warning('dome tracking still running')
 			domeAzimuth = str.split(self.labjack_client.send_command('dome location'))[0]
 #			print domeAzimuth
 			VirtualDome = str.split(self.telescope_client.send_command('SkyDomeGetAz'),'|')[0]
