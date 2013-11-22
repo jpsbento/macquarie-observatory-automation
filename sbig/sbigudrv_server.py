@@ -454,7 +454,7 @@ class SBigUDrv:
 			self.filename=commands[3]
 		except Exception: return 'Error: could not set imaging parameters on the sbig server'
 		if len(commands) == 5: self.imtype=commands[4]
-		else: return 'Too many arguments'
+		if len(commands)>5: return 'Too many arguments'
 		self.exposing=True
 		return 'Image being taken'
 

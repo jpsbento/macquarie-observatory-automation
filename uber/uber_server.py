@@ -795,5 +795,6 @@ class UberServer:
 			else:	
 				result=self.camera_client.send_command('imageInstruction '+str(self.exptime)+' '+str(self.shutter_position)+' '+self.filename)
 				self.old_filename=self.filename
+				print result
 				if 'being taken' not in result: print 'Something went wrong with the image instruction'
 
