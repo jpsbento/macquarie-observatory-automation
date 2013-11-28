@@ -1,7 +1,7 @@
 /* Java Script */
 
-var dJog = "5";
-var dDirection = "North";
+var dJog = "0.00539616834565";
+var dDirection = "East";
 var Out;
 
 

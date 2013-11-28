@@ -12,7 +12,6 @@ setDomeTracking
 orientateCamera
 offset
 focusStar
-focusIRAF
 override_wx
 guiding
 spiral
