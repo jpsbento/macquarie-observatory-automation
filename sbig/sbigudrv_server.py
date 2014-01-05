@@ -123,8 +123,8 @@ class SBigUDrv:
 		#This is because the spectrograph camera does not return the correct width and height from GetCCDInfoParams, but returns 1000x1000
 		#This is probably ok since it is unlikely we will ever have a camera with 1000x1000 pixels exactly.
 		if height==1000 and width==1000:
-			width = 3326
-			height = 2504
+			width = 3352
+			height = 2532
 		gain = hex(r.readoutInfo[0].gain)
 		gain=float(gain[2:])*0.01
 		
@@ -167,8 +167,12 @@ class SBigUDrv:
 		p.readoutMode=0
 		#specifies region to read out, starting top left and moving over
 		#entire height and width
-		p.top=0
-		p.left=0
+		if height==2532 and width==3352:
+			p.top=26
+			p.left=13
+		else:
+			p.top=0
+			p.left=0
 		p.height=height
 		p.width=width
 		#NOTE, THERE IS A CHANCE THAT, WHEN THIS CODE IS USED ON SBIG CAMERAS, THE WIDTH AND HEIGHT MAY HAVE TO BE SET TO SOMETHING FIXED (SEE HEIGHT AND WIDTH DEFINITION ABOVE)
@@ -179,7 +183,10 @@ class SBigUDrv:
 		p = sb.ReadoutLineParams()
 		p.ccd = 0
 		p.readoutMode=0
-		p.pixelStart=0
+		if height==2532 and width==3352:
+			p.pixelStart=13
+		else:
+			p.pixelStart=0
 		p.pixelLength=width
 		#readout line by line
 		for i in range(0,height):
