@@ -59,7 +59,7 @@ class UberServer:
 
 	#ipPower options. This is a unit that is used to control power to units.
 	#This dictionary contains which device is plugged into each port. If the connections change, this needs to be changed too! 
-	power_order={'lamp':1,'none':2,'none':3,'none':4}
+	power_order={'HgAr':1,'none':2,'none':3,'none':4}
 	
 
 	
@@ -195,7 +195,7 @@ class UberServer:
 		else: return 'Invalid ippower command'
 
 	def cmd_setDomeTracking(self,the_command):
-		'''Can set the dome tracking to be on or off'''
+		'''Can set the dome tracking to be on or off. This is on by default and follows the dome simulator on TheSkyX.'''
 		commands = str.split(the_command)
 		if len(commands) == 1:
 			if self.dome_tracking: return 'Dome tracking enabled.'
@@ -212,7 +212,7 @@ class UberServer:
 		else: return 'Invalid input, on/off expected.'
 
 	def cmd_orientateCamera(self, the_command):
-		'''This will control the camera and the telescope to get the camera orientation.'''
+		'''This will control the camera and the telescope to get the imagingsource camera orientation. Usage: orientateCamera <sidecam/fiberfeed> '''
 		commands=str.split(the_command)
 		if len(commands)!=2: 
 			return 'Invalid number of arguments. Please indicate which camera you want this to happen on.'
@@ -253,7 +253,7 @@ class UberServer:
 		return response
 	
 	def cmd_offset(self, the_command):
-		'''This pulls together commands from the camera server and the telescope server so that we can move the telescope to a given known pixel position which corresponds to the centre of the telescope field of view'''
+		'''This pulls together commands from the camera server and the telescope server so that we can move the telescope to a given known pixel position which corresponds to the centre of the telescope field of view. Useful for pointing model runs.'''
 		#These are the known coordinates of the centre of the telescope field of view. These need to be changed every time anything is put on the back of the telescope. 
 		x_final=332.93
 		y_final=224.39
@@ -288,7 +288,7 @@ class UberServer:
 		return 'Telescope successfully offset to new coordinates.'
 		
 	def cmd_focusStar(self, the_command):
-		'''This pulls together commands from the telescope servers and the camera server to focus a bright star.'''
+		'''This pulls together commands from the telescope servers and the camera server to focus a bright star. It runs the focuser along a series of positions and measures the PSF size, then fits a 2nd order polynomial to the result to work out the optimal focus. This takes a while and doesn't always work. '''
 		focus_amount = 100
 		#Find out which position the focuser is in now
 		try: initial=int(self.telescope_client.send_command('focusReadPosition'))
@@ -338,6 +338,7 @@ class UberServer:
 	
 	
 	def cmd_override_wx(self, the_command):
+		'''use this function to ignore the weatherstation inputs and open the dome whilst weather isn't optimal.'''
 		commands=str.split(the_command)
 		if len(commands) == 2 and (commands[1] == 'off' or commands[1]=='0'):
 			self.override_wx=False
@@ -382,7 +383,7 @@ class UberServer:
 			
 
 	def cmd_spiral(self, the_command):
-		'''This function is used to spiral the telescope until the fiberfeed camera finds a star close to the center of the chip. Usage is 'guiding <amount>', where amount is the offset in arcmins of each spiral motion. A default amount is set'''
+		'''This function is used to spiral the telescope until the fiberfeed camera finds a star close to the center of the chip. Usage is 'spiral <amount>', where amount is the offset in arcmins of each spiral motion. A default amount is set'''
 		default=2.0
 		commands=str.split(the_command)
 		if len(commands) > 2:
@@ -621,7 +622,7 @@ class UberServer:
 		return 'Imaging status set to '+str(self.exposing)
 
 	def cmd_Imsettings(self,the_command):
-		#sets the camera settings for the exposing loop
+		'''sets the camera settings for the exposing loop. Usage: Imsettings <exptime> <shutter status>'''
 		commands=str.split(the_command)
 		if len(commands)==1: 
 			return 'exposure time is set to '+str(self.exptime)+'\nshutter state is set to '+str(self.shutter_position)
@@ -638,9 +639,9 @@ class UberServer:
 			return 'Finished updating camera settings'
 	
 	def cmd_checkIfReady(self,the_command):
-		#This function will perform checks on the whole system to determine if the observatory is ready to be used for a specific job.
-		#All the options refer to things that may be called upon to be checked. they are by default all False, and should be activated by the calling of the function,
-		#depending on the requirements of each job
+		'''This function will perform checks on the whole system to determine if the observatory is ready to be used for a specific job.
+		All the options refer to things that may be called upon to be checked. they are by default all False, and should be activated by the calling of the function,
+		depending on the requirements of each job'''
 		commands=str.split(the_command)
 		if ('weatherstation' or 'weather' or 'Weather' or 'Weatherstation') in commands:
 			try: weather = self.weatherstation_client.send_command('safe')

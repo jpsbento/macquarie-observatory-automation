@@ -78,7 +78,7 @@ class LabjackU6Server:    # global variables that can be rewritten
 		else: return 'ERROR: Requires a number between 0 and 1'
 
         def cmd_backLED(self, the_command):
-		'''Command to control IR LED backfeed.'''
+		'''Command to control the LED backfeed. Usage: backLED <'on'/'off'>'''
 		commands = str.split(the_command)
 		if len(commands) != 2: return 'ERROR'
 		if commands[1] == 'on':

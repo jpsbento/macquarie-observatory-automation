@@ -95,7 +95,7 @@ class SideCameraServer:
 		return 'Capture complete'
 
 	def cmd_brightStarCoords(self, the_command):
-		'''This takes one photo to be used to detect the brightest star and find its coordinates. '''
+		'''This takes one photo to be used to detect the brightest star and find its coordinates. Takes no inputs'''
 		comands=str.split(the_command)
 		if len(comands) >2: return 'Hm, this function does not take 3 arguments (in this version, anyway)...'
 		elif len(comands) == 2 and comands[1]=='high':
@@ -113,7 +113,7 @@ class SideCameraServer:
 
 
 	def cmd_adjustExposure(self, the_command):
-		'''This function will adjust the exposure time of the camera until the brightest pixel is between a given range, close to the 8 bit resolution maximum of the imagingsource cameras (255)'''
+		'''This function will adjust the exposure time of the camera until the brightest pixel is between a given range, close to the 8 bit resolution maximum of the imagingsource cameras (255). Takes no inputs'''
 		max_pix=0
 		direction=0
 		direction_old=0
@@ -202,7 +202,7 @@ class SideCameraServer:
 		
 
 	def cmd_starDistanceFromCenter(self, the_command):
-		'''This checks the position of the brighest star in shot with reference to the center of the frame and
+		'''This checks the position of the brighest star in shot with reference to the desired coordinates for guiding and
 		the sharpness of the same star. A call to this function will return a vector distance between the centeral
 		pixel and the brightest star in arcseconds in the North and East directions. When calling this function 
 		you must specify which file for daofind to use (do not add the file extension, ie type "filename" NOT "filename.fits"'''

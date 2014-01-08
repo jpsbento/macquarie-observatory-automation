@@ -102,7 +102,7 @@ class FiberFeedServer:
 		return 'Capture complete'
 
 	def cmd_brightStarCoords(self, the_command):
-		'''This takes one photo to be used to detect the brightest star and find its coordinates. '''
+		'''This takes one photo to be used to detect the brightest star and find its coordinates. It returns the CCD coordinates corresponding to the brightest star detected (if any). This function does not take inputs. '''
 		comands=str.split(the_command)
 		if len(comands) >2: return 'This function does not take 3 arguments (in this version, anyway)...'
 		elif len(comands) == 2 and comands[1]=='high':
@@ -126,7 +126,7 @@ class FiberFeedServer:
 
 	def cmd_adjustExposure(self, the_command):
 		'''This function will adjust the exposure time of the camera until the brightest pixel is between a given range, 
-		close to the 8 bit resolution maximum of the imagingsource cameras (255)'''
+		close to the 8 bit resolution maximum of the imagingsource cameras (255). If the star is too faint, this will not work, since there are bad pixels in the camera. This function takes no inputs.'''
 		max_pix=0
 		direction=0
 		direction_old=0
@@ -216,7 +216,7 @@ class FiberFeedServer:
 		
 
 	def cmd_starDistanceFromCenter(self, the_command):
-		'''This checks the position of the brighest star in shot with reference to the center of the frame and
+		'''This checks the position of the brighest star in shot with reference to the desired central pixel of the frame and
 		the sharpness of the same star. A call to this function will return a vector distance between the centeral
 		pixel and the brightest star in arcseconds in the North and East directions. When calling this function 
 		you must specify which file for daofind to use (do not add the file extension, ie type "filename" NOT "filename.fits"'''
@@ -411,7 +411,7 @@ class FiberFeedServer:
 
 	def cmd_defineCenter(self, the_command):
 		'''This function can be used to define the pixel coordinates that coincide with the optical axis of the telescope 
-		(or where we want the guide star to be at all times). use the option 'show' to query the current central coordinates.'''
+		(or where we want the guide star to be at all times). use the option 'show' to query the current central coordinates. usage: defineCenter <xcoord> <ycoord>'''
 		comands=str.split(the_command)
 		if len(comands) > 3: return 'Please specify the x and y coordinates as separate values'
 		if len(comands)==2 and comands[1]=='show':
@@ -427,7 +427,7 @@ class FiberFeedServer:
 	def cmd_centerIsHere(self, the_command):
 		'''This function can be used to define the pixel coordinates that coincide with the optical axis of the telescope 
 		(or where we want the guide star to be at all times) by taking images and working out where the bright star is. 
-		Very similar to cmd_defineCenter, but takes the images as well and defines the bright star coordinates as the central coords.'''
+		Very similar to cmd_defineCenter, but takes the images as well and defines the bright star coordinates as the central coords. Takes no inputs'''
 		comands=str.split(the_command)
 		if len(comands) != 1: return 'no input needed for this function'
 		dummy=self.cmd_imageCube('imageCube central high')
@@ -516,7 +516,7 @@ class FiberFeedServer:
 		return filename
 
 	def cmd_guide(self,the_command):
-		#function that sets the exposing boolean to true and gets the imaging parameters from the uber server
+		'''function that sets the exposing boolean to true and gets the imaging parameters from the uber server'''
 		commands = str.split(the_command)
 		if len(commands) != 1 : return 'error: this function does not take inputs.'
 		self.exposing=True
@@ -524,7 +524,7 @@ class FiberFeedServer:
 		return 'Image being taken'
 
 	def cmd_imagingStatus(self,the_command):
-		#function that returns the status of the imaging boolean
+		'''function that returns the status of the imaging boolean'''
 		commands=str.split(the_command)
 		if len(commands)>1: return 'Error: this function does not take inputs'
 		else: return str(self.exposing)

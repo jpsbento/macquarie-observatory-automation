@@ -167,6 +167,7 @@ class SBigUDrv:
 		p.readoutMode=0
 		#specifies region to read out, starting top left and moving over
 		#entire height and width
+		#Of the sbig camera from the RHEA prototype is connected, then ignore a few rows and columns.
 		if height==2532 and width==3352:
 			p.top=26
 			p.left=13
@@ -183,6 +184,7 @@ class SBigUDrv:
 		p = sb.ReadoutLineParams()
 		p.ccd = 0
 		p.readoutMode=0
+		#If the sbig camera is plugged in, the image readout must ignore a bunch of rows and columns to be consistent with the windows readout. 
 		if height==2532 and width==3352:
 			p.pixelStart=13
 		else:
@@ -259,7 +261,7 @@ class SBigUDrv:
 
 	
 	def cmd_closeLink(self,the_command):
-		#turns of the temperature regualtion, if not already done, before closing the link
+		'''turns off the temperature regualtion, if not already done, before closing the link'''
 		b = sb.SetTemperatureRegulationParams()
 		b.regulation = 0
 		b.ccdSetpoint = 1000
@@ -270,7 +272,7 @@ class SBigUDrv:
 		return 'link closed \n'
 
 	def cmd_establishLink(self,the_command):
-		#reconnects the link without having to quit the server, in case you change your mind after closing the link essentially
+		'''reconnects the link without having to quit the server, in case you change your mind after closing the link essentially'''
 		sb.SBIGUnivDrvCommand(sb.CC_OPEN_DRIVER, None,None)
 		r = sb.QueryUSBResults()
 		sb.SBIGUnivDrvCommand(sb.CC_QUERY_USB, None,r)
@@ -283,8 +285,8 @@ class SBigUDrv:
 		return 'link established \n'	
 
 	def cmd_getCCDParams(self,the_command):
-		# No argument - this function gets the CCD parameters using GET_CCD_INFO. Technically, 
-		# this returns the parameters for the first CCD.
+		''' No argument - this function gets the CCD parameters using GET_CCD_INFO. Technically, 
+	        this returns the parameters for the first CCD.'''
 		p = sb.GetCCDInfoParams()
 		p.request = 0
 		r = sb.GetCCDInfoResults0()
@@ -298,7 +300,7 @@ class SBigUDrv:
 	' gain(e-/ADU): '+str(gain)+' pixel_width (microns): '+str(pixel_width)
 
 	def cmd_setTemperature(self,the_command):
-		#this command sets the temperature of the imaging CCD, input is in degrees C
+		'''this command sets the temperature of the imaging CCD, input is in degrees C.'''
 		commands = str.split(the_command)
 		if len(commands) < 2 : return 'error: no input value'
 		b = sb.SetTemperatureRegulationParams()
@@ -330,7 +332,7 @@ class SBigUDrv:
 		    + str(a.ccdThermistor) + ', current CCD temp (C) = ' + str(ccdThermistorC_rounded) +'\n'
 		
 	def cmd_checkTemperature(self,the_command):
-		#This command checks the temperature at the time it is run
+		'''This command checks the temperature at the time it is run'''
 		a = sb.QueryTemperatureStatusResults()
 		sb.SBIGUnivDrvCommand(sb.CC_QUERY_TEMPERATURE_STATUS,None,a)
 		#A-D unit conversion
@@ -354,7 +356,7 @@ class SBigUDrv:
 		    + str(a.ccdThermistor) + ', current CCD temp (C)' + str(TempC_rounded) + '\n'
 
 	def cmd_disableRegulation(self,the_command):
-		#disables temperature regulation, important to run before quitting
+		'''disables temperature regulation, important to run before quitting'''
 		b = sb.SetTemperatureRegulationParams()
 		b.regulation = 0
 		b.ccdSetpoint = 1000
@@ -383,8 +385,7 @@ class SBigUDrv:
 
 	#Captures an image
 	def cmd_exposeAndWait(self,command):
-		# This function takes a full frame image and waits for the image to be read out
-		# prior to exiting.
+		''' This function takes a full frame image and waits for the image to be read out prior to ending. Usage: exposeAndWait <exptime> <shutter state> <filename> <imtype (optional, if not bias, dark or light)>'''
 		commands = str.split(command)
 		if len(commands) < 4 : return 'error: require 3 input values (exposure time, lens (open/closed) and filename. optional argument imtype for header keyword if image type is not bias, dark or light.'
 		#Tests to see if the first command is a float (exposure time) and the second command is either open or close
@@ -452,7 +453,7 @@ class SBigUDrv:
 		#analyse focus using iraf tools
 
 	def cmd_imageInstruction(self,the_command):
-		#function that sets the exposing boolean to true and gets the imaging parameters from the uber server
+		'''function that sets the exposing boolean to true and gets the imaging parameters from the uber server'''
 		commands = str.split(the_command)
 		if len(commands) < 4 : return 'error: please specify the exposure time, shutter position and filename'
 		try: 
@@ -466,7 +467,7 @@ class SBigUDrv:
 		return 'Image being taken'
 
 	def cmd_imagingStatus(self,the_command):
-		#function that returns the status of the imaging boolean
+		'''function that returns the status of the imaging boolean'''
 		commands=str.split(the_command)
 		if len(commands)>1: return 'Error: this function does not take inputs'
 		else: return str(self.exposing)
