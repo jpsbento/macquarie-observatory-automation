@@ -1,0 +1,14 @@
+#!/usr/bin/python
+#This is the main program. It should be *very* simple.
+import sx_server
+import sys
+sys.path.append('../common')
+import server_socket
+import find_port
+f = find_port.FindPort()
+Port = f.findPort('sx')
+sx=sx_server.SXDRIVER()
+ss=server_socket.ServerSocket(Port, 'sx', sx)	
+#ss.add_job(sb.imaging_loop)
+sx.run()
+sx.close()
