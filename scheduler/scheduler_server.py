@@ -156,8 +156,8 @@ class SchedServer:
 			except Exception: return 'Something went wrong with activating the guiding'
 			if not 'enabled' in response: return 'Guiding loop not enabled'
 			return 'Successfully got a RHEA guiding test going'
+
 		elif self.Mode=='RheaFull':
-			#THIS PART IS NOT FINISHED YET. 
 			try: 
 				response = self.uber_client.send_command('labjack slits')
 				if not 'True' in response: dummy=self.uber_client.send_command('labjack slits open')
@@ -198,7 +198,7 @@ class SchedServer:
 			try: dummy=self.uber_client.send_command('Imsettings '+str(self.ExposureTime)+' open')
 			except Exception: return 'Something failed when trying to set the exposure settings'
 			if not 'Finished' in dummy: return 'ERROR: could not set the exposure settings'
-			try: dummy=self.uber_client.send_command('Imaging on')
+			try: dummy=self.uber_client.send_command('Imaging on lamp')
 			except Exception: return 'Something failed when trying to start exposing with RHEA'
 			if not 'Finished' in dummy: return 'ERROR: could not start exposing.'
 			return 'Successfully got a Full RHEA steup going.'
