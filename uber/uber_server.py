@@ -320,11 +320,12 @@ class UberServer:
 		HFD=HFD[HFD==HFD]
 		print 'HFD',HFD
 		print 'positions',positions
-		#Do a second order polynomial fit to the data and find the minimum focus position
-		a,b,c=scipy.polyfit(positions,HFD,deg=2)
+		#Do a second order polynomial fit to the data and find the minimum focus position. THIS IS NOT USED AT THE MOMENT.
+		#a,b,c=scipy.polyfit(positions,HFD,deg=2)
 #		pl.plot(positions,HFD,'.')
 #		pl.plot(positions,a*positions**2+b*positions+c)
-		min_focus=int(-b/(2*a))
+		#min_focus=int(-b/(2*a))
+		min_focus=positions[HFD==min(HFD)]
 #		pl.axvline(min_focus)
 #		pl.xlabel('focuser positions')
 #		pl.ylabel('HFD')
