@@ -52,7 +52,7 @@ class UberServer:
 	old_filename='None'
 
 	#Parameters to do with the focus adjustment
-	move_focus_amount = 200
+	move_focus_amount = 100
 	sharp_value = 0
 	sharp_count =0
 	initial_focus_position=0
@@ -359,7 +359,7 @@ class UberServer:
 				self.guiding_bool=True
 				os.system('cp ../fiberfeed/guiding_initial.txt ../fiberfeed/guiding_stats.txt')
 				self.guiding_camera='fiberfeed'
-				self.telescope_client.send_command("focusSetAmount " + str(200))
+				self.telescope_client.send_command("focusSetAmount " + str(100))
 				logging.info('Guiding loop enabled using the '+self.guiding_camera)
 				return 'Guiding loop enabled using the '+self.guiding_camera
 			elif commands[1]=='halt':
