@@ -830,12 +830,19 @@ class UberServer:
 			if HFD==0.0 and moving==[0.0,0.0]:
 				logging.warning('No guide star found')
 				print 'No guide star found'
-				if self.guiding_failures>10:
-					logging.warning('guide star lost, stopping the guiding loop')
-					print 'guide star lost, stopping the guiding loop'
-					self.guiding_bool=False
-					self.guiding_failures=0
-					self.exposing=False
+				if self.guiding_failures>50:
+					logging.warning('guide star lost, trying to reacquire')
+					print 'guide star lost, trying to reacquire'
+					result=self.cmd_masterAlign('masterAlign')
+					if 'Finished the master alignment.' in result:
+						logging.warning('guide star found, continuing')
+						print 'guide star found, continuing'
+					else:
+						self.guiding_bool=False
+						self.guiding_failures=0
+						self.exposing=False
+						logging.warning('guide star lost, guiding stopped')
+						print 'guide star lost, guiding stopped'
 				else: self.guiding_failures+=1
 			else:
 				self.guiding_failures=0
@@ -915,7 +922,7 @@ class UberServer:
 				if self.lamp==True:
 					if self.current_imtype=='light': self.current_imtype='lamp'
 					elif self.current_imtype=='lamp': 
-						dummy=self.cmd_ippower('ippower lamp off')
+						dummy=self.cmd_ippower('ippower HgAr off')
 						dummy=self.telescope_client.send_command('jog North 5')
 						dummy=self.cmd_guiding('guiding resume')
 						self.current_imtype='light'
@@ -926,7 +933,7 @@ class UberServer:
 				try: 
 					dummy=self.cmd_guiding('guiding halt')
 					dummy=self.telescope_client.send_command('jog South 5')
-					dummy=self.cmd_ippower('ippower lamp on')
+					dummy=self.cmd_ippower('ippower HgAr on')
 					result=self.camera_client.send_command('imageInstruction 120 open '+self.filename+' HgAr')
 					logging.info(result)
 					self.old_filename=self.filename
