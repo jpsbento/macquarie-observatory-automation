@@ -48,6 +48,8 @@ class UberServer:
 	current_imtype='light'
 	exptime=0        #Default exposure time
 	shutter_position='closed'  #Default shutter position
+	imgtype_keyword='None'
+	nexps=-10
 	filename='None'
 	old_filename='None'
 
@@ -623,12 +625,12 @@ class UberServer:
 		return 'Imaging status set to '+str(self.exposing)
 
 	def cmd_Imsettings(self,the_command):
-		'''sets the camera settings for the exposing loop. Usage: Imsettings <exptime> <shutter status>'''
+		'''sets the camera settings for the exposing loop. Usage: Imsettings <exptime> <shutter status> <nexps> <Imtype>. The number of exposures and image type keywords are optional. The image type keyword does not define any settings, but is simply the header keyword used on the fits files (e.g. 'Flat'). If you want to specify an image type keyword, you have to specify the number of exposures of that type.'''
 		commands=str.split(the_command)
 		if len(commands)==1: 
 			return 'exposure time is set to '+str(self.exptime)+'\nshutter state is set to '+str(self.shutter_position)
-		elif len(commands)!=3:
-			return 'please input the desired exposure time in seconds and the intended shutter state'
+		elif len(commands)>5:
+			return 'please input the desired exposure time in seconds and the intended shutter state, followed optionally by the number of exposures and image type keyword.'
 		else:
 			try: self.exptime=float(commands[1])
 			except Exception: 
@@ -636,6 +638,16 @@ class UberServer:
 				return 'Invalid exposure time'
 			if ((commands[2]=='open') or (commands[2]=='closed')):  self.shutter_position=commands[2]
 			else: return 'Invalid shutter status. Use "open" or "closed".'
+			if len(commands)==4:
+				try: self.nexps=int(commands[3])
+				except Exception: 
+					logging.error('Invalid number of exposures. If you want to specify an image type, you need give a number of exposures before.')
+					return 'Invalid number of exposures. If you want to specify an image type, you need give a number of exposures before.'
+			if len(commands)==5:
+				try: self.nexps=int(commands[3])
+				except Exception: print 'Invalid number of exposures'
+				try: self.imgtype_keyword=commands[4]
+				except Exception: print 'Could not set the imgtype keyword for some reason'
 			logging.info('Finished updating camera settings')
 			return 'Finished updating camera settings'
 	
@@ -944,11 +956,19 @@ class UberServer:
 					logging.error('Unable to start a calibration lamp exposure')
 					print 'Unable to start a calibration lamp exposure'
 			else:	
-				result=self.camera_client.send_command('imageInstruction '+str(self.exptime)+' '+str(self.shutter_position)+' '+self.filename)
-				self.old_filename=self.filename
-				logging.info(result)
-				print result
-				if 'being taken' not in result: 
-					logging.error('Something went wrong with the image instruction')
-					print 'Something went wrong with the image instruction'
+				if self.nexps!=0:
+					if self.imgtype_keyword=='None':
+						result=self.camera_client.send_command('imageInstruction '+str(self.exptime)+' '+str(self.shutter_position)+' '+self.filename)
+					else: result=self.camera_client.send_command('imageInstruction '+str(self.exptime)+' '+str(self.shutter_position)+' '+self.filename+' '+self.imgtype_keyword)
+					self.old_filename=self.filename
+					logging.info(result)
+					print result
+					if 'being taken' not in result: 
+						logging.error('Something went wrong with the image instruction')
+						print 'Something went wrong with the image instruction'
+					self.nexps-=1
+				else: 
+					self.exposing=False
+					logging.info('Finished the series of images instructed')
+					print 'Finished the series of images instructed'
 
