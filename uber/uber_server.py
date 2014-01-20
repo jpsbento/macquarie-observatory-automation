@@ -369,7 +369,7 @@ class UberServer:
 			elif commands[1]=='resume':
 				self.guiding_bool=True
 			else: return 'invalid argument.'
-		if len(commands)==3 and commands[1]=='on':
+		elif len(commands)==3 and commands[1]=='on':
 			self.guiding_bool=True
 			if commands[2]=='sidecam': 
 				self.guiding_camera='sidecam'
