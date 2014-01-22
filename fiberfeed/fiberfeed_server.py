@@ -505,9 +505,10 @@ class FiberFeedServer:
 					starmag = float(linetemp[2])
 					xpixel = float(linetemp[0])
 					ypixel = float(linetemp[1])
-					starsharp = float(linetemp[3])
+					#The multiplication by two is just to convert the 0.5 frac_radius measurement into the half flux *diameter*
+					HFD = float(linetemp[3])*2.
 					brighteststar=starmag
-		try: return [starmag, xpixel, ypixel, starsharp]
+		try: return [starmag, xpixel, ypixel, HFD]
 		except Exception: return 0
 
 	def check_if_file_exists(self, filename):

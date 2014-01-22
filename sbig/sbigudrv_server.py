@@ -165,6 +165,8 @@ class SBigUDrv:
 		p.ccd=0
                 #No binning
 		p.readoutMode=0
+		#THIS IS THE 2x1 BINNING TEST LINE
+		#p.readoutMode=0x2203
 		#specifies region to read out, starting top left and moving over
 		#entire height and width
 		#Of the sbig camera from the RHEA prototype is connected, then ignore a few rows and columns.

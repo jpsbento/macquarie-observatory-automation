@@ -257,8 +257,8 @@ class BisqueMountServer:
 	def cmd_find(self,the_command):
 		'''Will find an object in TheSky's Star chart and return data. It will spill out all the info on the target in a string.'''
 		commands = str.split(the_command)
-		if len(commands) == 2:
-			obj = commands[1]
+		if len(commands) > 1:
+			obj = ' '.join(commands[1:])
 			linestoreplace = ['sky6StarChart.Find("object");\r\n']
 			newlines = ['sky6StarChart.Find("'+obj+'");\r\n']
 			if self.editscript('Find.template', 'Find.js', linestoreplace,newlines):
@@ -291,8 +291,8 @@ class BisqueMountServer:
 	def cmd_slewToObject(self,the_command):
 		'''Function that will take an object as input and use the find and objInfo functions to slew to it'''
 		commands = str.split(the_command)
-		if len(commands)!=2: return 'This function takes a single argument with the object name'
-		dummy=self.cmd_find('find '+commands[1])
+		if len(commands)<2: return 'This function takes a single argument with the object name'
+		dummy=self.cmd_find('find '+' '.join(commands[1:]))
 		if 'ERROR' in dummy: return 'Unsuccessful attempt at finding object of interest' 
 		#get the dictionary of object properties from TheSkyX
 		d=ast.literal_eval(self.cmd_objInfo('objInfo'))

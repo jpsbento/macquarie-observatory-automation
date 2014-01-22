@@ -58,6 +58,7 @@ class UberServer:
 	sharp_value = 0
 	sharp_count =0
 	initial_focus_position=0
+	seeing=[]
 
 	#ipPower options. This is a unit that is used to control power to units.
 	#This dictionary contains which device is plugged into each port. If the connections change, this needs to be changed too! 
@@ -833,9 +834,8 @@ class UberServer:
 				print 'Unable to update guiding image header'
 			try: 
 				HFD=float(guidingReturn[0])
-				print HFD
+				print 'Current seeing in arcsecs is',str(HFD/4.)
 				moving=[float(guidingReturn[1]),float(guidingReturn[2])]
-				print moving
 			except Exception: 
 				logging.error('Could not convert the values in the guiding_stats file into floats')
 				print 'Could not convert the values in the guiding_stats file into floats'
@@ -858,6 +858,7 @@ class UberServer:
 				else: self.guiding_failures+=1
 			else:
 				self.guiding_failures=0
+				self.seeing.append(HFD/4.)
 				try: 
 					while not 'Done' in self.telescope_client.send_command('IsSlewComplete'): time.sleep(1)
 					self.telescope_client.send_command('jog North '+str(float(moving[0])/2.))
@@ -892,7 +893,8 @@ class UberServer:
 				h.update('TELESCOP', 'Meade LX200 f/10 16 inch', 'Which telescope used')
 				h.update('LAT', -33.77022, 'Telescope latitude (deg)')
 				h.update('LONG', 151.111075, 'Telescope longitude (deg)')
- 			        try: 
+				h.update('SEEING',numpy.median(self.seeing),'Median seeing during exposure in arcsec')
+				try: 
 					d=eval(self.telescope_client.send_command('objInfo'))
 					h.update('TARGET',d['NAME1'],'Target name')
 					h.update('NAME2',d['NAME2'],'Alternative target IDs')
@@ -957,6 +959,7 @@ class UberServer:
 					print 'Unable to start a calibration lamp exposure'
 			else:	
 				if self.nexps!=0:
+					self.seeing=[]
 					if self.imgtype_keyword=='None':
 						result=self.camera_client.send_command('imageInstruction '+str(self.exptime)+' '+str(self.shutter_position)+' '+self.filename)
 					else: result=self.camera_client.send_command('imageInstruction '+str(self.exptime)+' '+str(self.shutter_position)+' '+self.filename+' '+self.imgtype_keyword)
