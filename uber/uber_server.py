@@ -893,7 +893,8 @@ class UberServer:
 				h.update('TELESCOP', 'Meade LX200 f/10 16 inch', 'Which telescope used')
 				h.update('LAT', -33.77022, 'Telescope latitude (deg)')
 				h.update('LONG', 151.111075, 'Telescope longitude (deg)')
-				h.update('SEEING',numpy.median(self.seeing),'Median seeing during exposure in arcsec')
+				if len(self.seeing)==0: h.update('SEEING','None','Median seeing during exposure in arcsec')
+				else: h.update('SEEING',numpy.median(self.seeing),'Median seeing during exposure in arcsec')
 				try: 
 					d=eval(self.telescope_client.send_command('objInfo'))
 					h.update('TARGET',d['NAME1'],'Target name')
