@@ -4,6 +4,7 @@ adjustExposure
 setCameraValues
 starDistanceFromCenter
 orientationCapture
+Chop
 focusCapture
 calculateCameraOrientation
 calibrateMagnitude

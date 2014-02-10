@@ -614,6 +614,7 @@ class UberServer:
 		elif len(commands)==2 and commands[1]=='on': 
 			self.exposing=True
 			self.lamp=False
+			self.current_imtype='light'
 		elif len(commands)==2 and commands[1]=='off': 
 			self.exposing=False
 			self.current_imtype='light'
