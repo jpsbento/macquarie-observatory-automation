@@ -53,7 +53,7 @@ class FiberFeedServer:
 	brightnessDefault = 0
 	gammaDefault = 100
 
-	
+	image_chop=False
 	#Put in the allowed values for each option
 	#We give an array for each variable
 	frameRateRange = list(numpy.arange(1,60.25,step=0.25)) #setting up the allowed frame rates to be in 0.25 increments 
@@ -270,6 +270,15 @@ class FiberFeedServer:
 		if not 'Final image created' in capture: return 'ERROR capturing image'
 		else: return str(comands[1])+' image captured.' # change this to a number perhaps for ease when automating
 
+	def cmd_Chop(self, the_command):
+		'''Changes the value of self.image_chop such that, if it is True, any time an image taken from the camera is analysed, only a scetion in the middle is considered. This is mostly for the purposes of adjusting the exposure and looking for bright stars.'''
+		comands = str.split(the_command)
+		if len(comands)==1: return 'Image chop is set to '+str(self.image_chop)
+		elif len(comands)==2 and comands[1]=='on': self.image_chop=True
+		elif len(comands)==2 and comands[1]=='off': self.image_chop=False
+		else: return 'Incorrect usage of function. Activate chopping of images using "on" or "off".'
+		return 'Image chop status set to '+str(self.image_chop)
+
 	def cmd_focusCapture(self,the_command):
 		'''This will capture the images to be used for focusing an image. When calling this image you need
 		to give the function the focuser counts the photo is being taken at. Might make life easier to combine
@@ -471,6 +480,11 @@ class FiberFeedServer:
 				img.show()
 			img.save( filename+'.jpg' ) # saves as a jpeg
 			os.system("convert -depth 8 -size 640x480+17 "+ filename+'.raw' +" "+ filename+'.fits') # saves as a fits file
+			if self.image_chop:
+				im_temp=pyfits.getdata(filename+'.fits')
+				im=self.chop(im_temp)
+				os.system('rm '+filename+'.fits')
+				pyfits.writeto(filename+'.fits',im)
 		self.dev.stop_capture()
 		return True
 
@@ -562,3 +576,17 @@ class FiberFeedServer:
 			print fileline
 			numpy.savetxt('guiding_stats.txt',fileline,fmt='%s')
 			self.exposing=False
+
+
+	def chop(self,im):
+		'''Function that will return a section of the image that we are interested in. This will just chop off a box of width 'width' centred at middle_x,middle_y. It actually just sets all the values outside this ox to 0'''
+		middle_x=self.target_xpixel
+		middle_y=self.target_ypixel
+		width=100
+		im_temp=im.copy()
+		im_temp[:middle_y-width/2]=0
+		im_temp[middle_y+width/2:]=0
+		im_temp[:,:middle_x-width/2]=0
+		im_temp[:,middle_x+width/2:]=0
+		return im_temp
+	
