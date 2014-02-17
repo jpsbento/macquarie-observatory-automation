@@ -238,11 +238,13 @@ class BisqueMountServer:
 			if self.HFD < self.HFD_min:
 				self.HFD_min=self.HFD
 				self.focus_min=focusposition
-			#if the HFD has increased since last time, reverse the direction of motion and half the amount. Otherwise, just leave as is and then move the focuser. 
+                        #if the HFD has increased since last time, reverse the direction of motion and half the amount. Otherwise, just leave as is and then move the focuser. 
 			if self.HFD >= self.sharp_value: 
 				self.move_focus_amount = int((self.move_focus_amount*-1)/2)
 				if self.move_focus_amount==0: self.move_focus_amount=1
 			#This is introduced to force the focusser to the minimum HFD position with a 1/50 probability. This is an attempt to try to make sure the system is usually close to the optimal focus.
+			if self.HFD > 40:
+				move_focus_amount=100*np.sign(move_focus_amount)
 			if np.random.rand()<(1/50.): 
 				self.cmd_focusGoToPosition("focusGoToPosition "+str(int(self.focus_min)))
 				print 'Focuser forced to go to last minimum setting'
