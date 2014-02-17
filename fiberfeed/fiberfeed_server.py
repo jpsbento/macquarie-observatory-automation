@@ -132,7 +132,7 @@ class FiberFeedServer:
 		direction_old=0
 		deviation=100
 		print 'Adjusting exposure time. Please wait.'
-		while (max_pix < 200)|(max_pix>245):
+		while (max_pix < 150)|(max_pix>245):
 			#take one image but do not display it
 			try: dummy = self.cmd_captureImages('captureImages exposure_adjust 1 no')
 			except Exception: print 'Could not capture image'
@@ -145,7 +145,7 @@ class FiberFeedServer:
 			if max_pix < 200:
 				prop = self.dev.get_property('Exposure (Absolute)')
 				direction=1
-				if prop['value'] < 100000:
+				if prop['value'] < 40000:
 					prop['value']+=deviation
 					print 'Exposure=',prop['value']/10.,'ms'
 					self.dev.set_property( prop )
@@ -155,10 +155,19 @@ class FiberFeedServer:
 			if max_pix > 245:
 				prop = self.dev.get_property('Exposure (Absolute)')
 				direction=-1
-				if prop['value']> 2:
-					if (prop['value']-deviation)>0:
-						prop['value']-=deviation
-					else: prop['value']-=prop['value']/2
+				if prop['value']> 51:
+					prop['value']-=deviation
+					if prop['value']>0:
+						print 'Exposure=',prop['value']/10.,'ms'
+						self.dev.set_property( prop )
+						self.set_values[2]=prop['value']
+					else: 
+						prop['value']=20
+						print 'Exposure=',prop['value']/10.,'ms'
+						self.dev.set_property( prop )
+						self.set_values[2]=prop['value']
+				elif prop['value']<51 and prop['value']>2: 
+					prop['value']-=1
 					print 'Exposure=',prop['value']/10.,'ms'
 					self.dev.set_property( prop )
 					self.set_values[2]=prop['value']
@@ -520,7 +529,7 @@ class FiberFeedServer:
 					xpixel = float(linetemp[0])
 					ypixel = float(linetemp[1])
 					#The multiplication by two is just to convert the 0.5 frac_radius measurement into the half flux *diameter*
-					HFD = float(linetemp[3])*2.
+					HFD = float(linetemp[4])*2.
 					brighteststar=starmag
 		try: return [starmag, xpixel, ypixel, HFD]
 		except Exception: return 0

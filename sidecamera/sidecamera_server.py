@@ -119,16 +119,20 @@ class SideCameraServer:
 		direction_old=0
 		deviation=100
 		print 'Adjusting exposure time. Please wait.'
-		while (max_pix < 200)|(max_pix>245):
+		while (max_pix < 150)|(max_pix>245):
+			#take one image but do not display it
 			try: dummy = self.cmd_captureImages('captureImages exposure_adjust 1 no')
 			except Exception: print 'Could not capture image'
 			im=pyfits.getdata('exposure_adjust.fits')
+			#find out what the maximum flux of the image is
 			max_pix=im.max()
 			print 'max_pix=',max_pix
+			#Now use an asymptotic approach to find the exposure time that will yield a value between 200 and 255
+			#Make sure that exposure never gets above 100000 or below 51
 			if max_pix < 200:
 				prop = self.dev.get_property('Exposure (Absolute)')
 				direction=1
-				if prop['value'] < 100000:
+				if prop['value'] < 40000:
 					prop['value']+=deviation
 					print 'Exposure=',prop['value']/10.,'ms'
 					self.dev.set_property( prop )
@@ -140,9 +144,15 @@ class SideCameraServer:
 				direction=-1
 				if prop['value']> 51:
 					prop['value']-=deviation
-					print 'Exposure=',prop['value']/10.,'ms'
-					self.dev.set_property( prop )
-					self.set_values[2]=prop['value']
+					if prop['value']>0:
+						print 'Exposure=',prop['value']/10.,'ms'
+						self.dev.set_property( prop )
+						self.set_values[2]=prop['value']
+					else: 
+						prop['value']=20
+						print 'Exposure=',prop['value']/10.,'ms'
+						self.dev.set_property( prop )
+						self.set_values[2]=prop['value']
 				elif prop['value']<51 and prop['value']>2: 
 					prop['value']-=1
 					print 'Exposure=',prop['value']/10.,'ms'
