@@ -99,6 +99,30 @@ class UberServer:
 		logging.info('Sucessfully initiated session. You should wait a little bit for the dome and telescope to stop moving before trying anything else.')
 		return 'Sucessfully initiated session. You should wait a little bit for the dome and telescope to stop moving before trying anything else.'
 
+	def cmd_reconnect(self,the_command):
+		'''Command to force a reconnection to a server'''
+		commands=str.split(the_command)
+		if len(commands)==2:
+			if commands[2]=='labjack':
+				self.labjack_client = client_socket.ClientSocket("labjack",self.telescope_type) #23456 <- port number
+			elif commands[2]=='telescope':
+				self.telescope_client = client_socket.ClientSocket("telescope",self.telescope_type)  #23458 <- port number
+			elif commands[2]=='sidecam':
+				self.sidecam_client = client_socket.ClientSocket("sidecamera",self.telescope_type) #23459 <- port number
+			elif commands[2]=='camera':
+				self.camera_client = client_socket.ClientSocket("sbig",self.telescope_type) #23460 <- port number 
+			elif commands[2]=='fiberfeed':
+				self.fiberfeed_client = client_socket.ClientSocket("fiberfeed",self.telescope_type) #23459 <- port number
+			elif commands[2]=='labjacku6':
+				self.labjacku6_client = client_socket.ClientSocket("labjacku6",self.telescope_type) #23462 <- port number
+			elif commands[2]=='weatherstation':
+				self.weatherstation_client = client_socket.ClientSocket("weatherstation",telescope_type) #23457 <- port number
+			else: return 'Unknown server name to reconnect to'
+		else: 
+			logging.error('Need a server name to connect to')
+			return 'ERROR: Need a server name to connect to'
+		
+	
 	def cmd_labjack(self,the_command):
 		'''A user can still access the low level commands from the labjack using this command. ie
 		type 'labjack help' to get all the available commands for the labjack server.'''
