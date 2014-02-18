@@ -350,6 +350,50 @@ class UberServer:
 		logging.info('override_wx '+str(self.override_wx))
 		return str(self.override_wx)
 
+	def cmd_defGuidingPos(self, the_command):
+		'''This is a wrapper function to illuminate the fiberfeed camera using the backLED on the spectrograph and redefine the guiding position. Should be done once per night. As an optional argument, include "adjExp" in the command to force the system to adjust the exposure after the telescope offset.'''
+		commands=str.split(the_command)
+		if len(commands) > 2 :
+			return 'This function takes either no arguments or a single "ajdExp" after'
+			logging.error('This function takes either no arguments or a single "ajdExp" after')
+		else: 
+			dummy=self.cmd_guiding('guiding halt')
+			try: dummy=self.telescope_client.send_command('jog South 5')
+			except Exception:
+				logging.error('Unable to jog telescope during the defGuidingPos routine')
+				return 'Unable to jog telescope during the defGuidingPos routine'
+			if 'ERROR' in dummy: 
+				logging.error('Unable to jog telescope during the defGuidingPos routine')
+				return 'Unable to jog telescope during the defGuidingPos routine'
+			try: self.labjacku6_client.send_command('backLED on')
+			except Exception: 
+				logging.error('Unable to switch on backLED during the defGuidingPos routine')
+				return 'Unable to switch on backLED during the defGuidingPos routine'
+			try: 
+				dummy=self.fiberfeed_client.send_command('setCameraValues Gain 1000')
+				dummy=self.fiberfeed_client.send_command('setCameraValues ExposureAbs 10000')
+				dummy=self.fiberfeed_client.send_command('Chop on')
+				dummy=self.fiberfeed_client.send_command('centerIsHere')
+			except Exception: 
+				logging.error('Unable to communicate successfully with the fiberfeed server during the defGuidingPos routine')
+				return 'Unable to communicate successfully with the fiberfeed server during the defGuidingPos routine'
+			if 'Finished' not in dummy:
+				logging.error('Failed to find the backLED light')
+				return 'Failed to find backLED light'
+			dummy=self.fiberfeed_client.send_command('Chop off')
+			dummy=self.labjacku6_client.send_command('backLED off')
+			try: dummy=self.telescope_client.send_command('jog North 5')
+			except Exception:
+				logging.error('Unable to jog telescope during the defGuidingPos routine')
+				return 'Unable to jog telescope during the defGuidingPos routine'
+			dummy=self.fiberfeed_client.send_command('setCameraValues default')
+			if len(commands)==2 and commands[1]=='adjExp':
+				dummy=self.fiberfeed_client.send_command('adjustExposure')
+			logging.info('Successfully redefined the guiding position.')
+			return 'Successfully redefined the guiding position.'
+	
+			
+
 	def cmd_guiding(self, the_command):
 		'''This function is used to activate or decativate the guiding loop. Usage is 'guiding <on/off> <camera>', where option is either 'on' or 'off' and camera is either 'sidecam' or 'fiberfeed' (default). For the 'off' option, no camera needs to be specified.'''
 		commands=str.split(the_command)
