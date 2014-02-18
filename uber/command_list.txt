@@ -1,5 +1,6 @@
 finishSession
 startSession
+reconnect
 labjack
 telescope
 weatherstation
