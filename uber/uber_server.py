@@ -100,7 +100,7 @@ class UberServer:
 		return 'Sucessfully initiated session. You should wait a little bit for the dome and telescope to stop moving before trying anything else.'
 
 	def cmd_reconnect(self,the_command):
-		'''Command to force a reconnection to a server'''
+		'''Command to force a reconnection to a server. The server options are "labjack", "telescope", "sidecam", "camera", "fiberfeed", "labjacku6" and "weatherstation"'''
 		commands=str.split(the_command)
 		if len(commands)==2:
 			if commands[1]=='labjack':
@@ -415,8 +415,6 @@ class UberServer:
 				dummy=self.fiberfeed_client.send_command('adjustExposure')
 			logging.info('Successfully redefined the guiding position.')
 			return 'Successfully redefined the guiding position.'
-	
-			
 
 	def cmd_guiding(self, the_command):
 		'''This function is used to activate or decativate the guiding loop. Usage is 'guiding <on/off> <camera>', where option is either 'on' or 'off' and camera is either 'sidecam' or 'fiberfeed' (default). For the 'off' option, no camera needs to be specified.'''
