@@ -7,7 +7,7 @@ import client_socket
 import time, math, datetime, csv, ippower
 import pyfits,scipy
 import pylab as pl
-import numpy
+import numpy, commands, os
 from apscheduler.scheduler import Scheduler
 from apscheduler.jobstores.shelve_store import ShelveJobStore
 import logging
@@ -15,6 +15,9 @@ logging.basicConfig(filename='runtime.log',level=logging.DEBUG,format='%(asctime
 
 class UberServer:
 	
+	#define system variable to the root directory of the code.
+	os.environ['MQOBSSOFT']=commands.getoutput('pwd')[:-5]
+
 	# A list of the telescopes we have, comment out all but the telescope you wish to connect with:
 	telescope_type = 'bisquemount'
 	#telescope_type = 'meademount'
@@ -118,6 +121,8 @@ class UberServer:
 			elif commands[1]=='weatherstation':
 				self.weatherstation_client = client_socket.ClientSocket("weatherstation",telescope_type) #23457 <- port number
 			else: return 'Unknown server name to reconnect to'
+			logging.error('Successfully reconnected to server')
+			return 'Successfully reconnected to server'
 		else: 
 			logging.error('Need a server name to connect to')
 			return 'ERROR: Need a server name to connect to'
@@ -870,6 +875,95 @@ class UberServer:
 	#This may not be necessary anymore. Anyways, looks like a pretty stupid function to have. Might as well replace any function call with the only line in it! I'm just leaving it here for now just in case something else is calling it, in case the program breaks.
 	def watchdog_slits(self):
 		self.labjack_client.send_command('ok')		
+
+	def server_check(self):
+		#This function will take care of making sure all servers are on at all times and that the uber server is connected to them in case they fail. 
+		servers=['labjack','labjacku6','bisquemount','sidecamera','fiberfeeed','sbigudrv']
+		dead_servers=[]
+		for s in servers:
+			if len(commands.getoutput('pgrep '+s+'_main'))==0:
+				dead_servers.append(s)
+		if len(dead_servers)!=0:
+			if 'labjack' in dead_servers:
+				print 'labjack server dead, restarting and reconnecting'
+				logging.info('labjack server dead, restarting and reconnecting')
+				try: 
+					dummy=os.system('screen -X -S labjack quit')
+					dummy=os.system('screen -dmS labjack bash -c "cd $MQOBSSOFT/labjack/; ./labjack_main; exec bash"')
+				except Exception: 
+					logging.error('Could not restart the labjack server')
+					return 'Could not restart the labjack server'
+				result=self.cmd_reconnect('reconnect labjack')
+				if 'Successfully' not in result:
+					logging.error('Could not reconnect to labjack server')
+					return 'Could not reconnect the labjack server'
+			if 'labjacku6' in dead_servers:
+				print 'labjacku6 server dead, restarting and reconnecting'
+				logging.info('labjacku6 server dead, restarting and reconnecting')
+				try: 
+					dummy=os.system('screen -X -S u6 quit')
+					dummy=os.system('screen -dmS u6 bash -c "cd $MQOBSSOFT/labjacku6/; ./labjacku6_main; exec bash"')
+				except Exception: 
+					logging.error('Could not restart the labjacku6 server')
+					return 'Could not restart the labjacku6 server'
+				result=self.cmd_reconnect('reconnect labjacku6')
+				if 'Successfully' not in result:
+					logging.error('Could not reconnect to labjacku6 server')
+					return 'Could not reconnect the labjacku6 server'
+			if 'bisquemount' in dead_servers:
+				print 'telescope server dead, restarting and reconnecting'
+				logging.info('telescope server dead, restarting and reconnecting')
+				try: 
+					dummy=os.system('screen -X -S telescope quit')
+					dummy=os.system('screen -dmS telescope bash -c "cd $MQOBSSOFT/labjack/; ./labjack_main; exec bash"')
+				except Exception: 
+					logging.error('Could not restart the telescope server')
+					return 'Could not restart the telescope server'
+				result=self.cmd_reconnect('reconnect telescope')
+				if 'Successfully' not in result:
+					logging.error('Could not reconnect to telescope server')
+					return 'Could not reconnect the telescope server'
+			if 'sidecamera' in dead_servers:
+				print 'sidecamera server dead, restarting and reconnecting'
+				logging.info('sidecamera server dead, restarting and reconnecting')
+				try: 
+					dummy=os.system('screen -X -S sidecamera am quit')
+					dummy=os.system('screen -dmS sidecamera bash -c "cd $MQOBSSOFT/sidecamera/; ./sidecamera_main; exec bash"')
+				except Exception: 
+					logging.error('Could not restart the sidecamera server')
+					return 'Could not restart the sidecamera server'
+				result=self.cmd_reconnect('reconnect sidecamera')
+				if 'Successfully' not in result:
+					logging.error('Could not reconnect to sidecamera server')
+					return 'Could not reconnect the sidecamera server'
+			if 'fiberfeed' in dead_servers:
+				print 'fiberfeed server dead, restarting and reconnecting'
+				logging.info('fiberfeed server dead, restarting and reconnecting')
+				try: 
+					dummy=os.system('screen -X -S fiberfeed quit')
+					dummy=os.system('screen -dmS fiberfeed bash -c "cd $MQOBSSOFT/fiberfeed/; ./fiberfeed_main; exec bash"')
+				except Exception: 
+					logging.error('Could not restart the fiberfeed server')
+					return 'Could not restart the fiberfeed server'
+				result=self.cmd_reconnect('reconnect fiberfeed')
+				if 'Successfully' not in result:
+					logging.error('Could not reconnect to fiberfeed server')
+					return 'Could not reconnect the fiberfeed server'
+			if 'sbigudrv' in dead_servers:
+				print 'camera server dead, restarting and reconnecting'
+				logging.info('camera server dead, restarting and reconnecting')
+				try: 
+					dummy=os.system('screen -X -S camera quit')
+					dummy=os.system('screen -dmS camera bash -c "cd $MQOBSSOFT/sbig/; ./sbigudrv_main; exec bash"')
+				except Exception: 
+					logging.error('Could not restart the camera server')
+					return 'Could not restart the camera server'
+				result=self.cmd_reconnect('reconnect camera')
+				if 'Successfully' not in result:
+					logging.error('Could not reconnect to camera server')
+					return 'Could not reconnect the camera server'
+
+			
 
 	def guidingReturn(self,the_command):
 		#function that returns the current guiding parameters from a file written by the fiberfeed server
