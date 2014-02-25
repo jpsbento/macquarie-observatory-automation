@@ -25867,3 +25867,764 @@
 24/02/2014 11:50:58 AM INFO override_wx True
 24/02/2014 04:36:46 PM INFO Dome Tracking turned off
 24/02/2014 04:36:46 PM INFO override_wx True
+25/02/2014 04:52:57 PM INFO telescope server dead, restarting and reconnecting
+25/02/2014 04:52:57 PM ERROR Successfully reconnected to server
+25/02/2014 04:52:57 PM INFO sidecamera server dead, restarting and reconnecting
+25/02/2014 04:52:57 PM ERROR Could not reconnect to sidecamera server
+25/02/2014 04:52:57 PM ERROR Virtual Dome not giving out what is expected
+25/02/2014 04:52:57 PM INFO telescope server dead, restarting and reconnecting
+25/02/2014 04:52:57 PM ERROR Successfully reconnected to server
+25/02/2014 04:52:57 PM INFO sidecamera server dead, restarting and reconnecting
+25/02/2014 04:52:57 PM ERROR Could not reconnect to sidecamera server
+25/02/2014 04:52:58 PM INFO telescope server dead, restarting and reconnecting
+25/02/2014 04:52:58 PM ERROR Successfully reconnected to server
+25/02/2014 04:52:58 PM INFO telescope server dead, restarting and reconnecting
+25/02/2014 04:52:58 PM ERROR Successfully reconnected to server
+25/02/2014 04:52:58 PM INFO telescope server dead, restarting and reconnecting
+25/02/2014 04:52:58 PM ERROR Successfully reconnected to server
+25/02/2014 04:52:58 PM INFO telescope server dead, restarting and reconnecting
+25/02/2014 04:52:58 PM ERROR Successfully reconnected to server
+25/02/2014 04:52:58 PM INFO telescope server dead, restarting and reconnecting
+25/02/2014 04:52:58 PM ERROR Successfully reconnected to server
+25/02/2014 04:52:58 PM INFO labjack server dead, restarting and reconnecting
+25/02/2014 04:52:58 PM ERROR Successfully reconnected to server
+25/02/2014 04:52:58 PM INFO telescope server dead, restarting and reconnecting
+25/02/2014 04:52:58 PM ERROR Successfully reconnected to server
+25/02/2014 04:52:58 PM INFO telescope server dead, restarting and reconnecting
+25/02/2014 04:52:58 PM ERROR Successfully reconnected to server
+25/02/2014 04:52:58 PM INFO labjack server dead, restarting and reconnecting
+25/02/2014 04:52:58 PM ERROR Successfully reconnected to server
+25/02/2014 04:52:58 PM INFO telescope server dead, restarting and reconnecting
+25/02/2014 04:52:58 PM ERROR Successfully reconnected to server
+25/02/2014 04:52:58 PM INFO telescope server dead, restarting and reconnecting
+25/02/2014 04:52:58 PM ERROR Successfully reconnected to server
+25/02/2014 04:52:59 PM INFO labjack server dead, restarting and reconnecting
+25/02/2014 04:52:59 PM ERROR Successfully reconnected to server
+25/02/2014 04:52:59 PM INFO telescope server dead, restarting and reconnecting
+25/02/2014 04:52:59 PM ERROR Successfully reconnected to server
+25/02/2014 04:52:59 PM INFO telescope server dead, restarting and reconnecting
+25/02/2014 04:52:59 PM ERROR Successfully reconnected to server
+25/02/2014 04:52:59 PM INFO telescope server dead, restarting and reconnecting
+25/02/2014 04:52:59 PM ERROR Successfully reconnected to server
+25/02/2014 04:52:59 PM INFO labjack server dead, restarting and reconnecting
+25/02/2014 04:52:59 PM ERROR Successfully reconnected to server
+25/02/2014 04:52:59 PM INFO telescope server dead, restarting and reconnecting
+25/02/2014 04:52:59 PM ERROR Successfully reconnected to server
+25/02/2014 04:52:59 PM ERROR Could not query the status of the slits from Labjack.
+25/02/2014 05:02:07 PM ERROR Dome Azimuth not as expected.
+25/02/2014 05:02:07 PM INFO labjack server dead, restarting and reconnecting
+25/02/2014 05:02:07 PM ERROR Successfully reconnected to server
+25/02/2014 05:02:07 PM INFO telescope server dead, restarting and reconnecting
+25/02/2014 05:02:07 PM ERROR Successfully reconnected to server
+25/02/2014 05:02:07 PM INFO sidecamera server dead, restarting and reconnecting
+25/02/2014 05:02:07 PM ERROR Could not reconnect to sidecamera server
+25/02/2014 05:02:07 PM INFO telescope server dead, restarting and reconnecting
+25/02/2014 05:02:07 PM ERROR Successfully reconnected to server
+25/02/2014 05:02:07 PM INFO labjacku6 server dead, restarting and reconnecting
+25/02/2014 05:02:07 PM ERROR Successfully reconnected to server
+25/02/2014 05:02:07 PM INFO telescope server dead, restarting and reconnecting
+25/02/2014 05:02:07 PM ERROR Successfully reconnected to server
+25/02/2014 05:02:07 PM INFO labjack server dead, restarting and reconnecting
+25/02/2014 05:02:07 PM ERROR Successfully reconnected to server
+25/02/2014 05:02:07 PM INFO telescope server dead, restarting and reconnecting
+25/02/2014 05:02:07 PM ERROR Successfully reconnected to server
+25/02/2014 05:02:07 PM INFO labjack server dead, restarting and reconnecting
+25/02/2014 05:02:07 PM ERROR Successfully reconnected to server
+25/02/2014 05:02:07 PM INFO telescope server dead, restarting and reconnecting
+25/02/2014 05:02:07 PM ERROR Successfully reconnected to server
+25/02/2014 05:02:07 PM INFO telescope server dead, restarting and reconnecting
+25/02/2014 05:02:07 PM ERROR Successfully reconnected to server
+25/02/2014 05:02:07 PM INFO labjack server dead, restarting and reconnecting
+25/02/2014 05:02:07 PM ERROR Successfully reconnected to server
+25/02/2014 05:02:07 PM INFO telescope server dead, restarting and reconnecting
+25/02/2014 05:02:07 PM ERROR Successfully reconnected to server
+26/02/2014 09:44:33 AM ERROR Virtual Dome not giving out what is expected
+26/02/2014 09:44:33 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:44:52 AM ERROR Virtual Dome not giving out what is expected
+26/02/2014 09:44:52 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:44:52 AM ERROR Successfully reconnected to server
+26/02/2014 09:44:52 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:44:52 AM ERROR Successfully reconnected to server
+26/02/2014 09:44:52 AM ERROR Could not query the status of the slits from Labjack.
+26/02/2014 09:48:25 AM ERROR Dome Azimuth not as expected.
+26/02/2014 09:48:26 AM INFO labjack server dead, restarting and reconnecting
+26/02/2014 09:48:26 AM ERROR Successfully reconnected to server
+26/02/2014 09:48:26 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:48:26 AM ERROR Successfully reconnected to server
+26/02/2014 09:48:26 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:48:26 AM ERROR Successfully reconnected to server
+26/02/2014 09:48:26 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:48:26 AM ERROR Successfully reconnected to server
+26/02/2014 09:48:26 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:48:26 AM ERROR Successfully reconnected to server
+26/02/2014 09:48:26 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:48:26 AM ERROR Successfully reconnected to server
+26/02/2014 09:48:26 AM INFO labjack server dead, restarting and reconnecting
+26/02/2014 09:48:27 AM ERROR Successfully reconnected to server
+26/02/2014 09:48:27 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:48:27 AM ERROR Successfully reconnected to server
+26/02/2014 09:48:27 AM ERROR Could not query the status of the slits from Labjack.
+26/02/2014 09:49:27 AM ERROR Dome Azimuth not as expected.
+26/02/2014 09:49:27 AM INFO labjack server dead, restarting and reconnecting
+26/02/2014 09:49:27 AM ERROR Successfully reconnected to server
+26/02/2014 09:49:27 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:49:27 AM ERROR Successfully reconnected to server
+26/02/2014 09:49:27 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:49:27 AM ERROR Successfully reconnected to server
+26/02/2014 09:49:27 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:49:27 AM ERROR Successfully reconnected to server
+26/02/2014 09:49:27 AM INFO labjack server dead, restarting and reconnecting
+26/02/2014 09:49:27 AM ERROR Successfully reconnected to server
+26/02/2014 09:49:27 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:49:27 AM ERROR Successfully reconnected to server
+26/02/2014 09:49:27 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:49:27 AM ERROR Successfully reconnected to server
+26/02/2014 09:49:27 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:49:27 AM ERROR Successfully reconnected to server
+26/02/2014 09:49:27 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:49:27 AM ERROR Successfully reconnected to server
+26/02/2014 09:49:28 AM INFO labjack server dead, restarting and reconnecting
+26/02/2014 09:49:28 AM ERROR Successfully reconnected to server
+26/02/2014 09:49:28 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:49:28 AM ERROR Successfully reconnected to server
+26/02/2014 09:49:28 AM ERROR Could not query the status of the slits from Labjack.
+26/02/2014 09:55:43 AM ERROR Dome Azimuth not as expected.
+26/02/2014 09:55:43 AM INFO labjack server dead, restarting and reconnecting
+26/02/2014 09:55:43 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:43 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:43 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:43 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:43 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:43 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:43 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:43 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:43 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:44 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:44 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:44 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:44 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:44 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:44 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:44 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:44 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:44 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:44 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:44 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:44 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:45 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:45 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:45 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:45 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:45 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:45 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:45 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:45 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:45 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:45 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:45 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:45 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:45 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:46 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:46 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:46 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:46 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:46 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:46 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:46 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:46 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:46 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:46 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:46 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:46 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:46 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:46 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:46 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:47 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:47 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:47 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:47 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:47 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:47 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:47 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:47 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:47 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:47 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:48 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:48 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:48 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:48 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:48 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:48 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:48 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:48 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:48 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:48 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:48 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:48 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:49 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:49 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:49 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:49 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:49 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:49 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:49 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:49 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:49 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:49 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:49 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:49 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:49 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:49 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:50 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:50 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:50 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:50 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:50 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:50 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:50 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:50 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:50 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:50 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:50 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:50 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:51 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:51 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:51 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:51 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:51 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:51 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:51 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:51 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:51 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:51 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:51 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:51 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:51 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:51 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:52 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:52 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:52 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:52 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:52 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:52 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:52 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:52 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:52 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:52 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:52 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:52 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:52 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:52 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:52 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:52 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:52 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:52 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:53 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:53 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:53 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:53 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:53 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:53 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:53 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:53 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:53 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:53 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:53 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:54 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:54 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:54 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:54 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:54 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:54 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:54 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:54 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:54 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:54 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:54 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:54 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:54 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:55 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:55 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:55 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:55 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:55 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:55 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:56 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:56 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:56 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:56 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:56 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:56 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:56 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:56 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:57 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:57 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:57 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:57 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:57 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:57 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:57 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:57 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:57 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:57 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:57 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:57 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:58 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:58 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:58 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:58 AM ERROR Successfully reconnected to server
+26/02/2014 09:55:58 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 09:55:58 AM ERROR Successfully reconnected to server
+26/02/2014 10:00:48 AM ERROR Virtual Dome not giving out what is expected
+26/02/2014 10:00:48 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:00:48 AM ERROR Successfully reconnected to server
+26/02/2014 10:00:48 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:00:48 AM ERROR Successfully reconnected to server
+26/02/2014 10:00:48 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:00:48 AM ERROR Successfully reconnected to server
+26/02/2014 10:00:48 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:00:48 AM ERROR Successfully reconnected to server
+26/02/2014 10:00:48 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:00:48 AM ERROR Successfully reconnected to server
+26/02/2014 10:00:49 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:00:49 AM ERROR Successfully reconnected to server
+26/02/2014 10:00:49 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:00:49 AM ERROR Successfully reconnected to server
+26/02/2014 10:00:49 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:00:49 AM ERROR Successfully reconnected to server
+26/02/2014 10:00:49 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:00:49 AM ERROR Successfully reconnected to server
+26/02/2014 10:00:49 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:00:49 AM ERROR Successfully reconnected to server
+26/02/2014 10:00:49 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:00:49 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:17 AM ERROR Dome Azimuth not as expected.
+26/02/2014 10:14:17 AM INFO labjack server dead, restarting and reconnecting
+26/02/2014 10:14:17 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:17 AM INFO labjacku6 server dead, restarting and reconnecting
+26/02/2014 10:14:17 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:17 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:17 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:17 AM INFO sidecamera server dead, restarting and reconnecting
+26/02/2014 10:14:17 AM ERROR Could not reconnect to sidecamera server
+26/02/2014 10:14:17 AM INFO labjack server dead, restarting and reconnecting
+26/02/2014 10:14:17 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:17 AM INFO labjacku6 server dead, restarting and reconnecting
+26/02/2014 10:14:17 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:17 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:17 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:17 AM INFO sidecamera server dead, restarting and reconnecting
+26/02/2014 10:14:17 AM ERROR Could not reconnect to sidecamera server
+26/02/2014 10:14:17 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:17 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:17 AM INFO fiberfeed server dead, restarting and reconnecting
+26/02/2014 10:14:17 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:17 AM INFO camera server dead, restarting and reconnecting
+26/02/2014 10:14:17 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:17 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:17 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:17 AM INFO fiberfeed server dead, restarting and reconnecting
+26/02/2014 10:14:17 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:17 AM INFO camera server dead, restarting and reconnecting
+26/02/2014 10:14:17 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:17 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:17 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:17 AM INFO camera server dead, restarting and reconnecting
+26/02/2014 10:14:17 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:17 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:17 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:17 AM INFO camera server dead, restarting and reconnecting
+26/02/2014 10:14:17 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:17 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:17 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:17 AM INFO camera server dead, restarting and reconnecting
+26/02/2014 10:14:17 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:17 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:17 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:17 AM INFO camera server dead, restarting and reconnecting
+26/02/2014 10:14:17 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:17 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:17 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:17 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:17 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:17 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:17 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:17 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:17 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:17 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:17 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:17 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:17 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:17 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:17 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:17 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:17 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:17 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:17 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:17 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:17 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:17 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:17 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:17 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:17 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:17 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:17 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:18 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:18 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:18 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:18 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:18 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:18 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:18 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:18 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:18 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:18 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:18 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:18 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:18 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:18 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:18 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:18 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:18 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:18 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:18 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:18 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:18 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:18 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:18 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:18 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:18 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:18 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:18 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:18 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:18 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:18 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:18 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:18 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:18 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:18 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:18 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:18 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:18 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:18 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:18 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:18 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:18 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:18 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:18 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:18 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:18 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:18 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:18 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:18 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:18 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:18 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:18 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:18 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:18 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:18 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:18 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:18 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:19 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:19 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:19 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:19 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:19 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:19 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:19 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:19 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:19 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:19 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:19 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:19 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:19 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:19 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:19 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:19 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:19 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:19 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:19 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:19 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:19 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:19 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:19 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:19 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:19 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:19 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:19 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:19 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:19 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:19 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:19 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:19 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:19 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:19 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:19 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:19 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:19 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:19 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:19 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:19 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:19 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:19 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:19 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:19 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:19 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:19 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:19 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:19 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:19 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:19 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:19 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:19 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:19 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:19 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:19 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:19 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:19 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:19 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:19 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:19 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:19 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:19 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:20 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:20 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:20 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:20 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:20 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:20 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:20 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:20 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:20 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:20 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:20 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:20 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:20 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:20 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:20 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:20 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:20 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:20 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:20 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:20 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:20 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:20 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:20 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:20 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:20 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:20 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:20 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:20 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:20 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:20 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:20 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:20 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:21 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:21 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:21 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:21 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:21 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:21 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:21 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:21 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:21 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:21 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:21 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:21 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:21 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:21 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:21 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:21 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:21 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:21 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:21 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:21 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:21 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:21 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:21 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:21 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:21 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:21 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:21 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:21 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:21 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:21 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:21 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:21 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:22 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:22 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:22 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:22 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:22 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:22 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:22 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:22 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:22 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:22 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:22 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:22 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:22 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:22 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:22 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:22 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:22 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:22 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:22 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:22 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:22 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:22 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:22 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:22 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:22 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:22 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:22 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:22 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:22 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:22 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:22 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:22 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:22 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:22 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:23 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:23 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:23 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:23 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:23 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:23 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:23 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:23 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:23 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:23 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:23 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:23 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:23 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:23 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:23 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:23 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:23 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:23 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:23 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:23 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:23 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:23 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:23 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:23 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:23 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:23 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:23 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:23 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:23 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:23 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:23 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:23 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:23 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:23 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:23 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:23 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:23 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:23 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:23 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:23 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:24 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:24 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:24 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:24 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:24 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:24 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:24 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:24 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:24 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:24 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:24 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:24 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:24 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:24 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:24 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:24 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:24 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:24 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:24 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:24 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:24 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:24 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:24 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:24 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:24 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:24 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:24 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:24 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:24 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:24 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:24 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:24 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:24 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:24 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:24 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:24 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:24 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:24 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:25 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:25 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:25 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:25 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:25 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:25 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:25 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:25 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:25 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:25 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:25 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:25 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:25 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:25 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:25 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:25 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:25 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:25 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:25 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:25 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:25 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:25 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:25 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:25 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:25 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:25 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:25 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:25 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:25 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:25 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:25 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:25 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:25 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:25 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:25 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:25 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:25 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:25 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:26 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:26 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:26 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:26 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:26 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:26 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:26 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:26 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:26 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:26 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:26 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:26 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:26 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:26 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:26 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:26 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:26 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:26 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:26 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:26 AM ERROR Successfully reconnected to server
+26/02/2014 10:14:26 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:14:26 AM ERROR Successfully reconnected to server
+26/02/2014 10:19:33 AM INFO Dome Tracking turned off
+26/02/2014 10:20:05 AM INFO Guiding loop disabled
+26/02/2014 10:20:05 AM INFO Imaging status set to False
+26/02/2014 10:20:10 AM INFO Sucessfully finished session
+26/02/2014 10:20:10 AM WARNING Weather not suitable for observing. Closing Slits.

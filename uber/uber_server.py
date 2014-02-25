@@ -878,11 +878,12 @@ class UberServer:
 
 	def server_check(self):
 		#This function will take care of making sure all servers are on at all times and that the uber server is connected to them in case they fail. 
-		servers=['labjack','labjacku6','bisquemount','sidecamera','fiberfeeed','sbigudrv']
+		servers=['labjack','labjacku6','bisquemount','sidecamera','fiberfeed','sbigudrv']
 		dead_servers=[]
 		for s in servers:
-			if len(commands.getoutput('pgrep '+s+'_main'))==0:
+			if len(commands.getoutput('pgrep '+s+'_m'))==0:
 				dead_servers.append(s)
+		#print dead_servers
 		if len(dead_servers)!=0:
 			if 'labjack' in dead_servers:
 				print 'labjack server dead, restarting and reconnecting'
@@ -915,7 +916,7 @@ class UberServer:
 				logging.info('telescope server dead, restarting and reconnecting')
 				try: 
 					dummy=os.system('screen -X -S telescope quit')
-					dummy=os.system('screen -dmS telescope bash -c "cd $MQOBSSOFT/labjack/; ./labjack_main; exec bash"')
+					dummy=os.system('screen -dmS telescope bash -c "cd $MQOBSSOFT/bisquemount/; ./bisquemount_main; exec bash"')
 				except Exception: 
 					logging.error('Could not restart the telescope server')
 					return 'Could not restart the telescope server'
