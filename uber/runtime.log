@@ -25709,3 +25709,161 @@
 09/02/2014 12:47:33 AM INFO Imaging status set to False
 09/02/2014 12:47:34 AM INFO Sucessfully finished session
 09/02/2014 12:47:34 AM WARNING Weather not suitable for observing. Closing Slits.
+10/02/2014 04:10:46 PM INFO Dome Tracking turned off
+10/02/2014 04:10:46 PM INFO override_wx True
+10/02/2014 04:49:55 PM INFO Dome Tracking turned off
+10/02/2014 04:49:55 PM INFO override_wx True
+10/02/2014 04:50:04 PM INFO Dome Tracking turned off
+10/02/2014 04:50:04 PM INFO override_wx True
+10/02/2014 04:56:18 PM INFO Dome Tracking turned off
+10/02/2014 04:56:18 PM INFO override_wx True
+10/02/2014 04:57:15 PM INFO Dome Tracking turned off
+10/02/2014 04:57:15 PM INFO override_wx True
+10/02/2014 05:03:50 PM INFO Dome Tracking turned off
+10/02/2014 05:03:50 PM INFO override_wx True
+10/02/2014 05:29:59 PM INFO Dome Tracking turned off
+10/02/2014 05:29:59 PM INFO override_wx True
+10/02/2014 05:30:09 PM INFO Dome Tracking turned off
+10/02/2014 05:30:09 PM INFO override_wx True
+10/02/2014 05:36:44 PM INFO Dome Tracking turned off
+10/02/2014 05:36:44 PM INFO override_wx True
+10/02/2014 05:39:39 PM INFO Dome Tracking turned off
+10/02/2014 05:39:39 PM INFO override_wx True
+10/02/2014 05:42:23 PM INFO Dome Tracking turned off
+10/02/2014 05:42:23 PM INFO override_wx True
+10/02/2014 05:42:53 PM INFO Dome Tracking turned off
+10/02/2014 05:42:53 PM INFO override_wx True
+10/02/2014 05:43:22 PM INFO Dome Tracking turned off
+11/02/2014 10:58:17 AM INFO Dome Tracking turned off
+11/02/2014 10:58:17 AM INFO override_wx True
+11/02/2014 10:58:28 AM INFO Dome Tracking turned off
+11/02/2014 11:01:53 AM INFO Dome Tracking turned off
+11/02/2014 11:01:53 AM INFO override_wx True
+11/02/2014 11:02:01 AM INFO Dome Tracking turned off
+11/02/2014 11:04:18 AM INFO Dome Tracking turned off
+11/02/2014 11:04:18 AM INFO override_wx True
+11/02/2014 01:46:38 PM INFO Dome Tracking turned off
+11/02/2014 01:46:38 PM INFO override_wx True
+11/02/2014 01:54:35 PM INFO Dome Tracking turned off
+11/02/2014 01:54:35 PM INFO override_wx True
+11/02/2014 01:55:13 PM INFO Dome Tracking turned off
+11/02/2014 01:55:13 PM INFO override_wx True
+11/02/2014 01:55:44 PM INFO Dome Tracking turned off
+11/02/2014 01:55:44 PM INFO override_wx True
+11/02/2014 01:55:58 PM INFO Dome Tracking turned off
+11/02/2014 01:55:58 PM INFO override_wx True
+11/02/2014 01:56:11 PM INFO Dome Tracking turned off
+11/02/2014 01:56:11 PM INFO override_wx True
+11/02/2014 01:56:24 PM INFO Dome Tracking turned off
+11/02/2014 01:56:58 PM INFO Dome Tracking turned off
+11/02/2014 01:56:58 PM INFO override_wx False
+11/02/2014 01:57:36 PM INFO Dome Tracking turned off
+11/02/2014 01:57:36 PM INFO override_wx True
+11/02/2014 01:59:24 PM INFO Dome Tracking turned off
+11/02/2014 01:59:24 PM INFO override_wx True
+13/02/2014 10:39:24 AM INFO Dome Tracking turned off
+13/02/2014 10:39:24 AM INFO override_wx True
+13/02/2014 11:16:31 AM INFO Dome Tracking turned off
+13/02/2014 11:16:31 AM INFO override_wx False
+13/02/2014 11:17:00 AM INFO Dome Tracking turned off
+13/02/2014 11:17:00 AM INFO override_wx True
+13/02/2014 11:19:24 AM INFO Dome Tracking turned off
+13/02/2014 11:19:24 AM INFO override_wx False
+13/02/2014 11:19:26 AM INFO Guiding loop disabled
+13/02/2014 11:19:26 AM INFO Imaging status set to False
+13/02/2014 11:20:40 AM INFO Sucessfully finished session
+13/02/2014 11:20:40 AM WARNING Weather not suitable for observing. Closing Slits.
+13/02/2014 11:22:07 AM INFO Dome Tracking turned off
+13/02/2014 11:22:07 AM INFO override_wx True
+13/02/2014 11:24:03 AM INFO Dome Tracking turned off
+13/02/2014 11:24:03 AM INFO override_wx True
+13/02/2014 11:26:19 AM INFO Dome Tracking turned off
+13/02/2014 11:26:19 AM INFO override_wx True
+18/02/2014 03:20:12 PM INFO Dome Tracking turned off
+18/02/2014 03:22:41 PM ERROR Virtual Dome not giving out what is expected
+18/02/2014 03:22:50 PM INFO Dome Tracking turned off
+18/02/2014 03:23:38 PM INFO Guiding loop disabled
+18/02/2014 03:23:38 PM INFO Imaging status set to False
+18/02/2014 03:23:39 PM INFO Sucessfully finished session
+20/02/2014 11:48:32 AM INFO Dome Tracking turned off
+20/02/2014 11:48:32 AM INFO override_wx True
+20/02/2014 02:29:41 PM INFO Dome Tracking turned off
+20/02/2014 02:29:41 PM INFO override_wx True
+20/02/2014 02:30:51 PM INFO Dome Tracking turned on
+20/02/2014 02:33:54 PM INFO Dome Tracking turned off
+20/02/2014 02:33:54 PM INFO override_wx False
+20/02/2014 02:34:02 PM INFO Guiding loop disabled
+20/02/2014 02:34:02 PM INFO Imaging status set to False
+20/02/2014 02:34:03 PM INFO Sucessfully finished session
+20/02/2014 02:34:03 PM WARNING Weather not suitable for observing. Closing Slits.
+20/02/2014 02:34:31 PM INFO Dome Tracking turned off
+20/02/2014 02:34:31 PM INFO override_wx True
+20/02/2014 03:05:44 PM INFO HgAr successfully switched off
+20/02/2014 03:06:50 PM INFO Dome Tracking turned off
+20/02/2014 03:06:50 PM INFO override_wx True
+20/02/2014 04:15:17 PM INFO Dome Tracking turned off
+20/02/2014 04:15:17 PM INFO override_wx False
+20/02/2014 07:08:19 PM INFO Dome Tracking turned off
+20/02/2014 07:08:19 PM INFO override_wx True
+20/02/2014 07:14:26 PM INFO Dome Tracking turned on
+20/02/2014 07:51:16 PM INFO Dome Tracking turned off
+20/02/2014 07:51:16 PM INFO override_wx False
+20/02/2014 07:51:19 PM INFO Guiding loop disabled
+20/02/2014 07:51:19 PM INFO Imaging status set to False
+20/02/2014 07:51:20 PM INFO Sucessfully finished session
+20/02/2014 07:51:20 PM WARNING Weather not suitable for observing. Closing Slits.
+20/02/2014 07:51:31 PM INFO Dome Tracking turned off
+20/02/2014 07:51:31 PM INFO override_wx True
+20/02/2014 07:51:50 PM INFO Dome Tracking turned off
+20/02/2014 07:51:50 PM INFO override_wx True
+20/02/2014 07:51:56 PM INFO Dome Tracking turned on
+20/02/2014 08:03:46 PM INFO Dome Tracking turned off
+20/02/2014 08:03:48 PM INFO Dome Tracking turned on
+20/02/2014 08:07:24 PM INFO Dome Tracking turned off
+20/02/2014 08:27:28 PM INFO Dome Tracking turned off
+20/02/2014 08:27:28 PM INFO override_wx True
+20/02/2014 08:27:30 PM INFO Dome Tracking turned on
+20/02/2014 08:52:07 PM INFO Dome Tracking turned off
+20/02/2014 09:16:07 PM INFO Dome Tracking turned on
+20/02/2014 09:18:19 PM INFO Dome Tracking turned off
+20/02/2014 10:04:18 PM INFO Dome Tracking turned off
+20/02/2014 10:04:18 PM INFO override_wx False
+20/02/2014 10:15:09 PM INFO Dome Tracking turned off
+20/02/2014 10:15:12 PM INFO override_wx True
+20/02/2014 10:15:15 PM INFO Dome Tracking turned off
+20/02/2014 10:15:15 PM INFO override_wx False
+20/02/2014 10:16:57 PM INFO Dome Tracking turned off
+20/02/2014 10:17:00 PM INFO override_wx True
+21/02/2014 07:19:06 PM INFO Dome Tracking turned off
+21/02/2014 07:19:06 PM INFO override_wx True
+21/02/2014 07:19:30 PM INFO Dome Tracking turned on
+21/02/2014 07:19:30 PM ERROR Virtual Dome not giving out what is expected
+21/02/2014 07:29:03 PM INFO Dome Tracking turned on
+21/02/2014 07:29:03 PM ERROR Virtual Dome not giving out what is expected
+21/02/2014 07:29:12 PM INFO Dome Tracking turned on
+21/02/2014 07:29:12 PM ERROR Virtual Dome not giving out what is expected
+21/02/2014 07:29:13 PM INFO Dome Tracking turned on
+21/02/2014 07:29:13 PM ERROR Virtual Dome not giving out what is expected
+21/02/2014 07:29:39 PM INFO Dome Tracking turned off
+21/02/2014 07:29:52 PM INFO Dome Tracking turned off
+21/02/2014 07:29:52 PM INFO override_wx True
+21/02/2014 07:32:52 PM INFO Dome Tracking turned on
+21/02/2014 07:32:52 PM ERROR Virtual Dome not giving out what is expected
+21/02/2014 07:35:16 PM INFO Dome Tracking turned off
+21/02/2014 07:35:16 PM INFO override_wx True
+21/02/2014 07:36:15 PM INFO Dome Tracking turned on
+21/02/2014 07:36:15 PM ERROR Virtual Dome not giving out what is expected
+21/02/2014 07:37:10 PM INFO Dome Tracking turned off
+21/02/2014 08:07:27 PM INFO Dome Tracking turned off
+21/02/2014 08:07:27 PM INFO override_wx True
+21/02/2014 08:11:45 PM INFO Dome Tracking turned off
+21/02/2014 08:11:45 PM INFO override_wx False
+21/02/2014 08:12:14 PM INFO Dome Tracking turned off
+21/02/2014 08:12:17 PM INFO override_wx True
+21/02/2014 08:13:01 PM INFO Dome Tracking turned off
+21/02/2014 09:12:56 PM INFO Dome Tracking turned off
+21/02/2014 09:12:56 PM INFO override_wx False
+24/02/2014 11:50:58 AM INFO Dome Tracking turned off
+24/02/2014 11:50:58 AM INFO override_wx True
+24/02/2014 04:36:46 PM INFO Dome Tracking turned off
+24/02/2014 04:36:46 PM INFO override_wx True
