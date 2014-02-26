@@ -15,8 +15,8 @@ import numpy as np
 
 #Open port 0 at "9600,8,N,1", timeout of 5 seconds
 #Open port connected to the mount
-ser = serial.Serial('/dev/ttyUSB0',9600, timeout = 100) # non blocking serial port, will wait
-						        # for ten seconds find the address
+try: ser = serial.Serial('/dev/ttyUSB0',9600, timeout = 100) # non blocking serial port, will wait
+except Exception: print 'Could not connect to the serial port for some reason. Restarting the machine or replugging the USB to serial cable will probably solve this'						        # for ten seconds find the address
 print ser.portstr       # check which port was rea3lly used
                         # we open a serial port to talk to the focuser
 

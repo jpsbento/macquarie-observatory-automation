@@ -26628,3 +26628,25 @@
 26/02/2014 10:20:05 AM INFO Imaging status set to False
 26/02/2014 10:20:10 AM INFO Sucessfully finished session
 26/02/2014 10:20:10 AM WARNING Weather not suitable for observing. Closing Slits.
+26/02/2014 10:55:13 AM INFO telescope server dead, restarting and reconnecting
+26/02/2014 10:55:13 AM ERROR Successfully reconnected to server
+26/02/2014 10:56:06 AM INFO Dome Tracking turned off
+26/02/2014 10:56:06 AM INFO override_wx True
+26/02/2014 10:56:15 AM INFO Dome Tracking turned on
+26/02/2014 10:56:15 AM ERROR Virtual Dome not giving out what is expected
+26/02/2014 10:56:36 AM INFO Dome Tracking turned on
+26/02/2014 10:56:36 AM ERROR Virtual Dome not giving out what is expected
+26/02/2014 10:56:54 AM INFO Dome Tracking turned on
+26/02/2014 10:56:54 AM ERROR Virtual Dome not giving out what is expected
+26/02/2014 10:57:04 AM INFO Dome Tracking turned off
+26/02/2014 10:57:13 AM INFO Dome Tracking turned on
+26/02/2014 10:57:13 AM ERROR Virtual Dome not giving out what is expected
+26/02/2014 10:59:24 AM INFO Dome Tracking turned off
+26/02/2014 10:59:27 AM INFO override_wx True
+26/02/2014 10:59:35 AM INFO Dome Tracking turned on
+26/02/2014 11:01:44 AM INFO Dome Tracking turned off
+26/02/2014 11:01:45 AM INFO override_wx False
+26/02/2014 11:01:47 AM INFO Guiding loop disabled
+26/02/2014 11:01:47 AM INFO Imaging status set to False
+26/02/2014 11:01:48 AM INFO Sucessfully finished session
+26/02/2014 11:01:48 AM WARNING Weather not suitable for observing. Closing Slits.

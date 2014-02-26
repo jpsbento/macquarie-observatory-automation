@@ -29,8 +29,8 @@ if ('Error' in result1) or ('Error' in result2):
 def quit_command():
     if client=='uber':
         uber_client.send_command('setDomeTracking off')
-        uber_client.send_command('override_wx off')
         uber_client.send_command('labjack dome home')
+        uber_client.send_command('override_wx off')
     else:
         labjack_client.send_command('labjack dome home')
     sys.exit()
