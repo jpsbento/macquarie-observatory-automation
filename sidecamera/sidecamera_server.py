@@ -150,6 +150,7 @@ class SideCameraServer:
 						self.set_values[2]=prop['value']
 					else: 
 						prop['value']=20
+						deviation=10
 						print 'Exposure=',prop['value']/10.,'ms'
 						self.dev.set_property( prop )
 						self.set_values[2]=prop['value']
