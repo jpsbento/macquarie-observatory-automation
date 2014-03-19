@@ -28,6 +28,7 @@ class UberServer:
 	weatherstation_client = client_socket.ClientSocket("weatherstation",telescope_type) #23457 <- port number
 	sidecam_client = client_socket.ClientSocket("sidecamera",telescope_type) #23459 <- port number
 	camera_client = client_socket.ClientSocket("sbig",telescope_type) #23460 <- port number 
+	print camera_client
 	fiberfeed_client = client_socket.ClientSocket("fiberfeed",telescope_type) #23459 <- port number
         labjacku6_client = client_socket.ClientSocket("labjacku6",telescope_type) #23462 <- port number
 
@@ -121,7 +122,7 @@ class UberServer:
 			elif commands[1]=='weatherstation':
 				self.weatherstation_client = client_socket.ClientSocket("weatherstation",telescope_type) #23457 <- port number
 			else: return 'Unknown server name to reconnect to'
-			logging.error('Successfully reconnected to server')
+			logging.info('Successfully reconnected to server')
 			return 'Successfully reconnected to server'
 		else: 
 			logging.error('Need a server name to connect to')
@@ -894,6 +895,7 @@ class UberServer:
 				except Exception: 
 					logging.error('Could not restart the labjack server')
 					return 'Could not restart the labjack server'
+				time.sleep(1)
 				result=self.cmd_reconnect('reconnect labjack')
 				if 'Successfully' not in result:
 					logging.error('Could not reconnect to labjack server')
@@ -907,6 +909,7 @@ class UberServer:
 				except Exception: 
 					logging.error('Could not restart the labjacku6 server')
 					return 'Could not restart the labjacku6 server'
+				time.sleep(1)
 				result=self.cmd_reconnect('reconnect labjacku6')
 				if 'Successfully' not in result:
 					logging.error('Could not reconnect to labjacku6 server')
@@ -920,6 +923,7 @@ class UberServer:
 				except Exception: 
 					logging.error('Could not restart the telescope server')
 					return 'Could not restart the telescope server'
+				time.sleep(1)
 				result=self.cmd_reconnect('reconnect telescope')
 				if 'Successfully' not in result:
 					logging.error('Could not reconnect to telescope server')
@@ -933,6 +937,7 @@ class UberServer:
 				except Exception: 
 					logging.error('Could not restart the sidecamera server')
 					return 'Could not restart the sidecamera server'
+				time.sleep(1)
 				result=self.cmd_reconnect('reconnect sidecamera')
 				if 'Successfully' not in result:
 					logging.error('Could not reconnect to sidecamera server')
@@ -946,6 +951,7 @@ class UberServer:
 				except Exception: 
 					logging.error('Could not restart the fiberfeed server')
 					return 'Could not restart the fiberfeed server'
+				time.sleep(1)
 				result=self.cmd_reconnect('reconnect fiberfeed')
 				if 'Successfully' not in result:
 					logging.error('Could not reconnect to fiberfeed server')
@@ -959,6 +965,7 @@ class UberServer:
 				except Exception: 
 					logging.error('Could not restart the camera server')
 					return 'Could not restart the camera server'
+				time.sleep(5)
 				result=self.cmd_reconnect('reconnect camera')
 				if 'Successfully' not in result:
 					logging.error('Could not reconnect to camera server')
