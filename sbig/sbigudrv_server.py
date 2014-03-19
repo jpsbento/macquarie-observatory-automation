@@ -164,9 +164,9 @@ class SBigUDrv:
 		p = sb.StartReadoutParams()
 		p.ccd=0
                 #No binning
-		p.readoutMode=0
+		#p.readoutMode=0
 		#THIS IS THE 2x1 BINNING TEST LINE
-		#p.readoutMode=0x2203
+		p.readoutMode=0x2203
 		#specifies region to read out, starting top left and moving over
 		#entire height and width
 		#Of the sbig camera from the RHEA prototype is connected, then ignore a few rows and columns.
@@ -176,8 +176,8 @@ class SBigUDrv:
 		else:
 			p.top=0
 			p.left=0
-		p.height=height
-		p.width=width
+		p.height=height/2
+		p.width=width/2
 		#NOTE, THERE IS A CHANCE THAT, WHEN THIS CODE IS USED ON SBIG CAMERAS, THE WIDTH AND HEIGHT MAY HAVE TO BE SET TO SOMETHING FIXED (SEE HEIGHT AND WIDTH DEFINITION ABOVE)
 		result = sb.SBIGUnivDrvCommand(sb.CC_START_READOUT,p,None)
 		#Set aside some memory to store the array
@@ -201,8 +201,7 @@ class SBigUDrv:
 		p.ccd=0
 		sb.SBIGUnivDrvCommand(sb.CC_END_READOUT,p,None)
 		im = np.transpose(im)
-		#plt.imshow(im)
-				
+		#plt.imshow(im)				
 		#gets end time
 		endTime = time.time()	
 
