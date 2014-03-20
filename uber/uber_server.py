@@ -895,7 +895,7 @@ class UberServer:
 				except Exception: 
 					logging.error('Could not restart the labjack server')
 					return 'Could not restart the labjack server'
-				time.sleep(1)
+				time.sleep(3)
 				result=self.cmd_reconnect('reconnect labjack')
 				if 'Successfully' not in result:
 					logging.error('Could not reconnect to labjack server')
@@ -909,7 +909,7 @@ class UberServer:
 				except Exception: 
 					logging.error('Could not restart the labjacku6 server')
 					return 'Could not restart the labjacku6 server'
-				time.sleep(1)
+				time.sleep(3)
 				result=self.cmd_reconnect('reconnect labjacku6')
 				if 'Successfully' not in result:
 					logging.error('Could not reconnect to labjacku6 server')
@@ -923,7 +923,7 @@ class UberServer:
 				except Exception: 
 					logging.error('Could not restart the telescope server')
 					return 'Could not restart the telescope server'
-				time.sleep(1)
+				time.sleep(3)
 				result=self.cmd_reconnect('reconnect telescope')
 				if 'Successfully' not in result:
 					logging.error('Could not reconnect to telescope server')
@@ -937,7 +937,7 @@ class UberServer:
 				except Exception: 
 					logging.error('Could not restart the sidecamera server')
 					return 'Could not restart the sidecamera server'
-				time.sleep(1)
+				time.sleep(3)
 				result=self.cmd_reconnect('reconnect sidecamera')
 				if 'Successfully' not in result:
 					logging.error('Could not reconnect to sidecamera server')
@@ -951,7 +951,7 @@ class UberServer:
 				except Exception: 
 					logging.error('Could not restart the fiberfeed server')
 					return 'Could not restart the fiberfeed server'
-				time.sleep(1)
+				time.sleep(3)
 				result=self.cmd_reconnect('reconnect fiberfeed')
 				if 'Successfully' not in result:
 					logging.error('Could not reconnect to fiberfeed server')
@@ -965,7 +965,7 @@ class UberServer:
 				except Exception: 
 					logging.error('Could not restart the camera server')
 					return 'Could not restart the camera server'
-				time.sleep(5)
+				time.sleep(3)
 				result=self.cmd_reconnect('reconnect camera')
 				if 'Successfully' not in result:
 					logging.error('Could not reconnect to camera server')
