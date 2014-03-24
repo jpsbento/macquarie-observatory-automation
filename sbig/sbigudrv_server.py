@@ -50,6 +50,7 @@ class SBigUDrv:
 	ccdSetpoint=0
 	cooling=0
 	imtype='None'
+	shutter='None'
 	#Checks to see if directory is specified, if it exists and then prompts to reinput if there is an issue.
 	def checkDir(self,directory_to_check):
 		if '/' in directory_to_check: 
@@ -169,19 +170,29 @@ class SBigUDrv:
 		self.exposure_active=True
 		
 	def checkIfFinished(self):
-		r = sb.QueryCommandStatusResults()
-		print r.status
+		time.time()-self.startTime<self.exposureTime
                 #Wait for the exposure to end
-		if ((r.status & 1) == 0) and (self.exposure_active):
-			sb.SBIGUnivDrvCommand(sb.CC_QUERY_COMMAND_STATUS,p,r)
+		if (time.time()-self.startTime<self.exposureTime) and (self.exposure_active):
+			#sb.SBIGUnivDrvCommand(sb.CC_QUERY_COMMAND_STATUS,p,r)
+			#print 'exposing'
 			time.sleep(0.1)
-		elif ((r.status & 1) == 0) and (self.exposure_active==False):
+		elif (time.time()-self.startTime<self.exposureTime) and (self.exposure_active==False):
 			self.finish_exposure('Aborted')
-		elif ((r.status & 1) != 0) and (self.exposure_active):
+		elif (time.time()-self.startTime>self.exposureTime) and (self.exposure_active):
 			self.exposure_active=False
 			self.finish_exposure('Normal')
 	
+	def cmd_abortExposure(self,the_command):
+		#Function used to stop the current exposure
+	    	commands = str.split(the_command)
+		if len(commands)==1:
+			self.exposure_active=False
+			return 'Aborted exposure'
+		else: return 'This function takes no arguments'
+	
 	def finish_exposure(self,finishstatus):
+		#gets end time
+		self.endTime = time.time()
 		p = sb.EndExposureParams()
 		p.ccd=0
 		result = sb.SBIGUnivDrvCommand(sb.CC_END_EXPOSURE,p,None)
@@ -228,9 +239,6 @@ class SBigUDrv:
 		sb.SBIGUnivDrvCommand(sb.CC_END_READOUT,p,None)
 		im = np.transpose(im)
 		#plt.imshow(im)				
-		#gets end time
-		self.endTime = time.time()	
-
 		#saves image as fits file
 		hdu = pyfits.PrimaryHDU(im)
 
@@ -287,6 +295,9 @@ class SBigUDrv:
 		hdu.header.update('FILTER', , 'NEED to query this')
 		'''
 		hdu.writeto(self.fullpath)
+		self.startTime=0
+		self.exposureTime=0
+		print 'Exposure finished'
 
 
 	
@@ -433,7 +444,7 @@ class SBigUDrv:
 			self.capture(exposureTime,shutter,fileInput)	
 		else: 
 			self.capture(exposureTime,shutter,fileInput,imtype=commands[4])
-		return 'Exposure Complete'
+		return 'Exposure Initiated'
 
 	def cmd_focusCalculate(self,command):
 		#This function will return the best focus position interpolating between images 1,2,3,4 and 5. 
