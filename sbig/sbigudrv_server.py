@@ -34,10 +34,23 @@ class SBigUDrv:
 	shutter_position='Closed'
 	filename='None'
         imtype='none'
-
+	
+	exposure_active=False
         #FUNCTIONS: the following two functions are used in the imaging process, they relate to filenames and prevet crashes 
 	#when there are typos in directories or	duplicate filenames
 	
+	#parameters relating to the imaging and exposure characteristics
+	height=0
+	width=0
+	exposureTime=0
+	startTime=0
+	endTime=0
+	gain=0
+	camtemp=0
+	ccdSetpoint=0
+	cooling=0
+	imtype='None'
+	shutter='None'
 	#Checks to see if directory is specified, if it exists and then prompts to reinput if there is an issue.
 	def checkDir(self,directory_to_check):
 		if '/' in directory_to_check: 
@@ -94,7 +107,8 @@ class SBigUDrv:
 				self.presencePrior = False
 	
 	#command that takes an image
-	def capture(self,exposureTime,shutter,fileInput,imtype='Light'):	
+	def capture(self,exposureTime,shutter,fileInput,imtype='Light'):
+		self.imtype=imtype
 		#This command checks the temperature at the time it is run
 		a = sb.QueryTemperatureStatusResults()
 		sb.SBIGUnivDrvCommand(sb.CC_QUERY_TEMPERATURE_STATUS,None,a)
@@ -118,21 +132,22 @@ class SBigUDrv:
 		p.request = 0
 		r = sb.GetCCDInfoResults0()
 		sb.SBIGUnivDrvCommand(sb.CC_GET_CCD_INFO,p,r)
-		width = r.readoutInfo[0].width
-		height = r.readoutInfo[0].height
+		self.width = r.readoutInfo[0].width
+		self.height = r.readoutInfo[0].height
 		#This is because the spectrograph camera does not return the correct width and height from GetCCDInfoParams, but returns 1000x1000
 		#This is probably ok since it is unlikely we will ever have a camera with 1000x1000 pixels exactly.
-		if height==1000 and width==1000:
-			width = 3352
-			height = 2532
-		gain = hex(r.readoutInfo[0].gain)
-		gain=float(gain[2:])*0.01
+		if self.height==1000 and self.width==1000:
+			self.width = 3352
+			self.height = 2532
+		self.gain = hex(r.readoutInfo[0].gain)
+		self.gain=float(self.gain[2:])*0.01
 		
 		#Start the Exposure
-		startTime = time.time()
+		self.startTime = time.time()
 		p = sb.StartExposureParams()
 		p.ccd = 0
 		p.exposureTime = int(exposureTime * 100)
+		self.exposureTime=exposureTime
 		# anti blooming gate, currently untouched (ABG shut off)
 		p.abgState = 0 
 
@@ -152,10 +167,32 @@ class SBigUDrv:
 		p.command = sb.CC_START_EXPOSURE
 		r = sb.QueryCommandStatusResults()
 		r.status = 0
-		#Wait for the exposure to end
-		while (r.status & 1) == 0:
-			sb.SBIGUnivDrvCommand(sb.CC_QUERY_COMMAND_STATUS,p,r)
+		self.exposure_active=True
+		
+	def checkIfFinished(self):
+		time.time()-self.startTime<self.exposureTime
+                #Wait for the exposure to end
+		if (time.time()-self.startTime<self.exposureTime) and (self.exposure_active):
+			#sb.SBIGUnivDrvCommand(sb.CC_QUERY_COMMAND_STATUS,p,r)
+			#print 'exposing'
 			time.sleep(0.1)
+		elif (time.time()-self.startTime<self.exposureTime) and (self.exposure_active==False):
+			self.finish_exposure('Aborted')
+		elif (time.time()-self.startTime>self.exposureTime) and (self.exposure_active):
+			self.exposure_active=False
+			self.finish_exposure('Normal')
+	
+	def cmd_abortExposure(self,the_command):
+		#Function used to stop the current exposure
+	    	commands = str.split(the_command)
+		if len(commands)==1:
+			self.exposure_active=False
+			return 'Aborted exposure'
+		else: return 'This function takes no arguments'
+	
+	def finish_exposure(self,finishstatus):
+		#gets end time
+		self.endTime = time.time()
 		p = sb.EndExposureParams()
 		p.ccd=0
 		result = sb.SBIGUnivDrvCommand(sb.CC_END_EXPOSURE,p,None)
@@ -164,36 +201,36 @@ class SBigUDrv:
 		p = sb.StartReadoutParams()
 		p.ccd=0
                 #No binning
-		#p.readoutMode=0
+		p.readoutMode=0
 		#THIS IS THE 2x1 BINNING TEST LINE
-		p.readoutMode=0x2203
+		#p.readoutMode=0x2203
 		#specifies region to read out, starting top left and moving over
 		#entire height and width
 		#Of the sbig camera from the RHEA prototype is connected, then ignore a few rows and columns.
-		if height==2532 and width==3352:
+		if self.height==2532 and self.width==3352:
 			p.top=26
 			p.left=13
 		else:
 			p.top=0
 			p.left=0
-		p.height=height/2
-		p.width=width/2
+		p.height=self.height
+		p.width=self.width
 		#NOTE, THERE IS A CHANCE THAT, WHEN THIS CODE IS USED ON SBIG CAMERAS, THE WIDTH AND HEIGHT MAY HAVE TO BE SET TO SOMETHING FIXED (SEE HEIGHT AND WIDTH DEFINITION ABOVE)
 		result = sb.SBIGUnivDrvCommand(sb.CC_START_READOUT,p,None)
 		#Set aside some memory to store the array
-		im = np.zeros([width,height],dtype='ushort')
-		line = np.zeros([width],dtype='ushort')
+		im = np.zeros([self.width,self.height],dtype='ushort')
+		line = np.zeros([self.width],dtype='ushort')
 		p = sb.ReadoutLineParams()
 		p.ccd = 0
 		p.readoutMode=0
 		#If the sbig camera is plugged in, the image readout must ignore a bunch of rows and columns to be consistent with the windows readout. 
-		if height==2532 and width==3352:
+		if self.height==2532 and self.width==3352:
 			p.pixelStart=13
 		else:
 			p.pixelStart=0
-		p.pixelLength=width
+		p.pixelLength=self.width
 		#readout line by line
-		for i in range(0,height):
+		for i in range(0,self.height):
 			sb.SBIGUnivDrvCommand(sb.CC_READOUT_LINE,p,line)
 			im[:,i]=line
 		#end readout
@@ -202,62 +239,65 @@ class SBigUDrv:
 		sb.SBIGUnivDrvCommand(sb.CC_END_READOUT,p,None)
 		im = np.transpose(im)
 		#plt.imshow(im)				
-		#gets end time
-		endTime = time.time()	
-
 		#saves image as fits file
 		hdu = pyfits.PrimaryHDU(im)
 
 		#sets up fits header. Most things are self explanatory
 		#This ensures that any headers that can be populated at this time are actually done.
-		hdu.header.update('EXPTIME', float(exposureTime), comment='The frame exposure time in seconds')	
-		hdu.header.update('NAXIS1', width, comment='Width of the CCD in pixels')
-		hdu.header.update('NAXIS2', height, comment='Height of the CCD in pixels')
-		hdu.header.update('GAIN', gain, comment='CCD gain in e-/ADU')
+		hdu.header.update('EXPTIME', self.endTime-self.startTime, comment='The frame exposure time in seconds')	
+		hdu.header.update('ETINSTRU',float(self.exposureTime), 'Instructed exposure time in seconds')
+		hdu.header.update('NAXIS1', self.width, comment='Width of the CCD in pixels')
+		hdu.header.update('NAXIS2', self.height, comment='Height of the CCD in pixels')
+		hdu.header.update('GAIN', self.gain, comment='CCD gain in e-/ADU')
 		hdu.header.update('XFACTOR', 1, 'Camera x binning factor')
 		hdu.header.update('YFACTOR', 1, 'Camera y binning factor')
 		#UTC time header keywords
-		start=time.gmtime(startTime)
+		start=time.gmtime(self.startTime)
 		dateobs=str(start[0])+'-'+str(start[1]).zfill(2)+'-'+str(start[2]).zfill(2)
 		hdu.header.update('DATE-OBS', dateobs, 'UTC YYYY-MM-DD')
 		starttime=str(start[3]).zfill(2)+':'+str(start[4]).zfill(2)+':'+str(start[5]).zfill(2)
 		hdu.header.update('UTSTART', starttime , 'UTC HH:MM:SS.ss Exp. Start')
-		middleTime=startTime+(endTime-startTime)/2.
+		middleTime=self.startTime+(self.endTime-self.startTime)/2.
 		middle=time.gmtime(middleTime)
 		midtime=str(middle[3]).zfill(2)+':'+str(middle[4]).zfill(2)+':'+str(middle[5]).zfill(2)
 		hdu.header.update('UTMIDDLE', midtime , 'UTC HH:MM:SS.ss Exp. Midpoint')
-		end=time.gmtime(endTime)
+		end=time.gmtime(self.endTime)
 		endtime=str(end[3]).zfill(2)+':'+str(end[4]).zfill(2)+':'+str(end[5]).zfill(2)
 		hdu.header.update('UTEND', endtime , 'UTC HH:MM:SS.ss Exp. End')
 		ut=str(middle[2]).zfill(2)+'/'+str(middle[1]).zfill(2)+'/'+str(middle[0])+':'+str(middle[3]).zfill(2)+':'+str(middle[4]).zfill(2)+':'+str(middle[5]).zfill(2)
 		hdu.header.update('JD', ctx.ut2jd(ut), 'Julian date of Midpoint of exposure')
 		hdu.header.update('LST', ctx.ut2lst(ut,151.112,flag=1), 'Local sidereal time of Midpoint')
 		#local time header keywords
-		start=time.localtime(startTime)
+		start=time.localtime(self.startTime)
 		dateobs=str(start[0])+'-'+str(start[1]).zfill(2)+'-'+str(start[2]).zfill(2)
 		hdu.header.update('LDATEOBS', dateobs , 'LOCAL YYYY-MM-DD')
 		starttime=str(start[3]).zfill(2)+':'+str(start[4]).zfill(2)+':'+str(start[5]).zfill(2)
 		hdu.header.update('LTSTART', starttime , 'Local HH:MM:SS.ss Exp. Start')
-		middleTime=startTime+(endTime-startTime)/2.
+		middleTime=self.startTime+(self.endTime-self.startTime)/2.
 		middle=time.localtime(middleTime)
 		midtime=str(middle[3]).zfill(2)+':'+str(middle[4]).zfill(2)+':'+str(middle[5]).zfill(2)
 		hdu.header.update('LTMIDDLE', midtime , 'Local HH:MM:SS.ss Exp. Midpoint')
-		end=time.localtime(endTime)
+		end=time.localtime(self.endTime)
 		endtime=str(end[3]).zfill(2)+':'+str(end[4]).zfill(2)+':'+str(end[5]).zfill(2)
 		hdu.header.update('LTEND', endtime , 'Local HH:MM:SS.ss Exp. End')
 
-		hdu.header.update('CAMTEMP', camtemp, 'Camera temperature (C)')
-		hdu.header.update('SETPOINT', ccdSetpoint, 'Camera temperature setpoint (C)')
-		hdu.header.update('COOLING', str(cooling), 'Camera cooling enabled?')
-		if exposureTime==0:
-			imtype='Bias'
-		elif shutter=='closed':
-			imtype='Dark'
-		hdu.header.update('IMGTYPE', imtype, 'Image type')
+		hdu.header.update('CAMTEMP', self.camtemp, 'Camera temperature (C)')
+		hdu.header.update('SETPOINT', self.ccdSetpoint, 'Camera temperature setpoint (C)')
+		hdu.header.update('COOLING', str(self.cooling), 'Camera cooling enabled?')
+		if self.exposureTime==0:
+			self.imtype='Bias'
+		elif self.shutter=='closed':
+			self.imtype='Dark'
+		hdu.header.update('IMGTYPE', self.imtype, 'Image type')
+		if finishstatus=='Aborted':
+			hdu.header.update('EXPSTAT','Aborted', 'This exposure was aborted by the user')
 		'''
 		hdu.header.update('FILTER', , 'NEED to query this')
 		'''
 		hdu.writeto(self.fullpath)
+		self.startTime=0
+		self.exposureTime=0
+		print 'Exposure finished'
 
 
 	
@@ -404,7 +444,7 @@ class SBigUDrv:
 			self.capture(exposureTime,shutter,fileInput)	
 		else: 
 			self.capture(exposureTime,shutter,fileInput,imtype=commands[4])
-		return 'Exposure Complete'
+		return 'Exposure Initiated'
 
 	def cmd_focusCalculate(self,command):
 		#This function will return the best focus position interpolating between images 1,2,3,4 and 5. 

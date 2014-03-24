@@ -965,7 +965,7 @@ class UberServer:
 				except Exception: 
 					logging.error('Could not restart the camera server')
 					return 'Could not restart the camera server'
-				time.sleep(5)
+				time.sleep(3)
 				result=self.cmd_reconnect('reconnect camera')
 				if 'Successfully' not in result:
 					logging.error('Could not reconnect to camera server')
