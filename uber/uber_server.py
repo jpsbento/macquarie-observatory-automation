@@ -75,6 +75,8 @@ class UberServer:
 		'''Command to stop the guiding, the imaging loop, close the slits, home the dome, park the telescope and stop the dome tracking.'''
 		try:
 			dummy = self.cmd_guiding('guiding off')
+			if self.exposing:
+				dummy=self.camera_client.send_command('abortExposure')
 			dummy = self.cmd_Imaging('Imaging off')
 			dummy = self.labjack_client.send_command('slits close')
 			self.dome_tracking=False
