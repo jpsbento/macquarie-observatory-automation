@@ -218,7 +218,7 @@ class SideCameraServer:
 		pixel and the brightest star in arcseconds in the North and East directions. When calling this function 
 		you must specify which file for daofind to use (do not add the file extension, ie type "filename" NOT "filename.fits"'''
 		comands = str.split(the_command)
-		if len(comands) != 2: return 'Invalid input, give name of file with data.'
+		if len(comands) != 3: return 'Invalid input, give name of file with data and whether the telescope is pointing east or west of the meridian.'
 		filename = comands[1]	
 		dDec = 0
 		dAz = 0
@@ -233,6 +233,10 @@ class SideCameraServer:
 		y_distance = float(self.target_ypixel) - ypixel_pos
 		vector_to_move = [x_distance, y_distance]
 		print vector_to_move 
+		if comands[2]=='east': self.axis_flip=1.; self.theta=0
+		else: self.axis_flip=1.; self.theta=math.pi
+		print self.axis_flip
+		self.transformation_matrix = [math.cos(self.theta), math.sin(self.theta), -1*math.sin(self.theta), math.cos(self.theta)]
 		translated_N = self.transformation_matrix[0]*x_distance + self.transformation_matrix[1]*y_distance
 		translated_E =  (self.transformation_matrix[2]*x_distance + self.transformation_matrix[3]*y_distance)*self.axis_flip
 		#Need to convert distance into coordinates for the telescope orientation

@@ -49,7 +49,7 @@ class SBigUDrv:
 	camtemp=0
 	ccdSetpoint=0
 	cooling=0
-	imtype='None'
+	#imtype='None'
 	shutter='None'
 	#Checks to see if directory is specified, if it exists and then prompts to reinput if there is an issue.
 	def checkDir(self,directory_to_check):
@@ -526,7 +526,7 @@ class SBigUDrv:
 				except Exception: print 'Something did not go down well with the exposure!'
 			if not 'Complete' in result:
 				print 'Exposure failed for some reason'
-			self.imtype='none'
+			#self.imtype='none'
 			time.sleep(1)
 			self.exposing=False
 
