@@ -559,13 +559,20 @@ class UberServer:
 			return 'ERROR: Failed to adjust the exposure of the sidecam'
 		logging.info('exposure adjusted for sidecam.')
 		print 'exposure adjusted for sidecam.'
-		try: self.cmd_orientateCamera('orientateCamera sidecam')
+		'''try: self.cmd_orientateCamera('orientateCamera sidecam')
 		except Exception: 
 			logging.error('ERROR: Failed to set the orientation of the sidecam')
 			return 'ERROR: Failed to set the orientation of the sidecam'
 		logging.info('orientation of the sidecamera set.')
 		print 'orientation of the sidecamera set.'
+		'''
 		distance=1000
+		try:
+			d=eval(self.telescope_client.send_command('objInfo'))
+			if float(d['HA_HOURS'])>-0.33: sideofmeridian='west'
+			else: sideofmeridian='east'
+			print sideofmeridian
+		except Exception: print 'Unable to query objInfo for east or west of meridian'
 		while distance>0.3:
 			try: self.sidecam_client.send_command('imageCube test 10')
 			except Exception: 
@@ -574,7 +581,7 @@ class UberServer:
 			logging.info('current location images taken for sidecam.')
 			print 'current location images taken for sidecam.'
 			try: 
-				moving=str.split(self.sidecam_client.send_command('starDistanceFromCenter test'))
+				moving=str.split(self.sidecam_client.send_command('starDistanceFromCenter test '+sideofmeridian))
 				dummy=float(moving[0])
 			except Exception: 
 				logging.error('ERROR: Failed to work out what the stellar distance to the optimal coordinates is')
@@ -939,7 +946,7 @@ class UberServer:
 				except Exception: 
 					logging.error('Could not restart the sidecamera server')
 					return 'Could not restart the sidecamera server'
-				time.sleep(3)
+				time.sleep(5)
 				result=self.cmd_reconnect('reconnect sidecamera')
 				if 'Successfully' not in result:
 					logging.error('Could not reconnect to sidecamera server')
