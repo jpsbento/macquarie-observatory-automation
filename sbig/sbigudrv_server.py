@@ -124,9 +124,9 @@ class SBigUDrv:
 	      	#associates the binary output of the refulation variable with on or off for the purposes of printing
 		if a.enabled == 1 : reg = 'on'
 		elif a.enabled == 0 : reg = 'off'
-		camtemp=TempC_rounded
-		ccdSetpoint=setPointC
-		cooling=reg
+		self.camtemp=TempC_rounded
+		self.ccdSetpoint=setPointC
+		self.cooling=reg
 		#Get CCD Parameters, this is required for later during readout
 		p = sb.GetCCDInfoParams()
 		p.request = 0
@@ -280,7 +280,7 @@ class SBigUDrv:
 		end=time.localtime(self.endTime)
 		endtime=str(end[3]).zfill(2)+':'+str(end[4]).zfill(2)+':'+str(end[5]).zfill(2)
 		hdu.header.update('LTEND', endtime , 'Local HH:MM:SS.ss Exp. End')
-
+		
 		hdu.header.update('CAMTEMP', self.camtemp, 'Camera temperature (C)')
 		hdu.header.update('SETPOINT', self.ccdSetpoint, 'Camera temperature setpoint (C)')
 		hdu.header.update('COOLING', str(self.cooling), 'Camera cooling enabled?')
