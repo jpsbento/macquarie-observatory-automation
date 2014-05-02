@@ -524,7 +524,7 @@ class SBigUDrv:
 			else: 
 				try: result=self.cmd_exposeAndWait('exposeAndWait '+str(self.exptime)+' '+str(self.shutter_position)+' '+self.filename+' '+self.imtype)
 				except Exception: print 'Something did not go down well with the exposure!'
-			if not 'Complete' in result:
+			if not 'Initiated' in result:
 				print 'Exposure failed for some reason'
 			#self.imtype='none'
 			time.sleep(1)

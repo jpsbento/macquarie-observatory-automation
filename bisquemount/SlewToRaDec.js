@@ -1,7 +1,7 @@
 /* Java Script */
 
-var TargetRa = "6.399202460422682";
-var TargetDec = "-52.695566789308394";
+var TargetRa = "14.111236755081833";
+var TargetDec = "-36.37201604690585";
 var Out;
 
 sky6RASCOMTele.Connect();
