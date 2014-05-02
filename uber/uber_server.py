@@ -1151,6 +1151,7 @@ class UberServer:
 					self.nexps-=1
 				else: 
 					self.exposing=False
+					self.nexps=-1
 					logging.info('Finished the series of images instructed')
 					print 'Finished the series of images instructed'
 
