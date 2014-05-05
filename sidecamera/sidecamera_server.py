@@ -119,7 +119,7 @@ class SideCameraServer:
 		direction_old=0
 		deviation=100
 		print 'Adjusting exposure time. Please wait.'
-		while (max_pix < 150)|(max_pix>245):
+		while (max_pix < 200)|(max_pix>245):
 			#take one image but do not display it
 			try: dummy = self.cmd_captureImages('captureImages exposure_adjust 1 no')
 			except Exception: print 'Could not capture image'
