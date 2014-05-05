@@ -288,6 +288,7 @@ class SBigUDrv:
 			self.imtype='Bias'
 		elif self.shutter=='closed':
 			self.imtype='Dark'
+		print 'Current image type just before populating header is:',self.imtype
 		hdu.header.update('IMGTYPE', self.imtype, 'Image type')
 		if finishstatus=='Aborted':
 			hdu.header.update('EXPSTAT','Aborted', 'This exposure was aborted by the user')
@@ -501,6 +502,7 @@ class SBigUDrv:
 			self.exptime=float(commands[1])
 			self.shutter_position=commands[2]
 			self.filename=commands[3]
+			self.imtype='none'
 		except Exception: return 'Error: could not set imaging parameters on the sbig server'
 		if len(commands) == 5: self.imtype=commands[4]
 		if len(commands)>5: return 'Too many arguments'
