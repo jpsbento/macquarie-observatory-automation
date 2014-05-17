@@ -425,7 +425,7 @@ class UberServer:
 			return 'Successfully redefined the guiding position.'
 
 	def cmd_guiding(self, the_command):
-		'''This function is used to activate or decativate the guiding loop. Usage is 'guiding <on/off> <camera>', where option is either 'on' or 'off' and camera is either 'sidecam' or 'fiberfeed' (default). For the 'off' option, no camera needs to be specified.'''
+		'''This function is used to activate or deactivate the guiding loop. Usage is 'guiding <on/off> <camera>', where option is either 'on' or 'off' and camera is either 'sidecam' or 'fiberfeed' (default). For the 'off' option, no camera needs to be specified. Use the options 'halt' and 'resume' if you just want to pause the guiding and resume without changingthe guiding offset amount.'''
 		commands=str.split(the_command)
 		if len(commands)==2:
 			if commands[1]=='off':
@@ -434,6 +434,7 @@ class UberServer:
 				return 'Guiding loop disabled'
 			elif commands[1]=='on':
 				self.guiding_bool=True
+				self.fiberfeed_client.send_command('resetGuidingStats')
 				os.system('cp ../fiberfeed/guiding_initial.txt ../fiberfeed/guiding_stats.txt')
 				self.guiding_camera='fiberfeed'
 				self.telescope_client.send_command("focusSetAmount " + str(100))
@@ -452,6 +453,7 @@ class UberServer:
 				return 'Guiding loop enabled using the '+self.guiding_camera
 			elif commands[2]=='fiberfeed':
 				self.guiding_camera='fiberfeed'
+				self.fiberfeed_client.send_command('resetGuidingStats')
 				os.system('cp ../fiberfeed/guiding_initial.txt ../fiberfeed/guiding_stats.txt')
 				self.telescope_client.send_command("focusSetAmount " + str(200))
 				logging.info('Guiding loop enabled using the '+self.guiding_camera)
