@@ -236,8 +236,10 @@ class BisqueMountServer:
 			print focusposition, self.HFD, self.move_focus_amount              #print the values of the focuser position, HFD and amount of adjustment for monitoring purposes.
 			#This condition ensures that the script always knows the focus position and HFD values of the minimum HFD seen so far.
 			if self.HFD < self.HFD_min:
+				print 'New best position for focuser found:',self.HFD,focusposition
 				self.HFD_min=self.HFD
 				self.focus_min=focusposition
+				print 'New best focus position is:',self.focus_min
                         #if the HFD has increased since last time, reverse the direction of motion and half the amount. Otherwise, just leave as is and then move the focuser. 
 			if self.HFD >= self.sharp_value: 
 				self.move_focus_amount = int((self.move_focus_amount*-1)/2)
