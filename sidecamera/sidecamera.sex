@@ -44,14 +44,14 @@ PIXEL_SCALE      120            # size of pixel in arcsec (0=use FITS WCS info)
  
 #------------------------- Star/Galaxy Separation ----------------------------
  
-SEEING_FWHM      100            # stellar FWHM in arcsec
+SEEING_FWHM      100           # stellar FWHM in arcsec
 STARNNW_NAME     default.nnw    # Neural-Network_Weight table filename
  
 #------------------------------ Background -----------------------------------
  
 BACK_SIZE        64             # Background mesh: <size> or <width>,<height>
 BACK_FILTERSIZE  11              # Background filter: <size> or <width>,<height>
- 
+
 BACKPHOTO_TYPE   GLOBAL         # can be GLOBAL or LOCAL
  
 #------------------------------ Check Image ----------------------------------
@@ -68,6 +68,9 @@ MEMORY_OBJSTACK  3000           # number of objects in stack
 MEMORY_PIXSTACK  300000         # number of pixels in stack
 MEMORY_BUFSIZE   1024           # number of lines in buffer
  
+WEIGHT_IMAGE	weightmap.fits
+WEIGHT_TYPE	MAP_WEIGHT
+
 #----------------------------- Miscellaneous ---------------------------------
  
 VERBOSE_TYPE     QUIET         # can be QUIET, NORMAL or FULL
