@@ -119,7 +119,7 @@ class SideCameraServer:
 		direction_old=0
 		deviation=100
 		print 'Adjusting exposure time. Please wait.'
-		while (max_pix < 200)|(max_pix>245):
+		while (max_pix < 100)|(max_pix>245):
 			#take one image but do not display it
 			try: dummy = self.cmd_captureImages('captureImages exposure_adjust 1 no')
 			except Exception: print 'Could not capture image'
@@ -129,10 +129,10 @@ class SideCameraServer:
 			print 'max_pix=',max_pix
 			#Now use an asymptotic approach to find the exposure time that will yield a value between 200 and 255
 			#Make sure that exposure never gets above 100000 or below 51
-			if max_pix < 200:
+			if max_pix < 100:
 				prop = self.dev.get_property('Exposure (Absolute)')
 				direction=1
-				if prop['value'] < 40000:
+				if prop['value'] < 200000:
 					prop['value']+=deviation
 					print 'Exposure=',prop['value']/10.,'ms'
 					self.dev.set_property( prop )
