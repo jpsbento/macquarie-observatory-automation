@@ -226,6 +226,13 @@ class BisqueMountServer:
 		except Exception: return 'Could not convert focus amount into integer'
 		return 'New focus amount set'
 		
+	def cmd_resetGuidingStats(self):
+		'''Function used to reset the focus_min and HFD_min values before guiding starts.'''
+		#Minimum HFD parameters
+		HFD_min=1000
+		focus_min=4000
+		return 'Successfully reset the guiding stats'
+
 	def adjustFocus(self):
 		'''routine to adjust the focuser position based on a new half-flux diameter measurement. This is the actual function that adjusts the focus.
 		This function is here to ensure that the focussing routine runs independently of the uber server.'''
@@ -243,9 +250,9 @@ class BisqueMountServer:
                         #if the HFD has increased since last time, reverse the direction of motion and half the amount. Otherwise, just leave as is and then move the focuser. 
 			if self.HFD >= self.sharp_value: 
 				self.move_focus_amount = int((self.move_focus_amount*-1)/2)
-				if self.move_focus_amount==0: self.move_focus_amount=1
+				if self.move_focus_amount==0: self.move_focus_amount=5
 			#This is introduced to force the focusser to the minimum HFD position with a 1/50 probability. This is an attempt to try to make sure the system is usually close to the optimal focus.
-			if self.HFD > 40:
+			if self.HFD > 20:
 				move_focus_amount=100*np.sign(move_focus_amount)
 			if np.random.rand()<(1/50.): 
 				self.cmd_focusGoToPosition("focusGoToPosition "+str(int(self.focus_min)))
