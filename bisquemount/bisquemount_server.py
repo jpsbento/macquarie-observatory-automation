@@ -226,7 +226,7 @@ class BisqueMountServer:
 		except Exception: return 'Could not convert focus amount into integer'
 		return 'New focus amount set'
 		
-	def cmd_resetGuidingStats(self):
+	def cmd_resetGuidingStats(self,the_command):
 		'''Function used to reset the focus_min and HFD_min values before guiding starts.'''
 		#Minimum HFD parameters
 		HFD_min=1000
