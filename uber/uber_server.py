@@ -704,7 +704,7 @@ class UberServer:
 		elif len(commands)==3 and commands[1]=='on' and commands[2]=='lamp':
 			self.exposing=True
 			self.lamp=True
-			self.current_imtype='lamp'
+			self.current_imtype='light'
 		else: return 'Incorrect usage of function. Activate Imaging using "on" or "off". Optionally select "lamp" for intermittent images using the calibration lamp.'
 		logging.info('Imaging status set to '+str(self.exposing))
 		return 'Imaging status set to '+str(self.exposing)
@@ -1019,6 +1019,8 @@ class UberServer:
 			except Exception: 
 				logging.error('Could not convert the values in the guiding_stats file into floats')
 				print 'Could not convert the values in the guiding_stats file into floats'
+				HFD=0.0
+				moving=[0.0,0.0]
 			if HFD==0.0 and moving==[0.0,0.0]:
 				logging.warning('No guide star found')
 				print 'No guide star found'
@@ -1129,7 +1131,7 @@ class UberServer:
 					dummy=self.cmd_guiding('guiding halt')
 					dummy=self.telescope_client.send_command('jog South 5')
 					dummy=self.cmd_ippower('ippower HgAr on')
-					result=self.camera_client.send_command('imageInstruction 120 open '+self.filename+' HgAr')
+					result=self.camera_client.send_command('imageInstruction 1800 open '+self.filename+' HgAr')
 					logging.info(result)
 					self.old_filename=self.filename
 					if 'being taken' not in result: 
