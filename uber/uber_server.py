@@ -845,8 +845,9 @@ class UberServer:
 				self.dome_tracking = False
 				logging.error('Virtual Dome not giving out what is expected')
 				return 'Virtual Dome not giving out what is expected'
-			if abs(float(domeAzimuth) - float(VirtualDome)) > 3.5:
+			if (abs(float(domeAzimuth) - float(VirtualDome)) > 3.5):
 				#print 'go to azimuth:'+str(VirtualDome)+' because of an offset. Dome azimuth is currently: '+str(domeAzimuth)
+				if (abs(float(domeAzimuth)-360 - float(VirtualDome)) < 3.5): pass
 				self.labjack_client.send_command('dome '+str(VirtualDome))
 			#if (math.fabs(time.time() - self.dome_last_sync) > self.dome_frequency ) and (self.dome_az==float(str.split(self.telescope_client.send_command('SkyDomeGetAz'),'|')[0])):
 			#	try: ForceTrack=self.telescope_client.send_command('SkyDomeForceTrack') #Forces the virtual dome to track the telescope every self.dome_frequency seconds
