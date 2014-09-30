@@ -431,7 +431,7 @@ class UberServer:
 			return 'Successfully redefined the guiding position.'
 
 	def cmd_guiding(self, the_command):
-		'''This function is used to activate or decativate the guiding loop. Usage is 'guiding <on/off> <camera>', where option is either 'on' or 'off' and camera is either 'sidecam' or 'fiberfeed' (default). For the 'off' option, no camera needs to be specified.'''
+		'''This function is used to activate or decativate the guiding loop. Usage is 'guiding <on/off> <camera>', where option is either 'on' or 'off' and camera is either 'sidecam' or 'fiberfeed' (default). For the 'off' option, no camera needs to be specified. Use the options 'halt' and 'resume' if you just want to pause the guiding and resume without changingthe guiding offset amount.'''
 		commands=str.split(the_command)
 		if len(commands)==2:
 			if commands[1]=='off':
@@ -440,6 +440,7 @@ class UberServer:
 				return 'Guiding loop disabled'
 			elif commands[1]=='on':
 				self.guiding_bool=True
+                                self.fiberfeed_client.send_command('resetGuidingStats')
 				os.system('cp ../fiberfeed/guiding_initial.txt ../fiberfeed/guiding_stats.txt')
 				self.guiding_camera='fiberfeed'
 				self.telescope_client.send_command("focusSetAmount " + str(100))
@@ -458,7 +459,8 @@ class UberServer:
 				return 'Guiding loop enabled using the '+self.guiding_camera
 			elif commands[2]=='fiberfeed':
 				self.guiding_camera='fiberfeed'
-				os.system('cp ../fiberfeed/guiding_initial.txt ../fiberfeed/guiding_stats.txt')
+				self.fiberfeed_client.send_command('resetGuidingStats')
+                                os.system('cp ../fiberfeed/guiding_initial.txt ../fiberfeed/guiding_stats.txt')
 				self.telescope_client.send_command("focusSetAmount " + str(200))
 				logging.info('Guiding loop enabled using the '+self.guiding_camera)
 				return 'Guiding loop enabled using the '+self.guiding_camera
@@ -565,13 +567,20 @@ class UberServer:
 			return 'ERROR: Failed to adjust the exposure of the sidecam'
 		logging.info('exposure adjusted for sidecam.')
 		print 'exposure adjusted for sidecam.'
-		try: self.cmd_orientateCamera('orientateCamera sidecam')
+		'''try: self.cmd_orientateCamera('orientateCamera sidecam')
 		except Exception: 
 			logging.error('ERROR: Failed to set the orientation of the sidecam')
 			return 'ERROR: Failed to set the orientation of the sidecam'
 		logging.info('orientation of the sidecamera set.')
 		print 'orientation of the sidecamera set.'
+                '''
 		distance=1000
+                try:
+			d=eval(self.telescope_client.send_command('objInfo'))
+			if float(d['HA_HOURS'])>-0.33: sideofmeridian='west'
+			else: sideofmeridian='east'
+			print sideofmeridian
+		except Exception: print 'Unable to query objInfo for east or west of meridian'
 		while distance>0.3:
 			try: self.sidecam_client.send_command('imageCube test 10')
 			except Exception: 
@@ -580,7 +589,7 @@ class UberServer:
 			logging.info('current location images taken for sidecam.')
 			print 'current location images taken for sidecam.'
 			try: 
-				moving=str.split(self.sidecam_client.send_command('starDistanceFromCenter test'))
+				moving=str.split(self.sidecam_client.send_command('starDistanceFromCenter test'+sideofmeridian))
 				dummy=float(moving[0])
 			except Exception: 
 				logging.error('ERROR: Failed to work out what the stellar distance to the optimal coordinates is')
@@ -701,7 +710,7 @@ class UberServer:
 		elif len(commands)==3 and commands[1]=='on' and commands[2]=='lamp':
 			self.exposing=True
 			self.lamp=True
-			self.current_imtype='lamp'
+			self.current_imtype='light'
 		else: return 'Incorrect usage of function. Activate Imaging using "on" or "off". Optionally select "lamp" for intermittent images using the calibration lamp.'
 		logging.info('Imaging status set to '+str(self.exposing))
 		return 'Imaging status set to '+str(self.exposing)
@@ -842,9 +851,10 @@ class UberServer:
 				self.dome_tracking = False
 				logging.error('Virtual Dome not giving out what is expected')
 				return 'Virtual Dome not giving out what is expected'
-			if abs(float(domeAzimuth) - float(VirtualDome)) > 3.5:
-				#print 'go to azimuth:'+str(VirtualDome)+' because of an offset. Dome azimuth is currently: '+str(domeAzimuth)
-				self.labjack_client.send_command('dome '+str(VirtualDome))
+			if (abs(float(domeAzimuth) - float(VirtualDome)) > 3.5:
+                                #print 'go to azimuth:'+str(VirtualDome)+' because of an offset. Dome azimuth is currently: '+str(domeAzimuth)
+                                if (abs(float(domeAzimuth)-360 - float(VirtualDome)) < 3.5): pass
+                                self.labjack_client.send_command('dome '+str(VirtualDome))
 			#if (math.fabs(time.time() - self.dome_last_sync) > self.dome_frequency ) and (self.dome_az==float(str.split(self.telescope_client.send_command('SkyDomeGetAz'),'|')[0])):
 			#	try: ForceTrack=self.telescope_client.send_command('SkyDomeForceTrack') #Forces the virtual dome to track the telescope every self.dome_frequency seconds
 			#	except Exception: 
@@ -951,7 +961,7 @@ class UberServer:
 				except Exception: 
 					logging.error('Could not restart the sidecamera server')
 					return 'Could not restart the sidecamera server'
-				time.sleep(3)
+				time.sleep(5)
 				result=self.cmd_reconnect('reconnect sidecamera')
 				if 'Successfully' not in result:
 					logging.error('Could not reconnect to sidecamera server')
@@ -1045,6 +1055,8 @@ class UberServer:
 			except Exception: 
 				logging.error('Could not convert the values in the guiding_stats file into floats')
 				print 'Could not convert the values in the guiding_stats file into floats'
+                                HFD=0.0
+				moving=[0.0,0.0]
 			if HFD==0.0 and moving==[0.0,0.0]:
 				logging.warning('No guide star found')
 				print 'No guide star found'
@@ -1178,7 +1190,8 @@ class UberServer:
 						print 'Something went wrong with the image instruction'
 					self.nexps-=1
 				else: 
-					self.exposing=False
+                                        self.exposing=False
+                                        self.nexps-=1
 					logging.info('Finished the series of images instructed')
 					print 'Finished the series of images instructed'
 
