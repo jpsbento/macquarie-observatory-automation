@@ -851,7 +851,7 @@ class UberServer:
 				self.dome_tracking = False
 				logging.error('Virtual Dome not giving out what is expected')
 				return 'Virtual Dome not giving out what is expected'
-			if (abs(float(domeAzimuth) - float(VirtualDome)) > 3.5:
+			if abs(float(domeAzimuth) - float(VirtualDome)) > 3.5:
                                 #print 'go to azimuth:'+str(VirtualDome)+' because of an offset. Dome azimuth is currently: '+str(domeAzimuth)
                                 if (abs(float(domeAzimuth)-360 - float(VirtualDome)) < 3.5): pass
                                 self.labjack_client.send_command('dome '+str(VirtualDome))
@@ -902,7 +902,7 @@ class UberServer:
 		#This function will take care of making sure all servers are on at all times and that the uber server is connected to them in case they fail. 
 		servers=['labjack','labjacku6','bisquemount','sidecamera','fiberfeed','sbigudrv']
 		dead_servers=[]
-                if self.reconnection_counter=15:
+                if self.reconnection_counter==15:
                         dummy=self.email_alert('Failure in function server_check','Uber server is failing to successfully reconnect to one or more servers. Please check!')
 		for s in servers:
 			if len(commands.getoutput('pgrep '+s+'_m'))==0:
