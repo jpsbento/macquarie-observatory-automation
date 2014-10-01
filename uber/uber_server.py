@@ -18,6 +18,10 @@ class UberServer:
 	#define system variable to the root directory of the code.
 	os.environ['MQOBSSOFT']=commands.getoutput('pwd')[:-5]
 
+	#this lists the servers that are supposed to be active at any given time. It is used by the function that tries to connect to them if any die.
+	#servers=['labjack','labjacku6','bisquemount','sidecamera','fiberfeed','sbigudrv']
+	servers=['labjack','bisquemount','sidecamera','fiberfeed']
+
 	# A list of the telescopes we have, comment out all but the telescope you wish to connect with:
 	telescope_type = 'bisquemount'
 	#telescope_type = 'meademount'
@@ -369,7 +373,7 @@ class UberServer:
 		min_focus=positions[HFD==min(HFD)]
 #		pl.axvline(min_focus)
 #		pl.xlabel('focuser positions')
-#		pl.ylabel('HFD')
+		pl.ylabel('HFD')
 #		pl.draw()
 		try: dummy=self.telescope_client.send_command('focusGoToPosition '+str(min_focus))
 		except Exception: 
@@ -899,12 +903,12 @@ class UberServer:
 		self.labjack_client.send_command('ok')		
 
 	def server_check(self):
-		#This function will take care of making sure all servers are on at all times and that the uber server is connected to them in case they fail. 
-		servers=['labjack','labjacku6','bisquemount','sidecamera','fiberfeed','sbigudrv']
+		#This function will take care of making sure all servers are on at all times and that the uber server is connected to them in case they fail. See list of servers at the top of the class definition.
+		#servers=['labjack','labjacku6','bisquemount','sidecamera','fiberfeed','sbigudrv']
 		dead_servers=[]
                 if self.reconnection_counter==15:
                         dummy=self.email_alert('Failure in function server_check','Uber server is failing to successfully reconnect to one or more servers. Please check!')
-		for s in servers:
+		for s in self.servers:
 			if len(commands.getoutput('pgrep '+s+'_m'))==0:
 				dead_servers.append(s)
 		#print dead_servers
