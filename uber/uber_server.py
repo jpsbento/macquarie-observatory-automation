@@ -94,7 +94,7 @@ class UberServer:
 		except Exception: 
 			logging.error('Failed to finish the session sucessfully')
 			return 'Failed to finish the session sucessfully'
-                        dummy=self.cmd_email_alert('Failure in function cmd_finishSession','Failed to finish session')
+                        dummy=self.email_alert('Failure in function cmd_finishSession','Failed to finish session')
 		logging.info('Sucessfully finished session')
 		return 'Sucessfully finished session'
 	
@@ -111,7 +111,7 @@ class UberServer:
 		except Exception: 
 			logging.error('Failed to initiate the session sucessfully')
 			return 'Failed to initiate the session sucessfully'
-                        dummy=self.cmd_email_alert('Failure in function cmd_startSession','Failed to start session')
+                        dummy=self.email_alert('Failure in function cmd_startSession','Failed to start session')
 		logging.info('Sucessfully initiated session. You should wait a little bit for the dome and telescope to stop moving before trying anything else.')
 		return 'Sucessfully initiated session. You should wait a little bit for the dome and telescope to stop moving before trying anything else.'
 
@@ -878,20 +878,20 @@ class UberServer:
 		except Exception: 
 			logging.error('Could not query the status of the slits from Labjack.')
 			print 'Could not query the status of the slits from Labjack.'
-                        dummy=self.cmd_email_alert('Failure in function monitor_slits','Failed to query the status of the slits from Labjack')
+                        dummy=self.email_alert('Failure in function monitor_slits','Failed to query the status of the slits from Labjack')
 		if (not self.override_wx) & (slits_opened=='True'):
 			try: weather = self.weatherstation_client.send_command('safe')
 			except Exception: 
 				response = self.cmd_finishSession('finishSession')
 				logging.error('ERROR: Communication with the WeatherStation failed. Closing Slits for safety.')
 				print 'ERROR: Communication with the WeatherStation failed. Closing Slits for safety.'
-                                dummy=self.cmd_email_alert('Failure in function monitor_slits','Failed to query the status of the weatherstation')
+                                dummy=self.email_alert('Failure in function monitor_slits','Failed to query the status of the weatherstation')
 			if not "1" in weather:
 				if self.weather_counts > 3:
 					response = self.cmd_finishSession('finishSession')
 					logging.warning('Weather not suitable for observing. Closing Slits.')
 					print 'Weather not suitable for observing. Closing Slits.'
-                                        dummy=self.cmd_email_alert('Failure in function monitor_slits','Weather not suitable for observation. Closing slits now')
+                                        dummy=self.email_alert('Failure in function monitor_slits','Weather not suitable for observation. Closing slits now')
 				else:
 					self.weather_counts+=1
 			else:
@@ -907,7 +907,7 @@ class UberServer:
 		#servers=['labjack','labjacku6','bisquemount','sidecamera','fiberfeed','sbigudrv']
 		dead_servers=[]
                 if self.reconnection_counter==15:
-                        dummy=self.cmd_email_alert('Failure in function server_check','Uber server is failing to successfully reconnect to one or more servers. Please check!')
+                        dummy=self.email_alert('Failure in function server_check','Uber server is failing to successfully reconnect to one or more servers. Please check!')
 		for s in self.servers:
 			if len(commands.getoutput('pgrep '+s+'_m'))==0:
 				dead_servers.append(s)
@@ -1002,7 +1002,7 @@ class UberServer:
 
 
 			
-        def cmd_email_alert(self,subject,body):
+        def email_alert(self,subject,body):
                 #function that gets called when an email alert is to be sent
                 # Credentials (if needed)
                 try: 
