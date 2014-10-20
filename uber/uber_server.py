@@ -34,11 +34,11 @@ class UberServer:
 	camera_client = client_socket.ClientSocket("sbig",telescope_type) #23460 <- port number 
 	print camera_client
 	fiberfeed_client = client_socket.ClientSocket("fiberfeed",telescope_type) #23459 <- port number
-        labjacku6_client = client_socket.ClientSocket("labjacku6",telescope_type) #23462 <- port number
-
-	dome_tracking = True
-	override_wx = False
+        labjacku6_client = client_socket.ClientSocket("labjacku6",telescope_type) #23462 <- port number	override_wx = False
 	
+	dome_tracking = True
+        override_wx = False
+
 	weather_counts = 1 #integer that gets incremented if the slits are open, the override_wx is false and the weather station returns an unsafe status. If this gets above 3, close slits (see function where this is used)
 	#dome_last_sync=time.time()
 	#dome_frequency = 5 #This parameters sets how often the SkyX virtual dome is told to align with the telescope pointing.
@@ -94,7 +94,7 @@ class UberServer:
 		except Exception: 
 			logging.error('Failed to finish the session sucessfully')
 			return 'Failed to finish the session sucessfully'
-                        dummy=self.email_alert('Failure in function cmd_finishSession','Failed to finish session')
+                        dummy=self.cmd_email_alert('Failure in function cmd_finishSession','Failed to finish session')
 		logging.info('Sucessfully finished session')
 		return 'Sucessfully finished session'
 	
@@ -111,7 +111,7 @@ class UberServer:
 		except Exception: 
 			logging.error('Failed to initiate the session sucessfully')
 			return 'Failed to initiate the session sucessfully'
-                        dummy=self.email_alert('Failure in function cmd_startSession','Failed to start session')
+                        dummy=self.cmd_email_alert('Failure in function cmd_startSession','Failed to start session')
 		logging.info('Sucessfully initiated session. You should wait a little bit for the dome and telescope to stop moving before trying anything else.')
 		return 'Sucessfully initiated session. You should wait a little bit for the dome and telescope to stop moving before trying anything else.'
 
@@ -878,20 +878,20 @@ class UberServer:
 		except Exception: 
 			logging.error('Could not query the status of the slits from Labjack.')
 			print 'Could not query the status of the slits from Labjack.'
-                        dummy=self.email_alert('Failure in function monitor_slits','Failed to query the status of the slits from Labjack')
+                        dummy=self.cmd_email_alert('Failure in function monitor_slits','Failed to query the status of the slits from Labjack')
 		if (not self.override_wx) & (slits_opened=='True'):
 			try: weather = self.weatherstation_client.send_command('safe')
 			except Exception: 
 				response = self.cmd_finishSession('finishSession')
 				logging.error('ERROR: Communication with the WeatherStation failed. Closing Slits for safety.')
 				print 'ERROR: Communication with the WeatherStation failed. Closing Slits for safety.'
-                                dummy=self.email_alert('Failure in function monitor_slits','Failed to query the status of the weatherstation')
+                                dummy=self.cmd_email_alert('Failure in function monitor_slits','Failed to query the status of the weatherstation')
 			if not "1" in weather:
 				if self.weather_counts > 3:
 					response = self.cmd_finishSession('finishSession')
 					logging.warning('Weather not suitable for observing. Closing Slits.')
 					print 'Weather not suitable for observing. Closing Slits.'
-                                        dummy=self.email_alert('Failure in function monitor_slits','Weather not suitable for observation. Closing slits now')
+                                        dummy=self.cmd_email_alert('Failure in function monitor_slits','Weather not suitable for observation. Closing slits now')
 				else:
 					self.weather_counts+=1
 			else:
@@ -907,7 +907,7 @@ class UberServer:
 		#servers=['labjack','labjacku6','bisquemount','sidecamera','fiberfeed','sbigudrv']
 		dead_servers=[]
                 if self.reconnection_counter==15:
-                        dummy=self.email_alert('Failure in function server_check','Uber server is failing to successfully reconnect to one or more servers. Please check!')
+                        dummy=self.cmd_email_alert('Failure in function server_check','Uber server is failing to successfully reconnect to one or more servers. Please check!')
 		for s in self.servers:
 			if len(commands.getoutput('pgrep '+s+'_m'))==0:
 				dead_servers.append(s)
@@ -1002,7 +1002,7 @@ class UberServer:
 
 
 			
-        def email_alert(self,subject,body):
+        def cmd_email_alert(self,subject,body):
                 #function that gets called when an email alert is to be sent
                 # Credentials (if needed)
                 try: 
@@ -1018,7 +1018,7 @@ class UberServer:
                         server = smtplib.SMTP('smtp.gmail.com:587')
                         server.starttls()
                         server.login(username,password)
-                        server.sendmail(fromaddr, self.toaddrs, message)
+                        server.sendmail('mqobservatory@gmail.com', self.toaddrs, message)
                         server.quit()
                 except Exception: logging.error('Could not send email alert'); print 'Could not send email alert'
                 return 'Successfully emailed contacts'
