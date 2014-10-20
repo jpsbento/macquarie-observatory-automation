@@ -22,4 +22,3 @@ masterAlign
 Imaging
 Imsettings
 checkIfReady
-email_alert
