@@ -1,0 +1,5 @@
+checkTemperature
+setTemperature
+establishLink
+closeLink
+getCCDParams
