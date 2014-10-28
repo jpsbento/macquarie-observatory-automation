@@ -7,8 +7,8 @@ import server_socket
 import find_port
 f = find_port.FindPort()
 Port = f.findPort('sx')
-sx=sx_server.SXDRIVER()
+sx=sx_server.SX()
 ss=server_socket.ServerSocket(Port, 'sx', sx)	
 #ss.add_job(sb.imaging_loop)
-sx.run()
-sx.close()
+ss.run()
+ss.close()
