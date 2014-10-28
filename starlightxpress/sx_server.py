@@ -5,24 +5,26 @@ import pyfits
 import time
 import ctypes
 import os, commands
-import subprocess,atexit
 #import the tools to do time and coordinate transforms
 import ctx
 
-#the following lines establish a link with the camera via the USB port, these run 
+"""#the following lines establish a link with the camera via the USB port, these run 
 #automatically when sx_main is excecuted
 try: 
         if not os.path.exists('/tmp/myFIFO'):
                 dummy=subprocess.call('mkfifo /tmp/myFIFO', shell=True)
         if len(commands.getoutput('pgrep indi'))==0:
                 indiserver_process=subprocess.Popen('indiserver -f /tmp/myFIFO -p 7777',shell=True)
-                dummy=subprocess.call('echo start indi_sx_ccd -n \"SX CCD\" > /tmp/myFIFO', shell=True)
+                sxserver_process=subprocess.call('echo start indi_sx_ccd -n \"SX CCD\" > /tmp/myFIFO', shell=True)
 except Exception: print 'Unable to start indi server'
+
+procs=[indiserver_process,sxserver_process]
 
 @atexit.register
 def kill_subprocesses():
-        indiserver_process.kill()
-
+        for proc in procs:
+                proc.kill()
+"""
 #Try to connect to the camera
 try: 
         indi=indiclient("localhost",7777)
@@ -115,5 +117,5 @@ class SX:
                                 if indi.get_text("SX CCD SXVR-H694","CCD_FRAME_TYPE","FRAME_"+i)=='On':
                                         frame_type=i
                 except Exception: return 'Unable to query CCD camera parameters'
-                return 'Name: '+name+'\n'+'Driver: '+driver+'\n'+'Version: '+version+'\n'+'Image Destination: '+image_dir+'\n'+'Image Prefix: '+image_prefix+'\n'+'Cooling Status: '+cooling+'\n'+'Left Pixel Coordinate: '+str(left)+'\n'+'Top Pixel Coordinate: '+str(top)+'\n'+'Frame Width: '+str(width)+' Pixels'+'\n'+'Frame Height: '+str(height)+' Pixels'+'\n'+'Horizontal Binning: '+str(hor_bin)+' Pixels'+'\n'+'Vertical Binning: '+str(ver_bin)+' Pixels'+'\n'+'Temperature: '+str(temp)+' degrees C'+'\n'+'X Resolution: ' +str(resx)+'\n'+'Y Resolution: '+str(resy)+'\n'+'X Pixel Size:'+str(sizex)+' Microns'+'\n'+'Y Pixel Size: '+str(sizey)+' Microns'+'\n'+'Bits per Pixel: '+str(bitspix)
+                return 'Name: '+name+'\n'+'Driver: '+driver+'\n'+'Version: '+version+'\n'+'Image Destination: '+image_dir+'\n'+'Image Prefix: '+image_prefix+'\n'+'Cooling Status: '+cooling+'\n'+'Temperature: '+str(temp)+' degrees C'+'\n'+'Left Pixel Coordinate: '+str(left)+'\n'+'Top Pixel Coordinate: '+str(top)+'\n'+'Frame Width: '+str(width)+' Pixels'+'\n'+'Frame Height: '+str(height)+' Pixels'+'\n'+'Horizontal Binning: '+str(hor_bin)+' Pixels'+'\n'+'Vertical Binning: '+str(ver_bin)+' Pixels'+'\n'+'X Resolution: ' +str(resx)+'\n'+'Y Resolution: '+str(resy)+'\n'+'X Pixel Size:'+str(sizex)+' Microns'+'\n'+'Y Pixel Size: '+str(sizey)+' Microns'+'\n'+'Bits per Pixel: '+str(bitspix)
 
