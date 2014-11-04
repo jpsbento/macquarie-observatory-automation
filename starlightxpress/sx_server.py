@@ -31,6 +31,8 @@ dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_MODE","UPLOAD_BOTH","Off
 dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_MODE","UPLOAD_LOCAL","On")
 dummy=indi.set_and_send_text("SX CCD SXVR-H694","COOLER_CONNECTION","CONNECT_COOLER","On")
 dummy=indi.set_and_send_text("SX CCD SXVR-H694","COOLER_CONNECTION","DISCONNECT_COOLER","Off")
+if not os.path.exists('./images/'):
+                dummy=subprocess.call('mkdir ./images', shell=True)
 dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_SETTINGS","UPLOAD_DIR","images")
 dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_SETTINGS","UPLOAD_PREFIX","TEMPIMAGE")
 
@@ -42,7 +44,7 @@ class SX:
 
         #parameters related to the exposure settings and whether there is an image being taken at any given time.
 	exposing=False
-	exptime=0
+	exposureTime=0
 	shutter_position='Closed'
 	filename='None'
         imtype='none'
@@ -58,7 +60,26 @@ class SX:
         ccdSetpoint=0
 	#imtype='None'
 	shutter='None'
-        
+
+	#Checks to see if the filename given exists and prompts for overight or rename if it does
+	def checkFile (self,file_to_check):
+		presence = os.path.exists('./images/'+file_to_check+'.fits')
+		if presence == True:
+			print 'file already exists, would you like to overwrite existing file? (yes/no)'
+			selection = raw_input()
+			while selection != 'yes' and selection != 'no' and selection != 'n' and selection !='y':
+				print 'please enter yes or no, note if you do choose to not\
+					 overwrite you will be promted to enter an alternate file name'
+				selection = raw_input()
+			if selection == 'yes' or selection == 'y':
+				os.remove('./images/'+file_to_check+'.fits')
+			elif selection == 'no' or selection == 'n':
+				print 'please enter a new filename, if an identical filename is entered it will overwrite the previous one'
+				#offers a new name (or directory for input)
+				fileInput2 = raw_input()
+				self.filename= fileInput2.partition('.fits')[0]
+
+
         def cmd_checkTemperature(self,the_command):
 		'''This command checks the temperature at the time it is run. No inputs for this function'''
                 try: 
@@ -195,7 +216,7 @@ class SX:
 		except Exception: return 'invalid input, second input must be open or closed'
 		shutter = str(commands[2])
 	        fileInput = str(commands[3])  
-		try:
+                try:
                         if len(commands)==4:
                                 self.capture(exposureTime,shutter,fileInput)	
                         else: 
@@ -211,8 +232,8 @@ class SX:
                 #sets up file name
 		self.filename= fileInput.partition('.fits')[0]
 		#calls checking functions	
-		self.checkDir(filename)
-		self.checkFile(self.fullpath)
+		self.checkFile(self.filename)
+                print 'Got this far'
                 try: 
                         result=indi.set_and_send_float("SX CCD SXVR-H694","CCD_EXPOSURE","CCD_EXPOSURE_VALUE",exposureTime)
                 except Exception: return 0
@@ -238,8 +259,8 @@ class SX:
 	def finish_exposure(self,finishstatus):
                 #gets end time
 		self.endTime = time.time()
-                hdu==pyfits.open('images/TEMPIMAGE.fits',mode='update')
-
+                im=pyfits.open('images/TEMPIMAGE.fits',mode='update')
+                hdu=im[0]
 		#sets up fits header. Most things are self explanatory
 		#This ensures that any headers that can be populated at this time are actually done.
 		hdu.header.update('EXPTIME', self.endTime-self.startTime, comment='The frame exposure time in seconds')	
@@ -295,6 +316,6 @@ class SX:
 		#hdu.writeto(self.fullpath)
 		self.startTime=0
 		self.exposureTime=0
-                hdu.flush()
+                im.flush()
                 os.system('mv images/TEMPIMAGE.fits images/'+self.filename+'.fits')
 		print 'Exposure finished'
