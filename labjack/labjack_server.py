@@ -169,7 +169,7 @@ class LabjackServer:
 		else: return 'ERROR'
 
 	def cmd_ok(self, the_command):
-		"Let the labjack know that all is OK and the slits can stay open"
+		'''Let the labjack know that all is OK and the slits can stay open'''
 		self.watchdog_last_time = time.time()
 		return 'Watchdog timer reset.'
 

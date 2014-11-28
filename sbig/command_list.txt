@@ -1,3 +1,4 @@
+abortExposure
 closeLink
 establishLink
 getCCDParams

@@ -15,8 +15,8 @@ import numpy as np
 
 #Open port 0 at "9600,8,N,1", timeout of 5 seconds
 #Open port connected to the mount
-ser = serial.Serial('/dev/ttyUSB0',9600, timeout = 100) # non blocking serial port, will wait
-						        # for ten seconds find the address
+try: ser = serial.Serial('/dev/ttyUSB0',9600, timeout = 100) # non blocking serial port, will wait
+except Exception: print 'Could not connect to the serial port for some reason. Restarting the machine or replugging the USB to serial cable will probably solve this'						        # for ten seconds find the address
 print ser.portstr       # check which port was rea3lly used
                         # we open a serial port to talk to the focuser
 
@@ -226,6 +226,13 @@ class BisqueMountServer:
 		except Exception: return 'Could not convert focus amount into integer'
 		return 'New focus amount set'
 		
+	def cmd_resetGuidingStats(self,the_command):
+		'''Function used to reset the focus_min and HFD_min values before guiding starts.'''
+		#Minimum HFD parameters
+		self.HFD_min=1000
+		self.focus_min=4000
+		return 'Successfully reset the guiding stats'
+
 	def adjustFocus(self):
 		'''routine to adjust the focuser position based on a new half-flux diameter measurement. This is the actual function that adjusts the focus.
 		This function is here to ensure that the focussing routine runs independently of the uber server.'''
@@ -236,13 +243,17 @@ class BisqueMountServer:
 			print focusposition, self.HFD, self.move_focus_amount              #print the values of the focuser position, HFD and amount of adjustment for monitoring purposes.
 			#This condition ensures that the script always knows the focus position and HFD values of the minimum HFD seen so far.
 			if self.HFD < self.HFD_min:
+				print 'New best position for focuser found:',self.HFD,focusposition
 				self.HFD_min=self.HFD
 				self.focus_min=focusposition
-			#if the HFD has increased since last time, reverse the direction of motion and half the amount. Otherwise, just leave as is and then move the focuser. 
+				print 'New best focus position is:',self.focus_min
+                        #if the HFD has increased since last time, reverse the direction of motion and half the amount. Otherwise, just leave as is and then move the focuser. 
 			if self.HFD >= self.sharp_value: 
 				self.move_focus_amount = int((self.move_focus_amount*-1)/2)
-				if self.move_focus_amount==0: self.move_focus_amount=1
+				if self.move_focus_amount==0: self.move_focus_amount=5
 			#This is introduced to force the focusser to the minimum HFD position with a 1/50 probability. This is an attempt to try to make sure the system is usually close to the optimal focus.
+			if self.HFD > 20:
+				move_focus_amount=100*np.sign(move_focus_amount)
 			if np.random.rand()<(1/50.): 
 				self.cmd_focusGoToPosition("focusGoToPosition "+str(int(self.focus_min)))
 				print 'Focuser forced to go to last minimum setting'
@@ -257,8 +268,8 @@ class BisqueMountServer:
 	def cmd_find(self,the_command):
 		'''Will find an object in TheSky's Star chart and return data. It will spill out all the info on the target in a string.'''
 		commands = str.split(the_command)
-		if len(commands) == 2:
-			obj = commands[1]
+		if len(commands) > 1:
+			obj = ' '.join(commands[1:])
 			linestoreplace = ['sky6StarChart.Find("object");\r\n']
 			newlines = ['sky6StarChart.Find("'+obj+'");\r\n']
 			if self.editscript('Find.template', 'Find.js', linestoreplace,newlines):
@@ -291,8 +302,8 @@ class BisqueMountServer:
 	def cmd_slewToObject(self,the_command):
 		'''Function that will take an object as input and use the find and objInfo functions to slew to it'''
 		commands = str.split(the_command)
-		if len(commands)!=2: return 'This function takes a single argument with the object name'
-		dummy=self.cmd_find('find '+commands[1])
+		if len(commands)<2: return 'This function takes a single argument with the object name'
+		dummy=self.cmd_find('find '+' '.join(commands[1:]))
 		if 'ERROR' in dummy: return 'Unsuccessful attempt at finding object of interest' 
 		#get the dictionary of object properties from TheSkyX
 		d=ast.literal_eval(self.cmd_objInfo('objInfo'))
