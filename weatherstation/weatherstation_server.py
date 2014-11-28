@@ -5,7 +5,7 @@
 import serial
 import sys
 import select
-import string
+import string, time
 from datetime import datetime
 
 #Open port 0 at "9600,8,N,1", timeout of 5 seconds
@@ -107,13 +107,14 @@ class WeatherstationServer:
 
 		if self.slitvariable: message+=' Safe for dome to open.'
 		else: message+=' NOT safe for dome to open.************' 
-		self.log(message)
+		self.log(message+' '+self.cmd_tempair('dummy'))
+
 		return
 
 	#definition to log the output, stores all data in a file
 	def log(self,message):
 		f = open('weatherlog.txt','a')
-		f.write(str(datetime.now())+" "+str(message)+'\n'),
+		f.write(str(time.time())+" "+str(datetime.now())+" "+str(message)+'\n'),
 		f.close()
 
 

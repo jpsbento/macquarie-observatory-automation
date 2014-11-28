@@ -280,3 +280,9 @@ class LabjackServer:
 			    self.cmd_slits('slits close')
 			    self.watchdog_last_time = time.time()
 		            print 'ERROR: No active communications. Slits closing.'
+
+	def log(self):
+		#add a temperature and humidity reading to a log
+		f = open('temphumlog.txt','a')
+		f.write(str(time.time())+" "+time.ctime()+" "+str(self.cmd_temperature('dummy'))+" "+str(self.cmd_humidity('dummy'))+'\n'),
+		f.close()

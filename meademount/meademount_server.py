@@ -11,7 +11,7 @@ import time
 import math
 
 #Open port connected to the mount
-ser = serial.Serial('/dev/ttyUSB0',9600, timeout = 1) # non blocking serial port, will wait
+ser = serial.Serial('/dev/ttyUSB1',9600, timeout = 1) # non blocking serial port, will wait
 						      # for one second
 
 print ser.portstr       # check which port was really used
@@ -170,7 +170,7 @@ class MeademountServer:
 			elif commands[1] == 'slow':
 				ser.write(':FS#')
 				return 'set focus slow'
-			elif commands[1] == '1'commands[1] == or commands[1] == '2' or commands[1] == '3' or commands[1] == '4':
+			elif commands[1] == '1' or commands[1] == '2' or commands[1] == '3' or commands[1] == '4':
 				ser.write(':F'+commands[1]+'#')
 				return 'set focuser speed to '+commands[1]
 			else: return 'ERROR, invalid input'
@@ -800,7 +800,7 @@ class MeademountServer:
 		if len(commands) == 2:
 			lat = commands[1]
 			sign = '+'
-			if (len(lat) == 6 and lat[0] == '-') or (lat[0] '+' and lat[3] == '.'):
+			if (len(lat) == 6 and lat[0] == '-') or (lat[0] == '+' and lat[3] == '.'):
 				try: 
 					int(lat[1]+lat[2]+lat[4]+lat[5])
 					ser.write(':St '+lat+'#')
