@@ -11,6 +11,7 @@ focusMove
 fs
 focusTelescope
 focusSetAmount
+resetGuidingStats
 find
 objInfo
 slewToObject

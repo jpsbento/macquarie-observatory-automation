@@ -1,5 +1,6 @@
 finishSession
 startSession
+reconnect
 labjack
 telescope
 weatherstation
@@ -13,6 +14,7 @@ orientateCamera
 offset
 focusStar
 override_wx
+defGuidingPos
 guiding
 spiral
 centerStar

@@ -27,8 +27,8 @@ class SideCameraServer:
 				 # I *think* you just add this number (when calculated) to all Iraf mags and you're set.
 	
 	# The central pixel coordinates
-	target_xpixel = 332.32   # 640 x pixel width
-	target_ypixel = 223.9   # 480 y pixel height
+	target_xpixel = 277.0   # 640 x pixel width
+	target_ypixel = 227.0   # 480 y pixel height
 	north_move_arcmins = 1
 	east_move_arcmins = 1
 	oneArcmininPixelsN = 1/2.  # This tells us how many pixels there are to one arcsecond in the North/South direction
@@ -95,7 +95,7 @@ class SideCameraServer:
 		return 'Capture complete'
 
 	def cmd_brightStarCoords(self, the_command):
-		'''This takes one photo to be used to detect the brightest star and find its coordinates. '''
+		'''This takes one photo to be used to detect the brightest star and find its coordinates. Takes no inputs'''
 		comands=str.split(the_command)
 		if len(comands) >2: return 'Hm, this function does not take 3 arguments (in this version, anyway)...'
 		elif len(comands) == 2 and comands[1]=='high':
@@ -113,22 +113,26 @@ class SideCameraServer:
 
 
 	def cmd_adjustExposure(self, the_command):
-		'''This function will adjust the exposure time of the camera until the brightest pixel is between a given range, close to the 8 bit resolution maximum of the imagingsource cameras (255)'''
+		'''This function will adjust the exposure time of the camera until the brightest pixel is between a given range, close to the 8 bit resolution maximum of the imagingsource cameras (255). Takes no inputs'''
 		max_pix=0
 		direction=0
 		direction_old=0
 		deviation=100
 		print 'Adjusting exposure time. Please wait.'
-		while (max_pix < 200)|(max_pix>245):
+		while (max_pix < 100)|(max_pix>245):
+			#take one image but do not display it
 			try: dummy = self.cmd_captureImages('captureImages exposure_adjust 1 no')
 			except Exception: print 'Could not capture image'
 			im=pyfits.getdata('exposure_adjust.fits')
+			#find out what the maximum flux of the image is
 			max_pix=im.max()
 			print 'max_pix=',max_pix
-			if max_pix < 200:
+			#Now use an asymptotic approach to find the exposure time that will yield a value between 200 and 255
+			#Make sure that exposure never gets above 100000 or below 51
+			if max_pix < 100:
 				prop = self.dev.get_property('Exposure (Absolute)')
 				direction=1
-				if prop['value'] < 100000:
+				if prop['value'] < 200000:
 					prop['value']+=deviation
 					print 'Exposure=',prop['value']/10.,'ms'
 					self.dev.set_property( prop )
@@ -140,9 +144,16 @@ class SideCameraServer:
 				direction=-1
 				if prop['value']> 51:
 					prop['value']-=deviation
-					print 'Exposure=',prop['value']/10.,'ms'
-					self.dev.set_property( prop )
-					self.set_values[2]=prop['value']
+					if prop['value']>0:
+						print 'Exposure=',prop['value']/10.,'ms'
+						self.dev.set_property( prop )
+						self.set_values[2]=prop['value']
+					else: 
+						prop['value']=20
+						deviation=10
+						print 'Exposure=',prop['value']/10.,'ms'
+						self.dev.set_property( prop )
+						self.set_values[2]=prop['value']
 				elif prop['value']<51 and prop['value']>2: 
 					prop['value']-=1
 					print 'Exposure=',prop['value']/10.,'ms'
@@ -202,12 +213,12 @@ class SideCameraServer:
 		
 
 	def cmd_starDistanceFromCenter(self, the_command):
-		'''This checks the position of the brighest star in shot with reference to the center of the frame and
+		'''This checks the position of the brighest star in shot with reference to the desired coordinates for guiding and
 		the sharpness of the same star. A call to this function will return a vector distance between the centeral
 		pixel and the brightest star in arcseconds in the North and East directions. When calling this function 
 		you must specify which file for daofind to use (do not add the file extension, ie type "filename" NOT "filename.fits"'''
 		comands = str.split(the_command)
-		if len(comands) != 2: return 'Invalid input, give name of file with data.'
+		if len(comands) != 3: return 'Invalid input, give name of file with data and whether the telescope is pointing east or west of the meridian.'
 		filename = comands[1]	
 		dDec = 0
 		dAz = 0
@@ -222,6 +233,10 @@ class SideCameraServer:
 		y_distance = float(self.target_ypixel) - ypixel_pos
 		vector_to_move = [x_distance, y_distance]
 		print vector_to_move 
+		if comands[2]=='east': self.axis_flip=1.; self.theta=0
+		else: self.axis_flip=1.; self.theta=math.pi
+		print self.axis_flip
+		self.transformation_matrix = [math.cos(self.theta), math.sin(self.theta), -1*math.sin(self.theta), math.cos(self.theta)]
 		translated_N = self.transformation_matrix[0]*x_distance + self.transformation_matrix[1]*y_distance
 		translated_E =  (self.transformation_matrix[2]*x_distance + self.transformation_matrix[3]*y_distance)*self.axis_flip
 		#Need to convert distance into coordinates for the telescope orientation
@@ -520,7 +535,7 @@ class SideCameraServer:
 		'''Function that will return a section of the image that we are interested in. This will just chop off a box of width 'width' centred at middle_x,middle_y. It actually just sets all the values outside this ox to 0'''
 		middle_x=self.target_xpixel
 		middle_y=self.target_ypixel
-		width=30
+		width=60
 		im_temp=im.copy()
 		im_temp[:middle_y-width/2]=0
 		im_temp[middle_y+width/2:]=0
