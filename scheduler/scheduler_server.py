@@ -127,9 +127,10 @@ class SchedServer:
 			if not 'Ready' in response: 
 				print response
 				return 0
-			try: response = self.uber_client.send_command('telescope SlewToObject '+self.Target)
+			try: response = self.uber_client.send_command('telescope slewToObject '+self.Target)
 			except Exception: 
 				print 'Something went wrong with trying to slew directly to target name'
+			print response
 			if not 'Telescope Slewing' in response:
 				if ':' in self.RA:
 					#convert the hh:mm:ss.s and dd:mm:sec format to decimal hours and degrees for the slewToRaDec function
@@ -137,6 +138,7 @@ class SchedServer:
 					newRA=str(temp[0]+temp[1]/60.+temp[2]/3600.)
 					temp=numpy.float64(self.DEC.split(':'))
 					newDEC=str(temp[0]+temp[1]/60.+temp[2]/3600.)
+					print 'Trying to use coordinates to go to target'
 					try: response=self.uber_client.send_command('telescope slewToRaDec '+newRA+' '+newDEC)
 					except Exception: return 'Unable to intruct to telescope to slew to an RA and DEC'
 				else:
@@ -156,8 +158,8 @@ class SchedServer:
 			except Exception: return 'Something went wrong with activating the guiding'
 			if not 'enabled' in response: return 'Guiding loop not enabled'
 			return 'Successfully got a RHEA guiding test going'
+
 		elif self.Mode=='RheaFull':
-			#THIS PART IS NOT FINISHED YET. 
 			try: 
 				response = self.uber_client.send_command('labjack slits')
 				if not 'True' in response: dummy=self.uber_client.send_command('labjack slits open')
@@ -198,7 +200,7 @@ class SchedServer:
 			try: dummy=self.uber_client.send_command('Imsettings '+str(self.ExposureTime)+' open')
 			except Exception: return 'Something failed when trying to set the exposure settings'
 			if not 'Finished' in dummy: return 'ERROR: could not set the exposure settings'
-			try: dummy=self.uber_client.send_command('Imaging on')
+			try: dummy=self.uber_client.send_command('Imaging on lamp')
 			except Exception: return 'Something failed when trying to start exposing with RHEA'
 			if not 'Finished' in dummy: return 'ERROR: could not start exposing.'
 			return 'Successfully got a Full RHEA steup going.'

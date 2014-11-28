@@ -1,0 +1,45 @@
+#!/usr/bin/python
+#This is the main program. It should be *very* simple.
+import subprocess, atexit
+import commands, os
+
+#the following lines establish a link with the camera via the USB port, these run 
+#automatically when sx_main is excecuted
+try: 
+        if not os.path.exists('/tmp/myFIFO'):
+                dummy=subprocess.call('mkfifo /tmp/myFIFO', shell=True)
+        if len(commands.getoutput('pgrep indi'))==0:
+                indiserver_process=subprocess.Popen(['indiserver','-f','/tmp/myFIFO','-p','7777'],stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+                #indiserver_process=subprocess.Popen('indiserver -f /tmp/myFIFO -p 7777',shell=True)
+                sxserver_process=subprocess.call('echo start indi_sx_ccd -n \"SX CCD\" > /tmp/myFIFO', shell=True)
+                procs=[indiserver_process]
+except Exception: print 'Unable to start indi server'
+
+
+@atexit.register
+def kill_subprocesses():
+        print 'Started this process'
+        for proc in procs:
+                proc.terminate()
+                proc.wait()
+                print 'Managed to kill process',proc
+        subprocess.Popen(['reset']).wait()
+
+import sx_server
+import sys
+sys.path.append('../common')
+import server_socket
+import find_port
+f = find_port.FindPort()
+Port = f.findPort('sx')
+sx=sx_server.SX()
+ss=server_socket.ServerSocket(Port, 'sx', sx)	
+ss.add_job(sx.checkIfFinished)
+ss.run()
+ss.close()
+indiserver_process.kill()
+"""
+for proc in procs:
+        print 'got here'
+        proc.kill()
+"""
