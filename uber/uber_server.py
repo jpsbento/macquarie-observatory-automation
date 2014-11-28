@@ -7,14 +7,21 @@ import client_socket
 import time, math, datetime, csv, ippower
 import pyfits,scipy
 import pylab as pl
-import numpy
+import numpy, commands, os
 from apscheduler.scheduler import Scheduler
 from apscheduler.jobstores.shelve_store import ShelveJobStore
-import logging
+import logging, smtplib
 logging.basicConfig(filename='runtime.log',level=logging.DEBUG,format='%(asctime)s %(levelname)s %(message)s', datefmt='%d/%m/%Y %I:%M:%S %p')
 
 class UberServer:
 	
+	#define system variable to the root directory of the code.
+	os.environ['MQOBSSOFT']=commands.getoutput('pwd')[:-5]
+
+	#this lists the servers that are supposed to be active at any given time. It is used by the function that tries to connect to them if any die.
+	#servers=['labjack','labjacku6','bisquemount','sidecamera','fiberfeed','sbigudrv']
+	servers=['labjack','bisquemount','sidecamera','fiberfeed']
+
 	# A list of the telescopes we have, comment out all but the telescope you wish to connect with:
 	telescope_type = 'bisquemount'
 	#telescope_type = 'meademount'
@@ -25,16 +32,17 @@ class UberServer:
 	weatherstation_client = client_socket.ClientSocket("weatherstation",telescope_type) #23457 <- port number
 	sidecam_client = client_socket.ClientSocket("sidecamera",telescope_type) #23459 <- port number
 	camera_client = client_socket.ClientSocket("sbig",telescope_type) #23460 <- port number 
+	print camera_client
 	fiberfeed_client = client_socket.ClientSocket("fiberfeed",telescope_type) #23459 <- port number
-        labjacku6_client = client_socket.ClientSocket("labjacku6",telescope_type) #23462 <- port number
-
-	dome_tracking = True
-	override_wx = False
+        labjacku6_client = client_socket.ClientSocket("labjacku6",telescope_type) #23462 <- port number	override_wx = False
 	
+	dome_tracking = True
+        override_wx = False
+
 	weather_counts = 1 #integer that gets incremented if the slits are open, the override_wx is false and the weather station returns an unsafe status. If this gets above 3, close slits (see function where this is used)
-	dome_last_sync=time.time()
-	dome_frequency = 5 #This parameters sets how often the SkyX virtual dome is told to align with the telescope pointing.
-	dome_az=0.0
+	#dome_last_sync=time.time()
+	#dome_frequency = 5 #This parameters sets how often the SkyX virtual dome is told to align with the telescope pointing.
+	#dome_az=0.0
 
 	guiding_bool=False
 	guiding_camera='fiberfeed'
@@ -48,26 +56,35 @@ class UberServer:
 	current_imtype='light'
 	exptime=0        #Default exposure time
 	shutter_position='closed'  #Default shutter position
+	imgtype_keyword='None'
+	nexps=-10
 	filename='None'
 	old_filename='None'
 
 	#Parameters to do with the focus adjustment
-	move_focus_amount = 200
+	move_focus_amount = 100
 	sharp_value = 0
 	sharp_count =0
 	initial_focus_position=0
+	seeing=[]
 
 	#ipPower options. This is a unit that is used to control power to units.
 	#This dictionary contains which device is plugged into each port. If the connections change, this needs to be changed too! 
-	power_order={'lamp':1,'none':2,'none':3,'none':4}
+	power_order={'HgAr':1,'none':2,'none':3,'none':4}
 	
+        #email addresses of recepients of email alerts:
+        toaddrs = ['jpsbento@gmail.com']
 
+        #reconnect to servers counter. This exists such that if the script is currently trying to reconnect to a server repeatidly and failing, an email alert is sent.
+        reconnection_counter=0
 	
 #***************************** A list of user commands *****************************#
 	def cmd_finishSession(self,the_command):
 		'''Command to stop the guiding, the imaging loop, close the slits, home the dome, park the telescope and stop the dome tracking.'''
 		try:
 			dummy = self.cmd_guiding('guiding off')
+			if self.exposing:
+				dummy=self.camera_client.send_command('abortExposure')
 			dummy = self.cmd_Imaging('Imaging off')
 			dummy = self.labjack_client.send_command('slits close')
 			self.dome_tracking=False
@@ -77,6 +94,7 @@ class UberServer:
 		except Exception: 
 			logging.error('Failed to finish the session sucessfully')
 			return 'Failed to finish the session sucessfully'
+                        dummy=self.email_alert('Failure in function cmd_finishSession','Failed to finish session')
 		logging.info('Sucessfully finished session')
 		return 'Sucessfully finished session'
 	
@@ -93,9 +111,36 @@ class UberServer:
 		except Exception: 
 			logging.error('Failed to initiate the session sucessfully')
 			return 'Failed to initiate the session sucessfully'
+                        dummy=self.email_alert('Failure in function cmd_startSession','Failed to start session')
 		logging.info('Sucessfully initiated session. You should wait a little bit for the dome and telescope to stop moving before trying anything else.')
 		return 'Sucessfully initiated session. You should wait a little bit for the dome and telescope to stop moving before trying anything else.'
 
+	def cmd_reconnect(self,the_command):
+		'''Command to force a reconnection to a server. The server options are "labjack", "telescope", "sidecam", "camera", "fiberfeed", "labjacku6" and "weatherstation"'''
+		commands=str.split(the_command)
+		if len(commands)==2:
+			if commands[1]=='labjack':
+				self.labjack_client = client_socket.ClientSocket("labjack",self.telescope_type) #23456 <- port number
+			elif commands[1]=='telescope':
+				self.telescope_client = client_socket.ClientSocket("telescope",self.telescope_type)  #23458 <- port number
+			elif commands[1]=='sidecam':
+				self.sidecam_client = client_socket.ClientSocket("sidecamera",self.telescope_type) #23459 <- port number
+			elif commands[1]=='camera':
+				self.camera_client = client_socket.ClientSocket("sbig",self.telescope_type) #23460 <- port number 
+			elif commands[1]=='fiberfeed':
+				self.fiberfeed_client = client_socket.ClientSocket("fiberfeed",self.telescope_type) #23459 <- port number
+			elif commands[1]=='labjacku6':
+				self.labjacku6_client = client_socket.ClientSocket("labjacku6",self.telescope_type) #23462 <- port number
+			elif commands[1]=='weatherstation':
+				self.weatherstation_client = client_socket.ClientSocket("weatherstation",telescope_type) #23457 <- port number
+			else: return 'Unknown server name to reconnect to'
+			logging.info('Successfully reconnected to server')
+			return 'Successfully reconnected to server'
+		else: 
+			logging.error('Need a server name to connect to')
+			return 'ERROR: Need a server name to connect to'
+		
+	
 	def cmd_labjack(self,the_command):
 		'''A user can still access the low level commands from the labjack using this command. ie
 		type 'labjack help' to get all the available commands for the labjack server.'''
@@ -195,7 +240,7 @@ class UberServer:
 		else: return 'Invalid ippower command'
 
 	def cmd_setDomeTracking(self,the_command):
-		'''Can set the dome tracking to be on or off'''
+		'''Can set the dome tracking to be on or off. This is on by default and follows the dome simulator on TheSkyX.'''
 		commands = str.split(the_command)
 		if len(commands) == 1:
 			if self.dome_tracking: return 'Dome tracking enabled.'
@@ -212,7 +257,7 @@ class UberServer:
 		else: return 'Invalid input, on/off expected.'
 
 	def cmd_orientateCamera(self, the_command):
-		'''This will control the camera and the telescope to get the camera orientation.'''
+		'''This will control the camera and the telescope to get the imagingsource camera orientation. Usage: orientateCamera <sidecam/fiberfeed> '''
 		commands=str.split(the_command)
 		if len(commands)!=2: 
 			return 'Invalid number of arguments. Please indicate which camera you want this to happen on.'
@@ -253,7 +298,7 @@ class UberServer:
 		return response
 	
 	def cmd_offset(self, the_command):
-		'''This pulls together commands from the camera server and the telescope server so that we can move the telescope to a given known pixel position which corresponds to the centre of the telescope field of view'''
+		'''This pulls together commands from the camera server and the telescope server so that we can move the telescope to a given known pixel position which corresponds to the centre of the telescope field of view. Useful for pointing model runs.'''
 		#These are the known coordinates of the centre of the telescope field of view. These need to be changed every time anything is put on the back of the telescope. 
 		x_final=332.93
 		y_final=224.39
@@ -288,7 +333,7 @@ class UberServer:
 		return 'Telescope successfully offset to new coordinates.'
 		
 	def cmd_focusStar(self, the_command):
-		'''This pulls together commands from the telescope servers and the camera server to focus a bright star.'''
+		'''This pulls together commands from the telescope servers and the camera server to focus a bright star. It runs the focuser along a series of positions and measures the PSF size, then fits a 2nd order polynomial to the result to work out the optimal focus. This takes a while and doesn't always work. '''
 		focus_amount = 100
 		#Find out which position the focuser is in now
 		try: initial=int(self.telescope_client.send_command('focusReadPosition'))
@@ -320,14 +365,15 @@ class UberServer:
 		HFD=HFD[HFD==HFD]
 		print 'HFD',HFD
 		print 'positions',positions
-		#Do a second order polynomial fit to the data and find the minimum focus position
-		a,b,c=scipy.polyfit(positions,HFD,deg=2)
+		#Do a second order polynomial fit to the data and find the minimum focus position. THIS IS NOT USED AT THE MOMENT.
+		#a,b,c=scipy.polyfit(positions,HFD,deg=2)
 #		pl.plot(positions,HFD,'.')
 #		pl.plot(positions,a*positions**2+b*positions+c)
-		min_focus=int(-b/(2*a))
+		#min_focus=int(-b/(2*a))
+		min_focus=positions[HFD==min(HFD)]
 #		pl.axvline(min_focus)
 #		pl.xlabel('focuser positions')
-#		pl.ylabel('HFD')
+		pl.ylabel('HFD')
 #		pl.draw()
 		try: dummy=self.telescope_client.send_command('focusGoToPosition '+str(min_focus))
 		except Exception: 
@@ -338,6 +384,7 @@ class UberServer:
 	
 	
 	def cmd_override_wx(self, the_command):
+		'''use this function to ignore the weatherstation inputs and open the dome whilst weather isn't optimal.'''
 		commands=str.split(the_command)
 		if len(commands) == 2 and (commands[1] == 'off' or commands[1]=='0'):
 			self.override_wx=False
@@ -345,8 +392,50 @@ class UberServer:
 		logging.info('override_wx '+str(self.override_wx))
 		return str(self.override_wx)
 
+	def cmd_defGuidingPos(self, the_command):
+		'''This is a wrapper function to illuminate the fiberfeed camera using the backLED on the spectrograph and redefine the guiding position. Should be done once per night. As an optional argument, include "adjExp" in the command to force the system to adjust the exposure after the telescope offset.'''
+		commands=str.split(the_command)
+		if len(commands) > 2 :
+			return 'This function takes either no arguments or a single "ajdExp" after'
+			logging.error('This function takes either no arguments or a single "ajdExp" after')
+		else: 
+			dummy=self.cmd_guiding('guiding halt')
+			try: dummy=self.telescope_client.send_command('jog South 5')
+			except Exception:
+				logging.error('Unable to jog telescope during the defGuidingPos routine')
+				return 'Unable to jog telescope during the defGuidingPos routine'
+			if 'ERROR' in dummy: 
+				logging.error('Unable to jog telescope during the defGuidingPos routine')
+				return 'Unable to jog telescope during the defGuidingPos routine'
+			try: self.labjacku6_client.send_command('backLED on')
+			except Exception: 
+				logging.error('Unable to switch on backLED during the defGuidingPos routine')
+				return 'Unable to switch on backLED during the defGuidingPos routine'
+			try: 
+				dummy=self.fiberfeed_client.send_command('setCameraValues Gain 1000')
+				dummy=self.fiberfeed_client.send_command('setCameraValues ExposureAbs 10000')
+				dummy=self.fiberfeed_client.send_command('Chop on')
+				dummy=self.fiberfeed_client.send_command('centerIsHere')
+			except Exception: 
+				logging.error('Unable to communicate successfully with the fiberfeed server during the defGuidingPos routine')
+				return 'Unable to communicate successfully with the fiberfeed server during the defGuidingPos routine'
+			if 'Finished' not in dummy:
+				logging.error('Failed to find the backLED light')
+				return 'Failed to find backLED light'
+			dummy=self.fiberfeed_client.send_command('Chop off')
+			dummy=self.labjacku6_client.send_command('backLED off')
+			try: dummy=self.telescope_client.send_command('jog North 5')
+			except Exception:
+				logging.error('Unable to jog telescope during the defGuidingPos routine')
+				return 'Unable to jog telescope during the defGuidingPos routine'
+			dummy=self.fiberfeed_client.send_command('setCameraValues default')
+			if len(commands)==2 and commands[1]=='adjExp':
+				dummy=self.fiberfeed_client.send_command('adjustExposure')
+			logging.info('Successfully redefined the guiding position.')
+			return 'Successfully redefined the guiding position.'
+
 	def cmd_guiding(self, the_command):
-		'''This function is used to activate or decativate the guiding loop. Usage is 'guiding <on/off> <camera>', where option is either 'on' or 'off' and camera is either 'sidecam' or 'fiberfeed' (default). For the 'off' option, no camera needs to be specified.'''
+		'''This function is used to activate or decativate the guiding loop. Usage is 'guiding <on/off> <camera>', where option is either 'on' or 'off' and camera is either 'sidecam' or 'fiberfeed' (default). For the 'off' option, no camera needs to be specified. Use the options 'halt' and 'resume' if you just want to pause the guiding and resume without changingthe guiding offset amount.'''
 		commands=str.split(the_command)
 		if len(commands)==2:
 			if commands[1]=='off':
@@ -355,9 +444,10 @@ class UberServer:
 				return 'Guiding loop disabled'
 			elif commands[1]=='on':
 				self.guiding_bool=True
+                                self.fiberfeed_client.send_command('resetGuidingStats')
 				os.system('cp ../fiberfeed/guiding_initial.txt ../fiberfeed/guiding_stats.txt')
 				self.guiding_camera='fiberfeed'
-				self.telescope_client.send_command("focusSetAmount " + str(200))
+				self.telescope_client.send_command("focusSetAmount " + str(100))
 				logging.info('Guiding loop enabled using the '+self.guiding_camera)
 				return 'Guiding loop enabled using the '+self.guiding_camera
 			elif commands[1]=='halt':
@@ -365,7 +455,7 @@ class UberServer:
 			elif commands[1]=='resume':
 				self.guiding_bool=True
 			else: return 'invalid argument.'
-		if len(commands)==3 and commands[1]=='on':
+		elif len(commands)==3 and commands[1]=='on':
 			self.guiding_bool=True
 			if commands[2]=='sidecam': 
 				self.guiding_camera='sidecam'
@@ -373,7 +463,8 @@ class UberServer:
 				return 'Guiding loop enabled using the '+self.guiding_camera
 			elif commands[2]=='fiberfeed':
 				self.guiding_camera='fiberfeed'
-				os.system('cp ../fiberfeed/guiding_initial.txt ../fiberfeed/guiding_stats.txt')
+				self.fiberfeed_client.send_command('resetGuidingStats')
+                                os.system('cp ../fiberfeed/guiding_initial.txt ../fiberfeed/guiding_stats.txt')
 				self.telescope_client.send_command("focusSetAmount " + str(200))
 				logging.info('Guiding loop enabled using the '+self.guiding_camera)
 				return 'Guiding loop enabled using the '+self.guiding_camera
@@ -382,7 +473,7 @@ class UberServer:
 			
 
 	def cmd_spiral(self, the_command):
-		'''This function is used to spiral the telescope until the fiberfeed camera finds a star close to the center of the chip. Usage is 'guiding <amount>', where amount is the offset in arcmins of each spiral motion. A default amount is set'''
+		'''This function is used to spiral the telescope until the fiberfeed camera finds a star close to the center of the chip. Usage is 'spiral <amount>', where amount is the offset in arcmins of each spiral motion. A default amount is set'''
 		default=2.0
 		commands=str.split(the_command)
 		if len(commands) > 2:
@@ -480,13 +571,20 @@ class UberServer:
 			return 'ERROR: Failed to adjust the exposure of the sidecam'
 		logging.info('exposure adjusted for sidecam.')
 		print 'exposure adjusted for sidecam.'
-		try: self.cmd_orientateCamera('orientateCamera sidecam')
+		'''try: self.cmd_orientateCamera('orientateCamera sidecam')
 		except Exception: 
 			logging.error('ERROR: Failed to set the orientation of the sidecam')
 			return 'ERROR: Failed to set the orientation of the sidecam'
 		logging.info('orientation of the sidecamera set.')
 		print 'orientation of the sidecamera set.'
+                '''
 		distance=1000
+                try:
+			d=eval(self.telescope_client.send_command('objInfo'))
+			if float(d['HA_HOURS'])>-0.33: sideofmeridian='west'
+			else: sideofmeridian='east'
+			print sideofmeridian
+		except Exception: print 'Unable to query objInfo for east or west of meridian'
 		while distance>0.3:
 			try: self.sidecam_client.send_command('imageCube test 10')
 			except Exception: 
@@ -495,7 +593,7 @@ class UberServer:
 			logging.info('current location images taken for sidecam.')
 			print 'current location images taken for sidecam.'
 			try: 
-				moving=str.split(self.sidecam_client.send_command('starDistanceFromCenter test'))
+				moving=str.split(self.sidecam_client.send_command('starDistanceFromCenter test'+sideofmeridian))
 				dummy=float(moving[0])
 			except Exception: 
 				logging.error('ERROR: Failed to work out what the stellar distance to the optimal coordinates is')
@@ -609,24 +707,25 @@ class UberServer:
 		elif len(commands)==2 and commands[1]=='on': 
 			self.exposing=True
 			self.lamp=False
+			self.current_imtype='light'
 		elif len(commands)==2 and commands[1]=='off': 
 			self.exposing=False
 			self.current_imtype='light'
 		elif len(commands)==3 and commands[1]=='on' and commands[2]=='lamp':
 			self.exposing=True
 			self.lamp=True
-			self.current_imtype='lamp'
+			self.current_imtype='light'
 		else: return 'Incorrect usage of function. Activate Imaging using "on" or "off". Optionally select "lamp" for intermittent images using the calibration lamp.'
 		logging.info('Imaging status set to '+str(self.exposing))
 		return 'Imaging status set to '+str(self.exposing)
 
 	def cmd_Imsettings(self,the_command):
-		#sets the camera settings for the exposing loop
+		'''sets the camera settings for the exposing loop. Usage: Imsettings <exptime> <shutter status> <nexps> <Imtype>. The number of exposures and image type keywords are optional. The image type keyword does not define any settings, but is simply the header keyword used on the fits files (e.g. 'Flat'). If you want to specify an image type keyword, you have to specify the number of exposures of that type.'''
 		commands=str.split(the_command)
 		if len(commands)==1: 
 			return 'exposure time is set to '+str(self.exptime)+'\nshutter state is set to '+str(self.shutter_position)
-		elif len(commands)!=3:
-			return 'please input the desired exposure time in seconds and the intended shutter state'
+		elif len(commands)>5:
+			return 'please input the desired exposure time in seconds and the intended shutter state, followed optionally by the number of exposures and image type keyword.'
 		else:
 			try: self.exptime=float(commands[1])
 			except Exception: 
@@ -634,13 +733,23 @@ class UberServer:
 				return 'Invalid exposure time'
 			if ((commands[2]=='open') or (commands[2]=='closed')):  self.shutter_position=commands[2]
 			else: return 'Invalid shutter status. Use "open" or "closed".'
+			if len(commands)==4:
+				try: self.nexps=int(commands[3])
+				except Exception: 
+					logging.error('Invalid number of exposures. If you want to specify an image type, you need give a number of exposures before.')
+					return 'Invalid number of exposures. If you want to specify an image type, you need give a number of exposures before.'
+			if len(commands)==5:
+				try: self.nexps=int(commands[3])
+				except Exception: print 'Invalid number of exposures'
+				try: self.imgtype_keyword=commands[4]
+				except Exception: print 'Could not set the imgtype keyword for some reason'
 			logging.info('Finished updating camera settings')
 			return 'Finished updating camera settings'
 	
 	def cmd_checkIfReady(self,the_command):
-		#This function will perform checks on the whole system to determine if the observatory is ready to be used for a specific job.
-		#All the options refer to things that may be called upon to be checked. they are by default all False, and should be activated by the calling of the function,
-		#depending on the requirements of each job
+		'''This function will perform checks on the whole system to determine if the observatory is ready to be used for a specific job.
+		All the options refer to things that may be called upon to be checked. they are by default all False, and should be activated by the calling of the function,
+		depending on the requirements of each job'''
 		commands=str.split(the_command)
 		if ('weatherstation' or 'weather' or 'Weather' or 'Weatherstation') in commands:
 			try: weather = self.weatherstation_client.send_command('safe')
@@ -747,16 +856,17 @@ class UberServer:
 				logging.error('Virtual Dome not giving out what is expected')
 				return 'Virtual Dome not giving out what is expected'
 			if abs(float(domeAzimuth) - float(VirtualDome)) > 3.5:
-				#print 'go to azimuth:'+str(VirtualDome)+' because of an offset. Dome azimuth is currently: '+str(domeAzimuth)
-				self.labjack_client.send_command('dome '+str(VirtualDome))
-			if (math.fabs(time.time() - self.dome_last_sync) > self.dome_frequency ) and (self.dome_az==float(str.split(self.telescope_client.send_command('SkyDomeGetAz'),'|')[0])):
-				try: ForceTrack=self.telescope_client.send_command('SkyDomeForceTrack') #Forces the virtual dome to track the telescope every self.dome_frequency seconds
-				except Exception: 
-					logging.error('Unable to force the virtual dome tracking')
-					print 'Unable to force the virtual dome tracking'
-				self.dome_last_sync=time.time()
+                                #print 'go to azimuth:'+str(VirtualDome)+' because of an offset. Dome azimuth is currently: '+str(domeAzimuth)
+                                if (abs(float(domeAzimuth)-360 - float(VirtualDome)) < 3.5): pass
+                                self.labjack_client.send_command('dome '+str(VirtualDome))
+			#if (math.fabs(time.time() - self.dome_last_sync) > self.dome_frequency ) and (self.dome_az==float(str.split(self.telescope_client.send_command('SkyDomeGetAz'),'|')[0])):
+			#	try: ForceTrack=self.telescope_client.send_command('SkyDomeForceTrack') #Forces the virtual dome to track the telescope every self.dome_frequency seconds
+			#	except Exception: 
+			#		logging.error('Unable to force the virtual dome tracking')
+			#		print 'Unable to force the virtual dome tracking'
+			#	self.dome_last_sync=time.time()
 				#print 'Dome Synced'
-			else: self.dome_az=float(str.split(self.telescope_client.send_command('SkyDomeGetAz'),'|')[0])
+			#else: self.dome_az=float(str.split(self.telescope_client.send_command('SkyDomeGetAz'),'|')[0])
 
 	def waiting_messages(self): # I don't think this will work...
 		self.labjack_client.waiting_messages()
@@ -768,17 +878,20 @@ class UberServer:
 		except Exception: 
 			logging.error('Could not query the status of the slits from Labjack.')
 			print 'Could not query the status of the slits from Labjack.'
+                        dummy=self.email_alert('Failure in function monitor_slits','Failed to query the status of the slits from Labjack')
 		if (not self.override_wx) & (slits_opened=='True'):
 			try: weather = self.weatherstation_client.send_command('safe')
 			except Exception: 
 				response = self.cmd_finishSession('finishSession')
 				logging.error('ERROR: Communication with the WeatherStation failed. Closing Slits for safety.')
 				print 'ERROR: Communication with the WeatherStation failed. Closing Slits for safety.'
+                                dummy=self.email_alert('Failure in function monitor_slits','Failed to query the status of the weatherstation')
 			if not "1" in weather:
 				if self.weather_counts > 3:
 					response = self.cmd_finishSession('finishSession')
 					logging.warning('Weather not suitable for observing. Closing Slits.')
 					print 'Weather not suitable for observing. Closing Slits.'
+                                        dummy=self.email_alert('Failure in function monitor_slits','Weather not suitable for observation. Closing slits now')
 				else:
 					self.weather_counts+=1
 			else:
@@ -788,6 +901,128 @@ class UberServer:
 	#This may not be necessary anymore. Anyways, looks like a pretty stupid function to have. Might as well replace any function call with the only line in it! I'm just leaving it here for now just in case something else is calling it, in case the program breaks.
 	def watchdog_slits(self):
 		self.labjack_client.send_command('ok')		
+
+	def server_check(self):
+		#This function will take care of making sure all servers are on at all times and that the uber server is connected to them in case they fail. See list of servers at the top of the class definition.
+		#servers=['labjack','labjacku6','bisquemount','sidecamera','fiberfeed','sbigudrv']
+		dead_servers=[]
+                if self.reconnection_counter==15:
+                        dummy=self.email_alert('Failure in function server_check','Uber server is failing to successfully reconnect to one or more servers. Please check!')
+		for s in self.servers:
+			if len(commands.getoutput('pgrep '+s+'_m'))==0:
+				dead_servers.append(s)
+		#print dead_servers
+		if len(dead_servers)!=0:
+                        self.reconnection_counter+=1
+			if 'labjack' in dead_servers:
+				print 'labjack server dead, restarting and reconnecting'
+				logging.info('labjack server dead, restarting and reconnecting')
+				try: 
+					dummy=os.system('screen -X -S labjack quit')
+					dummy=os.system('screen -dmS labjack bash -c "cd $MQOBSSOFT/labjack/; ./labjack_main; exec bash"')
+				except Exception: 
+					logging.error('Could not restart the labjack server')
+					return 'Could not restart the labjack server'
+				time.sleep(3)
+				result=self.cmd_reconnect('reconnect labjack')
+				if 'Successfully' not in result:
+					logging.error('Could not reconnect to labjack server')
+					return 'Could not reconnect the labjack server'
+			if 'labjacku6' in dead_servers:
+				print 'labjacku6 server dead, restarting and reconnecting'
+				logging.info('labjacku6 server dead, restarting and reconnecting')
+				try: 
+					dummy=os.system('screen -X -S u6 quit')
+					dummy=os.system('screen -dmS u6 bash -c "cd $MQOBSSOFT/labjacku6/; ./labjacku6_main; exec bash"')
+				except Exception: 
+					logging.error('Could not restart the labjacku6 server')
+					return 'Could not restart the labjacku6 server'
+				time.sleep(3)
+				result=self.cmd_reconnect('reconnect labjacku6')
+				if 'Successfully' not in result:
+					logging.error('Could not reconnect to labjacku6 server')
+					return 'Could not reconnect the labjacku6 server'
+			if 'bisquemount' in dead_servers:
+				print 'telescope server dead, restarting and reconnecting'
+				logging.info('telescope server dead, restarting and reconnecting')
+				try: 
+					dummy=os.system('screen -X -S telescope quit')
+					dummy=os.system('screen -dmS telescope bash -c "cd $MQOBSSOFT/bisquemount/; ./bisquemount_main; exec bash"')
+				except Exception: 
+					logging.error('Could not restart the telescope server')
+					return 'Could not restart the telescope server'
+				time.sleep(3)
+				result=self.cmd_reconnect('reconnect telescope')
+				if 'Successfully' not in result:
+					logging.error('Could not reconnect to telescope server')
+					return 'Could not reconnect the telescope server'
+			if 'sidecamera' in dead_servers:
+				print 'sidecamera server dead, restarting and reconnecting'
+				logging.info('sidecamera server dead, restarting and reconnecting')
+				try: 
+					dummy=os.system('screen -X -S sidecamera am quit')
+					dummy=os.system('screen -dmS sidecamera bash -c "cd $MQOBSSOFT/sidecamera/; ./sidecamera_main; exec bash"')
+				except Exception: 
+					logging.error('Could not restart the sidecamera server')
+					return 'Could not restart the sidecamera server'
+				time.sleep(5)
+				result=self.cmd_reconnect('reconnect sidecamera')
+				if 'Successfully' not in result:
+					logging.error('Could not reconnect to sidecamera server')
+					return 'Could not reconnect the sidecamera server'
+			if 'fiberfeed' in dead_servers:
+				print 'fiberfeed server dead, restarting and reconnecting'
+				logging.info('fiberfeed server dead, restarting and reconnecting')
+				try: 
+					dummy=os.system('screen -X -S fiberfeed quit')
+					dummy=os.system('screen -dmS fiberfeed bash -c "cd $MQOBSSOFT/fiberfeed/; ./fiberfeed_main; exec bash"')
+				except Exception: 
+					logging.error('Could not restart the fiberfeed server')
+					return 'Could not restart the fiberfeed server'
+				time.sleep(3)
+				result=self.cmd_reconnect('reconnect fiberfeed')
+				if 'Successfully' not in result:
+					logging.error('Could not reconnect to fiberfeed server')
+					return 'Could not reconnect the fiberfeed server'
+			if 'sbigudrv' in dead_servers:
+				print 'camera server dead, restarting and reconnecting'
+				logging.info('camera server dead, restarting and reconnecting')
+				try: 
+					dummy=os.system('screen -X -S camera quit')
+					dummy=os.system('screen -dmS camera bash -c "cd $MQOBSSOFT/sbig/; ./sbigudrv_main; exec bash"')
+				except Exception: 
+					logging.error('Could not restart the camera server')
+					return 'Could not restart the camera server'
+				time.sleep(3)
+				result=self.cmd_reconnect('reconnect camera')
+				if 'Successfully' not in result:
+					logging.error('Could not reconnect to camera server')
+					return 'Could not reconnect the camera server'
+                else: self.reconnection_counter=0
+
+
+			
+        def email_alert(self,subject,body):
+                #function that gets called when an email alert is to be sent
+                # Credentials (if needed)
+                try: 
+                        username = 'mqobservatory'
+                        password = 'macquarieobservatory'
+                        message = """From: From MQ Obs <mqobservatory@gmail.com>
+                        To: To Joao <jpsbento@gmail.com>
+                        Subject: %s
+
+                        %s
+                        """ % (subject,body)
+                        # The actual mail send
+                        server = smtplib.SMTP('smtp.gmail.com:587')
+                        server.starttls()
+                        server.login(username,password)
+                        server.sendmail('mqobservatory@gmail.com', self.toaddrs, message)
+                        server.quit()
+                except Exception: logging.error('Could not send email alert'); print 'Could not send email alert'
+                return 'Successfully emailed contacts'
+
 
 	def guidingReturn(self,the_command):
 		#function that returns the current guiding parameters from a file written by the fiberfeed server
@@ -819,24 +1054,33 @@ class UberServer:
 				print 'Unable to update guiding image header'
 			try: 
 				HFD=float(guidingReturn[0])
-				print HFD
+				print 'Current seeing in arcsecs is',str(HFD/4.)
 				moving=[float(guidingReturn[1]),float(guidingReturn[2])]
-				print moving
 			except Exception: 
 				logging.error('Could not convert the values in the guiding_stats file into floats')
 				print 'Could not convert the values in the guiding_stats file into floats'
+                                HFD=0.0
+				moving=[0.0,0.0]
 			if HFD==0.0 and moving==[0.0,0.0]:
 				logging.warning('No guide star found')
 				print 'No guide star found'
-				if self.guiding_failures>10:
-					logging.warning('guide star lost, stopping the guiding loop')
-					print 'guide star lost, stopping the guiding loop'
-					self.guiding_bool=False
-					self.guiding_failures=0
-					self.exposing=False
+				if self.guiding_failures>50:
+					logging.warning('guide star lost, trying to reacquire')
+					print 'guide star lost, trying to reacquire'
+					result=self.cmd_masterAlign('masterAlign')
+					if 'Finished the master alignment.' in result:
+						logging.warning('guide star found, continuing')
+						print 'guide star found, continuing'
+					else:
+						self.guiding_bool=False
+						self.guiding_failures=0
+						self.exposing=False
+						logging.warning('guide star lost, guiding stopped')
+						print 'guide star lost, guiding stopped'
 				else: self.guiding_failures+=1
 			else:
 				self.guiding_failures=0
+				self.seeing.append(HFD/4.)
 				try: 
 					while not 'Done' in self.telescope_client.send_command('IsSlewComplete'): time.sleep(1)
 					self.telescope_client.send_command('jog North '+str(float(moving[0])/2.))
@@ -871,7 +1115,9 @@ class UberServer:
 				h.update('TELESCOP', 'Meade LX200 f/10 16 inch', 'Which telescope used')
 				h.update('LAT', -33.77022, 'Telescope latitude (deg)')
 				h.update('LONG', 151.111075, 'Telescope longitude (deg)')
- 			        try: 
+				if len(self.seeing)==0: h.update('SEEING','None','Median seeing during exposure in arcsec')
+				else: h.update('SEEING',numpy.median(self.seeing),'Median seeing during exposure in arcsec')
+				try: 
 					d=eval(self.telescope_client.send_command('objInfo'))
 					h.update('TARGET',d['NAME1'],'Target name')
 					h.update('NAME2',d['NAME2'],'Alternative target IDs')
@@ -913,7 +1159,7 @@ class UberServer:
 				if self.lamp==True:
 					if self.current_imtype=='light': self.current_imtype='lamp'
 					elif self.current_imtype=='lamp': 
-						dummy=self.cmd_ippower('ippower lamp off')
+						dummy=self.cmd_ippower('ippower HgAr off')
 						dummy=self.telescope_client.send_command('jog North 5')
 						dummy=self.cmd_guiding('guiding resume')
 						self.current_imtype='light'
@@ -924,7 +1170,7 @@ class UberServer:
 				try: 
 					dummy=self.cmd_guiding('guiding halt')
 					dummy=self.telescope_client.send_command('jog South 5')
-					dummy=self.cmd_ippower('ippower lamp on')
+					dummy=self.cmd_ippower('ippower HgAr on')
 					result=self.camera_client.send_command('imageInstruction 120 open '+self.filename+' HgAr')
 					logging.info(result)
 					self.old_filename=self.filename
@@ -935,11 +1181,21 @@ class UberServer:
 					logging.error('Unable to start a calibration lamp exposure')
 					print 'Unable to start a calibration lamp exposure'
 			else:	
-				result=self.camera_client.send_command('imageInstruction '+str(self.exptime)+' '+str(self.shutter_position)+' '+self.filename)
-				self.old_filename=self.filename
-				logging.info(result)
-				print result
-				if 'being taken' not in result: 
-					logging.error('Something went wrong with the image instruction')
-					print 'Something went wrong with the image instruction'
+				if self.nexps!=0:
+					self.seeing=[]
+					if self.imgtype_keyword=='None':
+						result=self.camera_client.send_command('imageInstruction '+str(self.exptime)+' '+str(self.shutter_position)+' '+self.filename)
+					else: result=self.camera_client.send_command('imageInstruction '+str(self.exptime)+' '+str(self.shutter_position)+' '+self.filename+' '+self.imgtype_keyword)
+					self.old_filename=self.filename
+					logging.info(result)
+					print result
+					if 'being taken' not in result: 
+						logging.error('Something went wrong with the image instruction')
+						print 'Something went wrong with the image instruction'
+					self.nexps-=1
+				else: 
+                                        self.exposing=False
+                                        self.nexps-=1
+					logging.info('Finished the series of images instructed')
+					print 'Finished the series of images instructed'
 

@@ -1,0 +1,11 @@
+checkTemperature
+setTemperature
+establishLink
+closeLink
+getCCDParams
+enableRegulation
+disableRegulation
+changeBinning
+imageType
+exposeAndWait
+abortExposure
