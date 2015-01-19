@@ -48,8 +48,8 @@ class LabjackServer:
 	dome_moving = False     	    	# A variable to keep track of whether the dome is moving due to a remote user command
 	slits_open = False
 
-	counts_per_degree = 11.83 	   	# how many counts from the wheel encoder there is to a degree
-	slitoffset = int(68.83*counts_per_degree)    # The position, in degrees, of the slits when the home switch is activated
+	counts_per_degree = 10.9 	   	# how many counts from the wheel encoder there is to a degree. 11.83 for 16" dome. 10.9 for 12" dome. 
+	slitoffset = int(92.93*counts_per_degree)    # The position, in degrees, of the slits when the home switch is activated. 68.83 for 16" dome. 92.93 for 12" dome.
 
 
 	total_counts = 0		     	# The total number of counts since we started the program, raw output from wheel
