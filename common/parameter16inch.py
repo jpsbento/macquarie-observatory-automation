@@ -22,7 +22,7 @@ power_order={'HgAr':1,'none':2,'none':3,'none':4}
 #email addresses of recepients of email alerts:
 toaddrs = ['jpsbento@gmail.com']
 
-dome_park_position= 30.   # The azimuth of the position the dome is supposed to be at when parked at the end of the night. Should be a good position for charging up the battery with the solar panel. 30 for 16" dome and 180 for 12" dome.
+dome_park_position= 100.   # The azimuth of the position the dome is supposed to be at when parked at the end of the night. Should be a good position for charging up the battery with the solar panel. 100 for 16" dome and 180 for 12" dome.
 
 #######################################
 
