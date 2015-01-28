@@ -6,6 +6,8 @@
 #Code the runs on module import starts here.
 #1) Import all modules that we need. NB ei1050 isn't installed by default,
 #   but is in the "examples" directory of the labjack code.
+import sys
+sys.path.append('../common/')
 import string
 import u3
 import ei1050
@@ -48,8 +50,8 @@ class LabjackServer:
 	dome_moving = False     	    	# A variable to keep track of whether the dome is moving due to a remote user command
 	slits_open = False
 
-	counts_per_degree = 10.9 	   	# how many counts from the wheel encoder there is to a degree. 11.83 for 16" dome. 10.9 for 12" dome. 
-	slitoffset = int(92.93*counts_per_degree)    # The position, in degrees, of the slits when the home switch is activated. 68.83 for 16" dome. 92.93 for 12" dome.
+	counts_per_degree = parameterfile.counts_per_degree 	   	# how many counts from the wheel encoder there is to a degree. 11.83 for 16" dome. 10.9 for 12" dome. 
+	slitoffset = int(parameterfile.slitoffset*counts_per_degree)    # The position, in degrees, of the slits when the home switch is activated. 68.83 for 16" dome. 92.93 for 12" dome.
 
 
 	total_counts = 0		     	# The total number of counts since we started the program, raw output from wheel
@@ -64,7 +66,8 @@ class LabjackServer:
 	homing = False
 	watchdog_last_time = time.time()        # The watchdog timer.
 	watchdog_max_delta = 10000                # more than this time between communications means there is a problem
-
+        
+        
 
 #*************************************** List of user commands ***************************************#
 
