@@ -245,6 +245,7 @@ class LabjackServer:
  		#home_output = int(str( (LJ.getFeedback( u3.Counter0() ))[0] ))
 		#print self.home_sensor_count
 		if int(str( (LJ.getFeedback( u3.Counter0() ))[0] )) != self.home_sensor_count:  # We've hit home!
+			print 'Dome homed'
 			self.home_sensor_count = int(str( (LJ.getFeedback( u3.Counter0() ))[0] ))
 			self.total_count_at_last_home = self.total_counts # We have a new count as our zero reference point
 			if self.homing:
