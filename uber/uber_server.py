@@ -14,17 +14,16 @@ import logging, smtplib
 logging.basicConfig(filename='runtime.log',level=logging.DEBUG,format='%(asctime)s %(levelname)s %(message)s', datefmt='%d/%m/%Y %I:%M:%S %p')
 
 class UberServer:
-	
+        #import all the parameterfile.py parameters
+	import parameterfile
 	#define system variable to the root directory of the code.
 	os.environ['MQOBSSOFT']=commands.getoutput('pwd')[:-5]
 
 	#this lists the servers that are supposed to be active at any given time. It is used by the function that tries to connect to them if any die.
-	#servers=['labjack','labjacku6','bisquemount','sidecamera','fiberfeed','sbigudrv']
-	servers=['labjack','bisquemount','sidecamera','fiberfeed']
+	servers=parameterfile.servers
 
 	# A list of the telescopes we have, comment out all but the telescope you wish to connect with:
-	telescope_type = 'bisquemount'
-	#telescope_type = 'meademount'
+	telescope_type = parameterfile.telescope_type
 
 	# We set clients, one for each device we are talking to
 	labjack_client = client_socket.ClientSocket("labjack",telescope_type) #23456 <- port number
@@ -45,11 +44,11 @@ class UberServer:
 	#dome_az=0.0
 
 	guiding_bool=False
-	guiding_camera='fiberfeed'
+	guiding_camera=parameterfile.guiding_camera
 	guiding_failures=0
 
 	#this parameter corresponds to an approximate ratio between the exposure times of the sidecamera and the fiberfeed camera for a given star (or all stars). Should be 20 for accurate value. If it is any less is just to make sure that there are enough photons if the telescope is out of focus.
-	side_fiber_exp_ratio=5.
+	side_fiber_exp_ratio=parameterfile.side_fiber_exp_ratio
 	
 	exposing=False   #Boolean to determine when the camera should be exposing
 	lamp=False
@@ -70,13 +69,15 @@ class UberServer:
 
 	#ipPower options. This is a unit that is used to control power to units.
 	#This dictionary contains which device is plugged into each port. If the connections change, this needs to be changed too! 
-	power_order={'HgAr':1,'none':2,'none':3,'none':4}
+	power_order=parameterfile.power_order
 	
         #email addresses of recepients of email alerts:
-        toaddrs = ['jpsbento@gmail.com']
+        toaddrs = parameterfile.toaddrs
 
         #reconnect to servers counter. This exists such that if the script is currently trying to reconnect to a server repeatidly and failing, an email alert is sent.
         reconnection_counter=0
+
+        dome_park_position=str(int(parameterfile.dome_park_position))    #Position of the dome when parked to charge battery
 	
 #***************************** A list of user commands *****************************#
 	def cmd_finishSession(self,the_command):
@@ -88,7 +89,7 @@ class UberServer:
 			dummy = self.cmd_Imaging('Imaging off')
 			dummy = self.labjack_client.send_command('slits close')
 			self.dome_tracking=False
-			dummy = self.labjack_client.send_command('dome home')
+			dummy = self.labjack_client.send_command('dome '+dome_park_position)
 			dummy = self.telescope_client.send_command('park')
 			self.override_wx=False
 		except Exception: 
