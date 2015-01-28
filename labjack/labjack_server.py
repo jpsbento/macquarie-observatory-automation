@@ -44,7 +44,7 @@ LJ.setFIOState(u3.FIO5, state=1) #command to stop movement
 #***********************************************************************#
 #2) Now define our main class, the LabjackServer.
 class LabjackServer:
-
+	import parameterfile
 #Some properties relating to the relative encoder:
 
 	dome_moving = False     	    	# A variable to keep track of whether the dome is moving due to a remote user command
