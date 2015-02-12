@@ -8,8 +8,8 @@ import time, math, datetime, csv, ippower
 import pyfits,scipy
 import pylab as pl
 import numpy, commands, os
-from apscheduler.scheduler import Scheduler
-from apscheduler.jobstores.shelve_store import ShelveJobStore
+#from apscheduler.scheduler import Scheduler
+#from apscheduler.jobstores.shelve_store import ShelveJobStore
 import logging, smtplib
 logging.basicConfig(filename='runtime.log',level=logging.DEBUG,format='%(asctime)s %(levelname)s %(message)s', datefmt='%d/%m/%Y %I:%M:%S %p')
 
