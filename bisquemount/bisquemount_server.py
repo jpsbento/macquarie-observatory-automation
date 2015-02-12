@@ -30,7 +30,6 @@ ipaddress=parameterfile.ipaddress
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # This client_socket is to communicate with the windows machine
 client_socket.connect((ipaddress,3040))			  # running 'TheSkyX'. If it doesn't receive a response after 50 mins
 client_socket.settimeout(3000)					  # I need to make it do something
-
 class BisqueMountServer:
 
 	dome_slewing_enabled = 0 #can enable disable automatic dome slewing
