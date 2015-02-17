@@ -9,10 +9,13 @@ import string, time
 from datetime import datetime
 
 #Open port 0 at "9600,8,N,1", timeout of 5 seconds
-ser = serial.Serial('/dev/ttyUSB0',9600,timeout=10)  #open first serial port
-print ser.portstr       #check which port was really used
-
-
+try: 
+	ser = serial.Serial('/dev/ttyUSB0',9600,timeout=10)  #open first serial port
+	print ser.portstr       #check which port was really used
+except Exception: 
+	ser = serial.Serial('/dev/ttyUSB1',9600,timeout=10)  #open first serial port
+	print ser.portstr
+	
 class WeatherstationServer:
 
 
