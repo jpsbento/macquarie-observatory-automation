@@ -5,17 +5,22 @@
 #Import the Tkinter and client socket modules
 import Tkinter,sys,ttk
 import tkMessageBox
-#sys.path.append('../common/')
+sys.path.append('../common/')
 import client_socket
+
+#import all the parameterfile.py parameters
+import parameterfile
+# A list of the telescopes we have, comment out all but the telescope you wish to connect with:
+telescope_type = parameterfile.telescope_type
 
 client='uber'
 #Setup the connection to the servers. This script can only be ran from inside campus
-uber_client = client_socket.ClientSocket("uber","bisquemount")
+uber_client = client_socket.ClientSocket("uber",telescope_type)
 result1= uber_client.send_command('setDomeTracking off')
 result2= uber_client.send_command('override_wx')
 #If the uber is not on, then connect to the labjack server. Only slits control here...
 if ('Error' in result1) or ('Error' in result2):
-    labjack_client = client_socket.ClientSocket("labjack","bisquemount")
+    labjack_client = client_socket.ClientSocket("labjack",telescope_type)
     client='labjack'
     result=labjack_client.send_command('ok')
     if 'Error' in result:
