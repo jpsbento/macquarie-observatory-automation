@@ -1,8 +1,54 @@
 This file contains a detailed description of all the steps required to install the software. More importantly, it should contain the most up-to-date instructions on what software is required to run all aspects of the obs.
 
 
-Tested on Ubuntu 14.04
+- Tested on Ubuntu 14.04
 
-Firstly, clone the repository: 
+- Start by installing a few things that won't hurt and will be useful in the future.
 
+sudo apt-get install emacs vim 
+
+
+- Firstly, clone the repository: 
+
+sudo apt-get install git gitk
 git clone https://jpsbento@code.google.com/p/macquarie-observatory-automation/ 
+
+- Then, each of these sections refers to installing stuff necessary for aspects of running the obs
+
+- General requirements:
+
+IRAF/PyRAF is a requirement. At this time, the installation of UREKA contains also ipython and all the standard science/plotting/fits modules, so in one go, this can be done. The download is large (1GB) but will work.
+
+- Go to ssb.stsci.edu/ureka/ Click on the latest version and download and run the installer in your home directory.
+Change the .bashrc file to include the 'ur_setup' command at the end of the file. Restart terminal. NOw IRAF/PyRAF and all of python is installed.
+
+- For serial communication with python: 
+
+pip install pyserial
+
+
+-----------------------------LABJACK------------------------
+
+Exodriver (required for u3)
+sudo apt-get install build-essential
+sudo apt-get install libusb-1.0-0 libusb-1.0-0-dev
+sudo apt-get install git-core
+git clone git://github.com/labjack/exodriver.git
+cd exodriver/
+sudo ./install.sh
+
+LABJACK PYTHON
+
+git clone git://github.com/labjack/LabJackPython.git
+cd LabJackPython/
+sudo python setup.py install
+cp Examples/EI1050/ei1050.py ~/Ureka/variants/common/lib/python2.7/site-packages/
+
+
+
+--------------------INDI devices-------------------------
+
+sudo apt-add-repository ppa:mutlaqja/ppa
+sudo apt-get update
+sudo apt-get install indi-full
+
