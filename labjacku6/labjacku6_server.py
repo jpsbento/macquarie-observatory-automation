@@ -123,7 +123,7 @@ class LabjackU6Server:    # global variables that can be rewritten
                 '''Execute the feedback loop every feedback_freq times'''
 
                 if self.feedback_freq==0: return
-                fileName='TLog.log' #'TLog_'+localtime+'.log'
+                fileName='TLog' #'TLog_'+localtime+'.log'
                 self.f = open(fileName,'a')
                 self.loop_count = self.loop_count + 1
                 self.log_loop = self.log_loop + 1 
@@ -203,7 +203,7 @@ class LabjackU6Server:    # global variables that can be rewritten
 
                         self.P = (a10+0.095*Vref)/(Vref*0.009)*10
 
-                        if (self.log_loop == 4):
+                        if (self.log_loop == 20):
 			
                                 lineOut = " %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.2f %.2f " % (self.T1,self.T2,self.T3,self.T4,self.T6,self.T7,self.T8,self.RH,self.P,Vref)#  self.heater_frac,self.delT_int)
                                 print lineOut
