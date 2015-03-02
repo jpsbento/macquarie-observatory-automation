@@ -1,0 +1,8 @@
+This file contains a detailed description of all the steps required to install the software. More importantly, it should contain the most up-to-date instructions on what software is required to run all aspects of the obs.
+
+
+Tested on Ubuntu 14.04
+
+Firstly, clone the repository: 
+
+git clone https://jpsbento@code.google.com/p/macquarie-observatory-automation/ 
