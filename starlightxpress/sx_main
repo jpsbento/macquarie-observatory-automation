@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 #This is the main program. It should be *very* simple.
 import subprocess, atexit
 import commands, os
@@ -8,7 +8,7 @@ import commands, os
 try: 
         if not os.path.exists('/tmp/myFIFO'):
                 dummy=subprocess.call('mkfifo /tmp/myFIFO', shell=True)
-        if len(commands.getoutput('pgrep indi'))==0:
+        if len(commands.getoutput('pgrep indiserver'))==0:
                 indiserver_process=subprocess.Popen(['indiserver','-f','/tmp/myFIFO','-p','7777'],stdin=subprocess.PIPE, stdout=subprocess.PIPE)
                 #indiserver_process=subprocess.Popen('indiserver -f /tmp/myFIFO -p 7777',shell=True)
                 sxserver_process=subprocess.call('echo start indi_sx_ccd -n \"SX CCD\" > /tmp/myFIFO', shell=True)
