@@ -29,8 +29,8 @@ except Exception: print 'Unable to check camera connection'
 dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_MODE","UPLOAD_CLIENT","Off")
 dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_MODE","UPLOAD_BOTH","Off")
 dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_MODE","UPLOAD_LOCAL","On")
-dummy=indi.set_and_send_text("SX CCD SXVR-H694","COOLER_CONNECTION","CONNECT_COOLER","On")
-dummy=indi.set_and_send_text("SX CCD SXVR-H694","COOLER_CONNECTION","DISCONNECT_COOLER","Off")
+dummy=indi.set_and_send_text("SX CCD SXVR-H694","CCD_COOLER","COOLER_ON","On")
+dummy=indi.set_and_send_text("SX CCD SXVR-H694","CCD_COOLER","COOLER_OFF","Off")
 if not os.path.exists('./images/'):
                 dummy=subprocess.call('mkdir ./images', shell=True)
 dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_SETTINGS","UPLOAD_DIR","images")
@@ -107,8 +107,8 @@ class SX:
                         dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_MODE","UPLOAD_CLIENT","Off")
                         dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_MODE","UPLOAD_BOTH","Off")
                         dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_MODE","UPLOAD_LOCAL","On")
-                        dummy=indi.set_and_send_text("SX CCD SXVR-H694","COOLER_CONNECTION","CONNECT_COOLER","On")
-                        dummy=indi.set_and_send_text("SX CCD SXVR-H694","COOLER_CONNECTION","DISCONNECT_COOLER","Off")
+                        dummy=indi.set_and_send_text("SX CCD SXVR-H694","CCD_COOLER","COOLER_ON","On")
+                        dummy=indi.set_and_send_text("SX CCD SXVR-H694","CCD_COOLER","COOLER_OFF","Off")
                         dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_SETTINGS","UPLOAD_DIR","images")
                 except Exception: return 'Unable to connect to CCD camera'
                 return 'Successfully coneected to camera'
@@ -125,12 +125,12 @@ class SX:
                 ''' No argument - this function gets the CCD parameters. '''
                 #try to acquire all the ccd paramteres that may be useful to know
 		try: 
-                        name=indi.get_text("SX CCD SXVR-H694","DRIVER_INFO","NAME")
-                        driver=indi.get_text("SX CCD SXVR-H694","DRIVER_INFO","EXEC")
-                        version=indi.get_text("SX CCD SXVR-H694","DRIVER_INFO","VERSION")
+                        name=indi.get_text("SX CCD SXVR-H694","DRIVER_INFO","DRIVER_NAME")
+                        driver=indi.get_text("SX CCD SXVR-H694","DRIVER_INFO","DRIVER_EXEC")
+                        version=indi.get_text("SX CCD SXVR-H694","DRIVER_INFO","DRIVER_VERSION")
                         image_dir=indi.get_text("SX CCD SXVR-H694","UPLOAD_SETTINGS","UPLOAD_DIR")
                         image_prefix=indi.get_text("SX CCD SXVR-H694","UPLOAD_SETTINGS","UPLOAD_PREFIX")
-                        cooling=indi.get_text("SX CCD SXVR-H694","COOLER_CONNECTION","CONNECT_COOLER")
+                        cooling=indi.get_text("SX CCD SXVR-H694","CCD_COOLER","COOLER_ON")
                         left=indi.get_float("SX CCD SXVR-H694","CCD_FRAME","X")
                         top=indi.get_float("SX CCD SXVR-H694","CCD_FRAME","Y")
                         width=indi.get_float("SX CCD SXVR-H694","CCD_FRAME","WIDTH")
@@ -152,8 +152,8 @@ class SX:
         def cmd_enableRegulation(self,the_command):
                 ''' No arguments on this function, just enable cooling if it is not on yet.'''
                 try: 
-                        dummy=indi.set_and_send_text("SX CCD SXVR-H694","COOLER_CONNECTION","CONNECT_COOLER","On")
-                        dummy=indi.set_and_send_text("SX CCD SXVR-H694","COOLER_CONNECTION","DISCONNECT_COOLER","Off")
+                        dummy=indi.set_and_send_text("SX CCD SXVR-H694","CCD_COOLER","COOLER_ON","On")
+                        dummy=indi.set_and_send_text("SX CCD SXVR-H694","CCD_COOLER","COOLER_OFF","Off")
                 except Exception: return 'Unable to enable cooling on the camera. Check connection'
                 return 'Successfully enabled cooling of the CCD'
 
@@ -161,8 +161,8 @@ class SX:
         def cmd_disableRegulation(self,the_command):
                 ''' No arguments on this function, just disable cooling of CCD.'''
                 try: 
-                        dummy=indi.set_and_send_text("SX CCD SXVR-H694","COOLER_CONNECTION","CONNECT_COOLER","Off")
-                        dummy=indi.set_and_send_text("SX CCD SXVR-H694","COOLER_CONNECTION","DISCONNECT_COOLER","On")
+                        dummy=indi.set_and_send_text("SX CCD SXVR-H694","CCD_COOLER","COOLER_ON","Off")
+                        dummy=indi.set_and_send_text("SX CCD SXVR-H694","CCD_COOLER","COOLER_OFF","On")
                 except Exception: return 'Unable to disable cooling on the camera. Check connection'
                 return 'Successfully disabled cooling of the CCD'
 
@@ -301,7 +301,7 @@ class SX:
 		hdu.header.update('LTEND', endtime , 'Local HH:MM:SS.ss Exp. End')
 		hdu.header.update('CAMTEMP', indi.get_float("SX CCD SXVR-H694","CCD_TEMPERATURE","CCD_TEMPERATURE_VALUE"), 'Camera temperature (C)')
 		hdu.header.update('SETPOINT', self.ccdSetpoint, 'Camera temperature setpoint (C)')
-		hdu.header.update('COOLING', indi.get_text("SX CCD SXVR-H694","COOLER_CONNECTION","CONNECT_COOLER"), 'Camera cooling enabled?')
+		hdu.header.update('COOLING', indi.get_text("SX CCD SXVR-H694","CCD_COOLER","COOLER_ON"), 'Camera cooling enabled?')
 		if self.exposureTime==0:
 			self.imtype='Bias'
 		elif self.shutter=='closed':
