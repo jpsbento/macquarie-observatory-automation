@@ -108,7 +108,7 @@ class UberServer:
 			dummy = self.labjack_client.send_command('dome home')
 			dummy = self.telescope_client.send_command('findHome')
 			self.override_wx=False
-			dummy = self.telescope_client.send_command('focusGoToPosition 4000')
+			dummy = self.telescope_client.send_command('focusGoToPosition 1000')
 		except Exception: 
 			logging.error('Failed to initiate the session sucessfully')
 			return 'Failed to initiate the session sucessfully'
@@ -623,7 +623,7 @@ class UberServer:
 			logging.error('Could not center star')
 			return 'Could not center star'
 #Set the focus position back to the initial value
-		try: self.telescope_client.send_command("focusGoToPosition 4000")
+		try: self.telescope_client.send_command("focusGoToPosition 1000")
 		except Exception: 
 			logging.error('Could not get the focusser to its initial position')
 			return 'Could not get the focusser to its initial position'
