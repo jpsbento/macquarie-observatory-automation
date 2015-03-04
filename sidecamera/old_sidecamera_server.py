@@ -1,8 +1,10 @@
 # coding: utf-8
 # A user can input the settings they want and then the program will take some images with the camera using these settings
-from indiclient import *
+
+import unicap
 import time
 import sys
+import Image
 import pyfits
 import numpy
 import os
@@ -12,39 +14,14 @@ import math
 import socket
 import commands
 
-
-#Try to connect to the camera
-try: 
-        indi=indiclient("localhost",7778)
-        video_dev=os.popen('uvcdynctrl -l | grep 21AU04').read().split('DMx 21AU04.AS')[0].strip()
-        dummy=indi.set_and_send_text("V4L2 CCD","DEVICE_PORT","PORT","/dev/"+video_dev)
-        dummy=indi.set_and_send_text("V4L2 CCD","CONNECTION","CONNECT","On")
-        dummy=indi.set_and_send_text("V4L2 CCD","CONNECTION","DISCONNECT","Off")
-        #set the camera saving images locally instead of sending them onto some sort of client. This is not designed to have a client. 
-        print 'successfully connected to camera'
-except Exception: print 'Can not connect to camera'
-time.sleep(1)
-#Check connection
-try: 
-        result=indi.get_text("V4L2 CCD","CONNECTION","CONNECT")
-        if result=='Off':
-                print 'Unable to connect to imagingsource side camera'
-except Exception: print 'Unable to check camera connection'
-
-#set up some options that should not change often
-dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_MODE","UPLOAD_CLIENT","Off")
-dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_MODE","UPLOAD_BOTH","Off")
-dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_MODE","UPLOAD_LOCAL","On")
-#dummy=indi.set_and_send_text("V4L2 CCD","CCD_COOLER","COOLER_ON","On")
-#dummy=indi.set_and_send_text("V4L2 CCD","CCD_COOLER","COOLER_OFF","Off")
-if not os.path.exists('./images/'):
-                dummy=subprocess.call('mkdir ./program_images', shell=True)
-dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_SETTINGS","UPLOAD_DIR",".")
-dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_SETTINGS","UPLOAD_PREFIX","TEMPIMAGE")
-
-
-
 class SideCameraServer:
+
+	try:
+		for i in unicap.enumerate_devices():
+			if (i['model_name']=='DMx 21AU04.AS')&(i['vendor_name']==''):
+				dev = unicap.Device(i) # I am assuming this will be the camera used on the side of the telescope (old model)
+		print dev
+	except Exception: print 'Could not find the right camera. Check that it is connected.'
 
 	magnitude_conversion = 0 # How to convert from the magnitude iraf gives out and the actual magnitude of a star.
 				 # I *think* you just add this number (when calculated) to all Iraf mags and you're set.
@@ -71,11 +48,11 @@ class SideCameraServer:
 	frameRateDefault = 30.0
 	exposureAutoDefault = 1
 	exposureAbsoluteDefault = 333
-        exptime=0.033
 	gainDefault = 1023
 	brightnessDefault = 0
 	gammaDefault = 100
 
+	
 	#Put in the allowed values for each option
 	#We give an array for each variable
 	frameRateRange = list(numpy.arange(1,60.25,step=0.25)) #setting up the allowed frame rates to be in 0.25 increments 
@@ -140,7 +117,7 @@ class SideCameraServer:
 		max_pix=0
 		direction=0
 		direction_old=0
-		deviation=0.01
+		deviation=100
 		print 'Adjusting exposure time. Please wait.'
 		while (max_pix < 100)|(max_pix>245):
 			#take one image but do not display it
@@ -153,31 +130,35 @@ class SideCameraServer:
 			#Now use an asymptotic approach to find the exposure time that will yield a value between 200 and 255
 			#Make sure that exposure never gets above 100000 or below 51
 			if max_pix < 100:
-				value = indi.get_float("V4L2 CCD","CCD_EXPOSURE","CCD_EXPOSURE_VALUE")
+				prop = self.dev.get_property('Exposure (Absolute)')
 				direction=1
-				if value < 20:
-					value+=deviation
-					print 'Exposure=',value*1000.,'ms'
-					self.exptime=value
+				if prop['value'] < 200000:
+					prop['value']+=deviation
+					print 'Exposure=',prop['value']/10.,'ms'
+					self.dev.set_property( prop )
+					self.set_values[2]=prop['value']
 				else: 
 					return 'Exposure too big already, maybe there is no star in the field...'
 			if max_pix > 245:
-				value = indi.get_float("V4L2 CCD","CCD_EXPOSURE","CCD_EXPOSURE_VALUE")
+				prop = self.dev.get_property('Exposure (Absolute)')
 				direction=-1
-				if value> 0.0051:
-					value-=deviation
-					if value>0:
-						print 'Exposure=',value*1000.,'ms'
-						self.exptime=value
+				if prop['value']> 51:
+					prop['value']-=deviation
+					if prop['value']>0:
+						print 'Exposure=',prop['value']/10.,'ms'
+						self.dev.set_property( prop )
+						self.set_values[2]=prop['value']
 					else: 
-						value=20
+						prop['value']=20
 						deviation=10
-						print 'Exposure=',value*1000.,'ms'
-						self.exptime=value
-				elif value <0.0051 and value >0.0002: 
+						print 'Exposure=',prop['value']/10.,'ms'
+						self.dev.set_property( prop )
+						self.set_values[2]=prop['value']
+				elif prop['value']<51 and prop['value']>2: 
 					prop['value']-=1
-					print 'Exposure=',value*1000.,'ms'
-					self.exptime=value
+					print 'Exposure=',prop['value']/10.,'ms'
+					self.dev.set_property( prop )
+					self.set_values[2]=prop['value']
 				else: return 'Exposure too short to reduce. Maybe this is too bright?'
 			if direction_old==direction: deviation*=2
 			else: deviation/=2
@@ -449,7 +430,7 @@ class SideCameraServer:
 		'''Function used to query the exposure time of the camera'''
 		comands=str.split(the_command)
 		if len(comands)!=1: return 'no input needed for this function'
-		else: return str(self.exptime*1000.)+' ms'
+		else: return str(self.set_values[2]*1E-4)
 		
 
 
@@ -462,18 +443,37 @@ class SideCameraServer:
 		try: up=int(upperlimit)
 		except Exception: return False
 
+# plt.draw()
+# dev.start_capture()
+# imgbuf = dev.wait_buffer( 10 ) 
+# b = bytearray(imgbuf.to_string())
+# a = np.array(b)
+# a = a.reshape(480,640)
+# im = np.array(bytearray(imgbuf.tostring())).reshape(480,640)
+# dev.stop_capture
+		self.dev.start_capture()
+		imgbuf = self.dev.wait_buffer( 10 ) 
 		for i in range( 0, up ):
 			#self.dev.set_property( prop )
+			t1 = time.time()
+			imgbuf = self.dev.wait_buffer( 11 )
+			dt = time.time() - t1
+			#print 'dt: %f  ===> %f' % ( dt, 1.0/dt )
 			if upperlimit > 1: filename= base_filename+'_'+str(i)  # if we are taking several images we need to number them
 			else: filename = base_filename
-                        dummy=indi.set_and_send_float("V4L2 CCD","CCD_EXPOSURE","CCD_EXPOSURE_VALUE",self.exptime)
-			#if show==True:
-			#	img.show()
+			rgbbuf = imgbuf.convert( 'RGB3' )
+			dummy = rgbbuf.save( filename+'.raw' ) # saves it in RGB3 raw image format
+			img = Image.open( filename+'.raw' )
+			if show==True:
+				img.show()
+			img.save( filename+'.jpg' ) # saves as a jpeg
+			os.system("convert -depth 8 -size 640x480+17 "+ filename+'.raw' +" "+ filename+'.fits') # saves as a fits file
 			if self.image_chop:
 				im_temp=pyfits.getdata(filename+'.fits')
 				im=self.chop(im_temp)
 				os.system('rm '+filename+'.fits')
 				pyfits.writeto(filename+'.fits',im)
+		self.dev.stop_capture()
 		return True
 
 	def analyseImage(self, input_image, outfile):
