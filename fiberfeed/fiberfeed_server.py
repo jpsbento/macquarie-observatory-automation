@@ -1,7 +1,6 @@
 # coding: utf-8
 # A user can input the settings they want and then the program will take some images with the camera using these settings
-
-import unicap
+from indiclient import *
 import time
 import sys
 import Image
@@ -13,6 +12,36 @@ from pyraf import iraf
 import math
 import socket
 import commands
+
+#Try to connect to the camera
+try: 
+        indi=indiclient("localhost",7779)
+        video_dev=os.popen('uvcdynctrl -l | grep 21AU04').read().split('DMx 21AU04.AS')[0].strip()
+        dummy=indi.set_and_send_text("V4L2 CCD","DEVICE_PORT","PORT","/dev/"+video_dev)
+        dummy=indi.set_and_send_text("V4L2 CCD","CONNECTION","CONNECT","On")
+        dummy=indi.set_and_send_text("V4L2 CCD","CONNECTION","DISCONNECT","Off")
+        #set the camera saving images locally instead of sending them onto some sort of client. This is not designed to have a client. 
+        print 'successfully connected to camera'
+except Exception: print 'Can not connect to camera'
+time.sleep(1)
+#Check connection
+try: 
+        result=indi.get_text("V4L2 CCD","CONNECTION","CONNECT")
+        if result=='Off':
+                print 'Unable to connect to imagingsource side camera'
+except Exception: print 'Unable to check camera connection'
+
+#set up some options that should not change often
+dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_MODE","UPLOAD_CLIENT","Off")
+dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_MODE","UPLOAD_BOTH","Off")
+dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_MODE","UPLOAD_LOCAL","On")
+#dummy=indi.set_and_send_text("V4L2 CCD","CCD_COOLER","COOLER_ON","On")
+#dummy=indi.set_and_send_text("V4L2 CCD","CCD_COOLER","COOLER_OFF","Off")
+if not os.path.exists('./images/'):
+                dummy=subprocess.call('mkdir ./program_images', shell=True)
+dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_SETTINGS","UPLOAD_DIR",".")
+dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_SETTINGS","UPLOAD_PREFIX","TEMPIMAGE")
+
 
 class FiberFeedServer:
 
@@ -49,10 +78,11 @@ class FiberFeedServer:
 	frameRateDefault = 30.0
 	exposureAutoDefault = 1
 	exposureAbsoluteDefault = 333
+        exptime=0.033
 	gainDefault = 260
 	brightnessDefault = 0
 	gammaDefault = 100
-
+        
 	image_chop=False
 	#Put in the allowed values for each option
 	#We give an array for each variable
@@ -125,14 +155,13 @@ class FiberFeedServer:
 
 
 	def cmd_adjustExposure(self, the_command):
-		'''This function will adjust the exposure time of the camera until the brightest pixel is between a given range, 
-		close to the 8 bit resolution maximum of the imagingsource cameras (255). If the star is too faint, this will not work, since there are bad pixels in the camera. This function takes no inputs.'''
+		'''This function will adjust the exposure time of the camera until the brightest pixel is between a given range, close to the 8 bit resolution maximum of the imagingsource cameras (255). Takes no inputs'''
 		max_pix=0
 		direction=0
 		direction_old=0
-		deviation=100
+		deviation=0.01
 		print 'Adjusting exposure time. Please wait.'
-		while (max_pix < 150)|(max_pix>245):
+		while (max_pix < 100)|(max_pix>245):
 			#take one image but do not display it
 			try: dummy = self.cmd_captureImages('captureImages exposure_adjust 1 no')
 			except Exception: print 'Could not capture image'
@@ -142,35 +171,32 @@ class FiberFeedServer:
 			print 'max_pix=',max_pix
 			#Now use an asymptotic approach to find the exposure time that will yield a value between 200 and 255
 			#Make sure that exposure never gets above 100000 or below 51
-			if max_pix < 200:
-				prop = self.dev.get_property('Exposure (Absolute)')
+			if max_pix < 100:
+				value = indi.get_float("V4L2 CCD","CCD_EXPOSURE","CCD_EXPOSURE_VALUE")
 				direction=1
-				if prop['value'] < 40000:
-					prop['value']+=deviation
-					print 'Exposure=',prop['value']/10.,'ms'
-					self.dev.set_property( prop )
-					self.set_values[2]=prop['value']
+				if value < 20:
+					value+=deviation
+					print 'Exposure=',value*1000.,'ms'
+					self.exptime=value
 				else: 
 					return 'Exposure too big already, maybe there is no star in the field...'
 			if max_pix > 245:
-				prop = self.dev.get_property('Exposure (Absolute)')
+				value = indi.get_float("V4L2 CCD","CCD_EXPOSURE","CCD_EXPOSURE_VALUE")
 				direction=-1
-				if prop['value']> 51:
-					prop['value']-=deviation
-					if prop['value']>0:
-						print 'Exposure=',prop['value']/10.,'ms'
-						self.dev.set_property( prop )
-						self.set_values[2]=prop['value']
+				if value> 0.0051:
+					value-=deviation
+					if value>0:
+						print 'Exposure=',value*1000.,'ms'
+						self.exptime=value
 					else: 
-						prop['value']=20
-						print 'Exposure=',prop['value']/10.,'ms'
-						self.dev.set_property( prop )
-						self.set_values[2]=prop['value']
-				elif prop['value']<51 and prop['value']>2: 
+						value=20
+						deviation=10
+						print 'Exposure=',value*1000.,'ms'
+						self.exptime=value
+				elif value <0.0051 and value >0.0002: 
 					prop['value']-=1
-					print 'Exposure=',prop['value']/10.,'ms'
-					self.dev.set_property( prop )
-					self.set_values[2]=prop['value']
+					print 'Exposure=',value*1000.,'ms'
+					self.exptime=value
 				else: return 'Exposure too short to reduce. Maybe this is too bright?'
 			if direction_old==direction: deviation*=2
 			else: deviation/=2
@@ -461,7 +487,7 @@ class FiberFeedServer:
 		'''Function used to query the exposure time of the camera'''
 		comands=str.split(the_command)
 		if len(comands)!=1: return 'no input needed for this function'
-		else: return str(self.set_values[2]*1E-4)
+		else: return str(self.exptime*1000.)+' ms'
 
 
 #*********************************** End of user comands ***********************************#
@@ -470,31 +496,21 @@ class FiberFeedServer:
 		'''This takes the photos to be used for science. Input the name of the images to capture (images will then be
 		numbered: ie filename1.fits filename2.fits) and the number of images to capture. Note: when specifying a filename
 		you do not need to include the extention: ie input "filename" not "filename.fits"'''
-		try: upperlimit=int(upperlimit)
+		try: up=int(upperlimit)
 		except Exception: return False
-		self.dev.start_capture()
-		imgbuf = self.dev.wait_buffer( 10 ) 
-		for i in range( 0, upperlimit ):
+
+		for i in range( 0, up ):
 			#self.dev.set_property( prop )
-			t1 = time.time()
-			imgbuf = self.dev.wait_buffer( 11 )
-			dt = time.time() - t1
-			#print 'dt: %f  ===> %f' % ( dt, 1.0/dt )
 			if upperlimit > 1: filename= base_filename+'_'+str(i)  # if we are taking several images we need to number them
 			else: filename = base_filename
-			rgbbuf = imgbuf.convert( 'RGB3' )
-			dummy = rgbbuf.save( filename+'.raw' ) # saves it in RGB3 raw image format
-			img = Image.open( filename+'.raw' )
-			if show==True:
-				img.show()
-			img.save( filename+'.jpg' ) # saves as a jpeg
-			os.system("convert -depth 8 -size 640x480+17 "+ filename+'.raw' +" "+ filename+'.fits') # saves as a fits file
+                        dummy=indi.set_and_send_float("V4L2 CCD","CCD_EXPOSURE","CCD_EXPOSURE_VALUE",self.exptime)
+			#if show==True:
+			#	img.show()
 			if self.image_chop:
 				im_temp=pyfits.getdata(filename+'.fits')
 				im=self.chop(im_temp)
 				os.system('rm '+filename+'.fits')
 				pyfits.writeto(filename+'.fits',im)
-		self.dev.stop_capture()
 		return True
 
 	def analyseImage(self, input_image, outfile):
