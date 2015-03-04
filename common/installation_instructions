@@ -5,7 +5,7 @@ This file contains a detailed description of all the steps required to install t
 
 - Start by installing a few things that won't hurt and will be useful in the future.
 
-sudo apt-get install emacs vim 
+sudo apt-get install emacs vim screen
 
 
 - Firstly, clone the repository: 
