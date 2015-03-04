@@ -44,7 +44,7 @@ class BisqueMountServer:
 	
 	#Minimum HFD parameters
 	HFD_min=1000
-	focus_min=4000
+	focus_min=1000
 #**************************************SERIAL COMMANDS FOR THE FOCUSER **************************************#
 #The focuser echos the command back to the user.
 
