@@ -1,0 +1,13 @@
+#!/usr/bin/env python
+#This is the main program. It should be *very* simple.
+import sidecamera_server
+import sys
+sys.path.append('../common/')
+import server_socket
+import find_port
+f = find_port.FindPort()
+Port = f.findPort('sidecamera')
+isc=sidecamera_server.SideCameraServer()
+ss=server_socket.ServerSocket(Port, 'sidecamera', isc)	
+ss.run()
+ss.close()

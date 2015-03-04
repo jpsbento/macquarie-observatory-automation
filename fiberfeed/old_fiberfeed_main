@@ -1,0 +1,14 @@
+#!/usr/bin/env python
+#This is the main program. It should be *very* simple.
+import fiberfeed_server
+import sys
+sys.path.append('../common')
+import server_socket
+import find_port
+f = find_port.FindPort()
+Port = f.findPort('fiberfeed')
+ff=fiberfeed_server.FiberFeedServer()
+ss=server_socket.ServerSocket(Port, 'fiberfeed', ff)	
+ss.add_job(ff.imaging_loop)
+ss.run()
+ss.close()
