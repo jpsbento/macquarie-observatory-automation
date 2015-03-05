@@ -13,18 +13,10 @@ try:
                 indiserver_process=subprocess.Popen(['indiserver','-f','/tmp/fiberfeed_fifo','-p','7779'],stdin=subprocess.PIPE, stdout=subprocess.PIPE)
                 #indiserver_process=subprocess.Popen('indiserver -f /tmp/myFIFO -p 7779',shell=True)
                 sxserver_process=subprocess.call('echo start indi_v4l2_ccd -n \"V4L2 CCD\" > /tmp/fiberfeed_fifo', shell=True)
-                procs=[indiserver_process]
+                #procs=[indiserver_process]
 except Exception: print 'Unable to start indi server for fiberfeed'
 
 
-@atexit.register
-def kill_subprocesses():
-        print 'Started this process'
-        for proc in procs:
-                proc.terminate()
-                proc.wait()
-                print 'Managed to kill process',proc
-        subprocess.Popen(['reset']).wait()
 
 
 
@@ -39,4 +31,5 @@ ff=fiberfeed_server.FiberFeedServer()
 ss=server_socket.ServerSocket(Port, 'fiberfeed', ff)	
 ss.add_job(ff.imaging_loop)
 ss.run()
+fiberfeed_server.indi.quit()
 ss.close()

@@ -13,18 +13,8 @@ try:
                 indiserver_process=subprocess.Popen(['indiserver','-f','/tmp/sidecam_fifo','-p','7778'],stdin=subprocess.PIPE, stdout=subprocess.PIPE)
                 #indiserver_process=subprocess.Popen('indiserver -f /tmp/myFIFO -p 7778',shell=True)
                 sxserver_process=subprocess.call('echo start indi_v4l2_ccd -n \"V4L2 CCD\" > /tmp/sidecam_fifo', shell=True)
-                procs=[indiserver_process]
+                #procs=[indiserver_process]
 except Exception: print 'Unable to start indi server for sidecam'
-
-
-@atexit.register
-def kill_subprocesses():
-        print 'Started this process'
-        for proc in procs:
-                proc.terminate()
-                proc.wait()
-                print 'Managed to kill process',proc
-        subprocess.Popen(['reset']).wait()
 
 
 import sidecamera_server
@@ -37,4 +27,5 @@ Port = f.findPort('sidecamera')
 isc=sidecamera_server.SideCameraServer()
 ss=server_socket.ServerSocket(Port, 'sidecamera', isc)	
 ss.run()
+sidecamera_server.indi.quit()
 ss.close()

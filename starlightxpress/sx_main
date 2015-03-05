@@ -12,18 +12,9 @@ try:
                 indiserver_process=subprocess.Popen(['indiserver','-f','/tmp/sx_fifo','-p','7777'],stdin=subprocess.PIPE, stdout=subprocess.PIPE)
                 #indiserver_process=subprocess.Popen('indiserver -f /tmp/sx_fifo -p 7777',shell=True)
                 sxserver_process=subprocess.call('echo start indi_sx_ccd -n \"SX CCD\" > /tmp/sx_fifo', shell=True)
-                procs=[indiserver_process]
+                #procs=[indiserver_process]
 except Exception: print 'Unable to start indi server'
 
-
-@atexit.register
-def kill_subprocesses():
-        print 'Started this process'
-        for proc in procs:
-                proc.terminate()
-                proc.wait()
-                print 'Managed to kill process',proc
-        subprocess.Popen(['reset']).wait()
 
 import sx_server
 import sys
@@ -36,10 +27,5 @@ sx=sx_server.SX()
 ss=server_socket.ServerSocket(Port, 'sx', sx)	
 ss.add_job(sx.checkIfFinished)
 ss.run()
+sx_server.indi.quit()
 ss.close()
-indiserver_process.kill()
-"""
-for proc in procs:
-        print 'got here'
-        proc.kill()
-"""
