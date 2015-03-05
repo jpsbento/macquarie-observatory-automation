@@ -11,3 +11,4 @@ imageCube
 defineCenter
 centerIsHere
 currentExposure
+changeExposure
