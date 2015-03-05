@@ -21,7 +21,7 @@ class UberServer:
 
 	#this lists the servers that are supposed to be active at any given time. It is used by the function that tries to connect to them if any die.
 	servers=parameterfile.servers
-
+        
 	# A list of the telescopes we have, comment out all but the telescope you wish to connect with:
 	telescope_type = parameterfile.telescope_type
 
@@ -910,10 +910,11 @@ class UberServer:
                 if self.reconnection_counter==15:
                         dummy=self.email_alert('Failure in function server_check','Uber server is failing to successfully reconnect to one or more servers. Please check!')
 		for s in self.servers:
-			if len(commands.getoutput('pgrep -f '+s+'_m'))==0:
+			if not s+'_main' in os.popen("ps aux").read():
 				dead_servers.append(s)
-		#print dead_servers
+		print dead_servers, self.servers
 		if len(dead_servers)!=0:
+                        print 'Actually trying this'
                         self.reconnection_counter+=1
 			if 'labjack' in dead_servers:
 				print 'labjack server dead, restarting and reconnecting'
