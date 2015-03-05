@@ -5,7 +5,7 @@ This file contains a detailed description of all the steps required to install t
 
 - Start by installing a few things that won't hurt and will be useful in the future, along with things that are needed.
 
-sudo apt-get install emacs vim screen uvcdynctrl ipython python-numpy python-scipy python-pyfits python-pip
+sudo apt-get install emacs vim screen uvcdynctrl ipython python-numpy python-scipy python-pyfits python-pip python-matplotlib
 sudo adduser `whoami` dialout
 sudo apt-get remove modemmanager
 
