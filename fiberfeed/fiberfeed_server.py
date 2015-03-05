@@ -2,14 +2,12 @@
 # A user can input the settings they want and then the program will take some images with the camera using these settings
 import sys
 sys.path.append('../common/')
+import ImageCombination
 from indiclient import *
 import time
-import Image
 import pyfits
 import numpy
 import os
-import pyraf
-from pyraf import iraf
 import math
 import socket
 import commands
@@ -449,10 +447,10 @@ class FiberFeedServer:
 		print 'Finished capturing images'
 		self.check_if_file_exists('program_images/'+base_filename+'.fits')
 		self.check_if_file_exists('program_images/inlist')
-		iraf.images(_doprint=0)
 		os.system('ls program_images/'+base_filename+'_*.fits > inlist')
-		try: iraf.imcombine(input='@inlist', output='program_images/'+base_filename+'.fits', combine='average',reject='none',outtype='integer', scale='none', zero='none', weight='none')
+		try: dummy=ImageCombination.image_combine('inlist','program_images/'+base_filename+'.fits','median')
 		except Exception: return 'Could not combine images'
+                if dummy==False: return 'Could not combine images'
 		return 'Final image created. It is image program_images/'+base_filename+'.fits'
 
 	def cmd_defineCenter(self, the_command):
@@ -518,7 +516,7 @@ class FiberFeedServer:
 	def analyseImage(self, input_image, outfile):
 		'''Analyse the image using sextractor'''
 		self.check_if_file_exists(outfile)
-		try: os.system('sex '+input_image+' -c fiberfeed.sex -CATALOG_NAME '+outfile) #iraf.daofind(image = input_image, output = outfile)
+		try: os.system('sex '+input_image+' -c fiberfeed.sex -CATALOG_NAME '+outfile) 
 		except Exception: return 0
 		brightest_star_info = self.find_brightest_star(outfile)
 		return brightest_star_info
