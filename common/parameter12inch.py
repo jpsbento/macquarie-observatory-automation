@@ -42,3 +42,31 @@ slitoffset = 92.93    # The position, in degrees, of the slits when the home swi
 ipaddress="10.238.16.13"         #This is the ip address of the windows machine
 
 ############################################
+
+
+#############################################
+
+########## IMAGING SOURCE CAMERAS PARAMETERS#####
+
+sidecamera_model='21AU04.AS'
+fiberfeed_model='21AU618.AS'
+
+#############################################
+
+################ SIDECAM PARAMETERS #########
+
+sc_oneArcmininPixelsN = 1/2.  # This tells us how many pixels there are to one a
+rcsecond in the North/South direction
+sc_oneArcmininPixelsE = 1/2.  # This tells us how many pixels there are to one a
+rcsecond in the East/West direction
+
+############################################
+
+################ FIBERFEEED PARAMETERS #########
+
+ff_oneArcmininPixelsN = 100  # This tells us how many pixels there are to one ar
+csecond in the North/South direction
+ff_oneArcmininPixelsE = 100  # This tells us how many pixels there are to one ar
+csecond in the East/West direction
+
+#############################################

@@ -44,3 +44,27 @@ ipaddress="10.238.16.10"         #This is the ip address of the windows machine
 
 ############################################
 
+
+
+#############################################
+
+########## IMAGING SOURCE CAMERAS PARAMETERS#####
+
+sidecamera_model='21AU04.AS'
+fiberfeed_model='21AU618.AS'
+
+#############################################
+
+################ SIDECAM PARAMETERS #########
+
+sc_oneArcmininPixelsN = 1/2.  # This tells us how many pixels there are to one arcsecond in the North/South direction
+sc_oneArcmininPixelsE = 1/2.  # This tells us how many pixels there are to one arcsecond in the East/West direction
+
+############################################
+
+################ FIBERFEEED PARAMETERS #########
+
+ff_oneArcmininPixelsN = 100  # This tells us how many pixels there are to one arcsecond in the North/South direction
+ff_oneArcmininPixelsE = 100  # This tells us how many pixels there are to one arcsecond in the East/West direction
+
+#############################################
