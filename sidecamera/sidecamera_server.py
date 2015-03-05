@@ -1,8 +1,9 @@
 # coding: utf-8
 # A user can input the settings they want and then the program will take some images with the camera using these settings
+import sys
+sys.path.append('../common/')
 from indiclient import *
 import time
-import sys
 import pyfits
 import numpy
 import os
@@ -12,11 +13,11 @@ import math
 import socket
 import commands
 
-
+import parameterfile
 #Try to connect to the camera
 try: 
         indi=indiclient("localhost",7778)
-        video_dev=os.popen('uvcdynctrl -l | grep 21AU04').read().split('DMx 21AU04.AS')[0].strip()
+        video_dev=os.popen('uvcdynctrl -l | grep '+parameterfile.sidecamera_model).read().split('DM')[0].strip()
         dummy=indi.set_and_send_text("V4L2 CCD","DEVICE_PORT","PORT","/dev/"+video_dev)
         dummy=indi.set_and_send_text("V4L2 CCD","CONNECTION","CONNECT","On")
         dummy=indi.set_and_send_text("V4L2 CCD","CONNECTION","DISCONNECT","Off")
@@ -54,8 +55,8 @@ class SideCameraServer:
 	target_ypixel = 227.0   # 480 y pixel height
 	north_move_arcmins = 1
 	east_move_arcmins = 1
-	oneArcmininPixelsN = 1/2.  # This tells us how many pixels there are to one arcsecond in the North/South direction
-	oneArcmininPixelsE = 1/2.  # This tells us how many pixels there are to one arcsecond in the East/West direction
+	oneArcmininPixelsN = parameterfile.sc_oneArcmininPixelsN  # This tells us how many pixels there are to one arcsecond in the North/South direction
+	oneArcmininPixelsE = parameterfile.sc_oneArcmininPixelsE  # This tells us how many pixels there are to one arcsecond in the East/West direction
 	axis_flip = 1.0
 	theta = 0 
 	transformation_matrix = [math.cos(theta), math.sin(theta), -1*math.sin(theta), math.cos(theta)]	
