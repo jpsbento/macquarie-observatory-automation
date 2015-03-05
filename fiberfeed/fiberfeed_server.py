@@ -9,7 +9,7 @@ import pyfits
 import numpy
 import os
 import math
-import socket
+import socket,subprocess
 import commands
 
 import parameterfile
