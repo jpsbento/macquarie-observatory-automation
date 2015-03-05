@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import pyfits
 import time
 import ctypes
-import os
+import os,subprocess
 #import the tools to do time and coordinate transforms
 import ctx
 
