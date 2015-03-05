@@ -69,12 +69,16 @@ class SideCameraServer:
 	
 	#Store the default camera settings here
 	frameRateDefault = 30.0
-	exposureAutoDefault = 1
+        exposureAutoDefault = 1
 	exposureAbsoluteDefault = 333
+        dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Exposure (Absolute)',333)
         exptime=0.033
 	gainDefault = 1023
+        dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Gain',1023)
 	brightnessDefault = 0
+        dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Brightness',0)
 	gammaDefault = 100
+        dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Gamma',100)
 
 	#Put in the allowed values for each option
 	#We give an array for each variable
@@ -170,7 +174,7 @@ class SideCameraServer:
 						print 'Exposure=',value*1000.,'ms'
 						self.exptime=value
 					else: 
-						value=20
+						value=0.020
 						deviation=10
 						print 'Exposure=',value*1000.,'ms'
 						self.exptime=value
@@ -451,7 +455,14 @@ class SideCameraServer:
 		if len(comands)!=1: return 'no input needed for this function'
 		else: return str(self.exptime*1000.)+' ms'
 		
-
+        def cmd_changeExposure(self, the_command):
+		'''Function used to query the exposure time of the camera'''
+		comands=str.split(the_command)
+		if len(comands)!=2: return 'Just specify the exposure time in seconds'
+                try: t=float(comands[1])
+                except Exception: return 'Exposure time must be a floating point number'
+                self.exptime=t
+		return 'Changed exposure time to '+str(t)+' seconds'
 
 #*********************************** End of user commands ***********************************#
 
@@ -466,7 +477,12 @@ class SideCameraServer:
 			#self.dev.set_property( prop )
 			if upperlimit > 1: filename= base_filename+'_'+str(i)  # if we are taking several images we need to number them
 			else: filename = base_filename
+                        self.check_if_file_exists(filename+'.fits')
+                        dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_SETTINGS","UPLOAD_PREFIX",filename)
                         dummy=indi.set_and_send_float("V4L2 CCD","CCD_EXPOSURE","CCD_EXPOSURE_VALUE",self.exptime)
+                        print 'started image',filename
+                        while not os.path.isfile(filename+'.fits'):
+                                time.sleep(0.1)
 			#if show==True:
 			#	img.show()
 			if self.image_chop:
