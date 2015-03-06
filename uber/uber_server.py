@@ -912,9 +912,9 @@ class UberServer:
 		for s in self.servers:
 			if not s+'_main' in os.popen("ps aux").read():
 				dead_servers.append(s)
-		print dead_servers, self.servers
+		#print dead_servers, self.servers
 		if len(dead_servers)!=0:
-                        print 'Actually trying this'
+                        #print 'Actually trying this'
                         self.reconnection_counter+=1
 			if 'labjack' in dead_servers:
 				print 'labjack server dead, restarting and reconnecting'
