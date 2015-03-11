@@ -9,7 +9,7 @@ import string
 import select
 import socket
 from datetime import datetime
-import time
+import time, ctx
 import serial
 import binascii, ast
 import numpy as np
@@ -45,6 +45,20 @@ class BisqueMountServer:
 	#Minimum HFD parameters
 	HFD_min=1000
 	focus_min=1000
+
+
+        #Mount and optical axis parameters for dome slit alignment with the mount
+        #position of the cross over point of the two axes of the mount. Either alt and az or RA and DEC.
+        mountCenterX = parameterfile.mountCenterX     #Positive to North. Dimensions in metres
+        mountCenterY = parameterfile.mountCenterY     #Positive to East. Dimensions in metres
+        mountCenterZ = parameterfile.mountCenterZ     #Positive Up. Dimensions in metres
+
+        otaOffset = parameterfile.otaOffset      #Distance between axis intersect and the optical axis. Dimensions in metres
+        domeRadius = parameterfile.domeRadius      #Radius of dome in metres
+        slitsWidth = parameterfile.slitsWidth       # Slit width
+        latitude = parameterfile.latitude      #Telescope latitude
+        longitude = parameterfile.longitude      #Telescope longitude
+
 #**************************************SERIAL COMMANDS FOR THE FOCUSER **************************************#
 #The focuser echos the command back to the user.
 
@@ -85,7 +99,7 @@ class BisqueMountServer:
 		the command character back to the host, followed by the eight bit 
 		status byte. All bits are active high; a 1 indicates the condition 
 		is true, a 0 indicates it is false. Reading the device status resets
-		the error conditions (bits 1 through 3 only).'''
+s		the error conditions (bits 1 through 3 only).'''
 		ser.write('t')
 		echo = ser.read(1) #should set size=len(echo), where you figure out len(echo) from a trial attempt
 		response = ''
@@ -350,6 +364,134 @@ class BisqueMountServer:
 		TheSkyXCommand = self.readscript('ForceDomeTracking.js')
 		client_socket.send(TheSkyXCommand)
 		return self.messages()
+
+        def cmd_domeAz(self,the_command):
+                '''This is a master function that calculates the desired dome azimuth given the telescope pointing. If no other parameters are given, it queries the telescope Alt and Az and works it out. Otherwise, two inputs are required, which are the dome Altitude and Azimuth in degrees.'''
+                commands=str.split(the_command)
+                if len(commands)==1:
+                        #Query the alt and az of the mount
+                        Az=float(self.cmd_getAzimuth('getAzimuth'))
+                        Alt=float(self.cmd_getAltitude('getAltitude'))
+                        #print Az, Alt
+                elif len(commands)==3:
+                        try: 
+                                Az=float(commands[1])
+                                Alt=float(commands[2])
+                        except Exception: return 'Unable to convert the Azimuth and Altitude to numbers'
+                else: return 'Invalid parameters given'
+                ut_time=time.gmtime()
+                ut=str(ut_time[2]).zfill(2)+'/'+str(ut_time[1]).zfill(2)+'/'+str(ut_time[0])+':'+str(ut_time[3]).zfill(2)+':'+str(ut_time[4]).zfill(2)+':'+str(ut_time[5]).zfill(2)
+                JD=ctx.ut2jd(ut)
+                MSD=ctx.jd2gmst(JD)*24./360.
+
+                #Grab the hour angle of the target.
+                d=eval(self.cmd_objInfo('objInfo'))
+                hourAngle=float(d['HA_HOURS'])
+                
+                MountCenter=[self.mountCenterX,self.mountCenterY,self.mountCenterZ]
+                #Calculate the centre of the optical axis at the telescope.
+                OptCenter = self.OpticalCenter(MountCenter, np.sign(hourAngle)*self.otaOffset, self.latitude, hourAngle)
+                
+                #Get optical axis point. This and the previous form the optical axis line
+                OptAxis= self.OpticalVector(OptCenter, Az, Alt)
+                
+                #We define the centre of the dome to be 0,0,0 and that the dome is spherical
+                DomeCenter=[0,0,0]
+                
+                try: mu1,mu2=self.Intersection(OptCenter, OptAxis, DomeCenter, self.domeRadius)
+                except Exception: return 'Unable to find the intersection between mount and dome slits'
+                
+                #If telescope is pointing over the horizon, the solution is mu1, else is mu2
+                if (mu1 < 0):
+                        mu1 = mu2
+                        #print 'using mu2'
+                    
+                DomeIntersect=[0,0,0]
+                DomeIntersect[0] = OptCenter[0] + mu1 * (OptAxis[0] - OptCenter[0])
+                DomeIntersect[1] = OptCenter[1] + mu1 * (OptAxis[1] - OptCenter[1])
+                DomeIntersect[2] = OptCenter[2] + mu1 * (OptAxis[2] - OptCenter[2])
+                
+                if (abs(DomeIntersect[0]) > 0.001):
+                        yx = DomeIntersect[1] / DomeIntersect[0]
+                        Az = 90 - 180. * np.arctan(yx) / np.pi
+                        if (DomeIntersect[0] < 0):
+                                Az = Az + 180
+                                if (Az >= 360): Az = Az - 360
+                                
+                else:
+                        # Dome East-West line
+                        if (DomeIntersect[1] > 0): Az = 90.
+                        else: Az = 270.
+
+        
+                if ((abs(DomeIntersect[0]) > 0.001) or (fabs(DomeIntersect[1]) > 0.001)):
+                        Alt = 180. * np.arctan(DomeIntersect[2] / np.sqrt((DomeIntersect[0]*DomeIntersect[0]) + (DomeIntersect[1]*DomeIntersect[1]))) / np.pi
+                else: Alt = 90. # Dome Zenith
+
+                # Calculate the Azimuth range in the given Altitude of the dome
+                RadiusAtAlt = self.domeRadius * np.cos(np.pi * Alt/180.) # Radius alt the given altitude
+
+                if (self.slitsWidth < (2 * RadiusAtAlt)):
+                        HalfApertureChordAngle = 180. * np.arcsin(self.slitsWidth / (2 * RadiusAtAlt)) / np.pi # Angle of a chord of half aperture lengt
+                        minAz = Az - HalfApertureChordAngle
+                        if (minAz < 0):
+                                minAz = minAz + 360.
+                        maxAz = Az + HalfApertureChordAngle
+                        if (maxAz >= 360):
+                                maxAz = maxAz - 360.
+                else:
+                        minAz = 0
+                        maxAz = 360
+
+                return str(Az)+' '+str(minAz)+' '+str(maxAz)
+ 
+
+        def Intersection(self,p1, p2, sc, r):
+                dp=[0,0,0]
+                dp[0] = p2[0] - p1[0]
+                dp[1] = p2[1] - p1[1]
+                dp[2] = p2[2] - p1[2]
+                a = dp[0] * dp[0] + dp[1] * dp[1] + dp[2] * dp[2]
+                b = 2 * (dp[0] * (p1[0] - sc[0]) + dp[1] * (p1[1] - sc[1]) + dp[2] * (p1[2] - sc[2]))
+                c = sc[0] * sc[0] + sc[1] * sc[1] + sc[2] * sc[2]
+                c = c + p1[0] * p1[0] + p1[1] * p1[1] + p1[2] * p1[2]
+                c = c - 2 * (sc[0] * p1[0] + sc[1] * p1[1] + sc[2] * p1[2])
+                c = c - r * r
+                bb4ac = b * b - 4 * a * c
+                if ((abs(a) < 0.0000001) or (bb4ac < 0)):
+                        mu1 = 0
+                        mu2 = 0
+                        return False
+                mu1 = (-b + np.sqrt(bb4ac)) / (2 * a)
+                mu2 = (-b - np.sqrt(bb4ac)) / (2 * a)
+                return mu1,mu2
+                                            
+                
+        def OpticalCenter(self, MountCenter, dOpticalAxis, Lat, Ah):
+                #Note: this transformation is a circle rotated around X axis -(90 - Lat) degrees
+                q = np.pi * (90 - Lat) / 180.
+                f = np.pi * (- Ah * 15) / 180.
+
+                cosf = np.cos(f)
+                sinf = np.sin(f)
+                cosq = np.cos(q)
+                sinq = np.sin(q)
+                OP=[0,0,0]
+                OP[0] = (dOpticalAxis * np.cos(q) * (-np.cos(f)) + MountCenter[0])  # The sign of dOpticalAxis determines de side of the tube
+                OP[1] = (dOpticalAxis * np.sin(f) * np.cos(q) + MountCenter[1])
+                OP[2] = (dOpticalAxis * np.cos(f) * np.sin(q) + MountCenter[2])
+                return OP
+
+        def OpticalVector(self,OP, Az, Alt):
+                q = np.pi * Alt / 180.
+                f = np.pi * (90 - Az) / 180.
+                OV=[0,0,0]
+                OV[0] = OP[0] + np.cos(q) * np.cos(f)
+                OV[1] = OP[1] + np.cos(q) * np.sin(f)
+                OV[2] = OP[2] + np.sin(q)
+
+                return OV
+
 
 	def cmd_getRA(self, the_command):
 		'''Returns just the RA of the mount with a simple number output'''
