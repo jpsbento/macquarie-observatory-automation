@@ -44,6 +44,20 @@ ipaddress="10.238.16.10"         #This is the ip address of the windows machine
 
 ############################################
 
+###########DOME ALIGNMENT PARAMETERS##################
+
+#These refer to the dimensions of the dome, the position of the mount with respect to the dome and the position of the optical assembly axis to the mount.
+
+#position of the cross over point of the two axes of the mount. Either alt and az or RA and DEC.
+mountCenterX = 0 #Positive to North. Dimensions in metres
+mountCenterY = 0 #Positive to East. Dimensions in metres
+mountCenterZ = -0.3 #Positive Up. Dimensions in metres
+
+otaOffset = 0.47    #Distance between axis intersect and the optical axis. Dimensions in metres
+domeRadius = 1.950  #Radius of dome in metres
+slitsWidth = 0.70  #Slit width 
+latitude = -33.8 #Telescope latitude
+longitude = 151.1 #Telescope longitude
 
 
 #############################################

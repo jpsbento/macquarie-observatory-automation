@@ -19,6 +19,7 @@ getTargetRaDec
 mountGetRaDec
 SkyDomeGetAz
 SkyDomeForceTrack
+domeAz
 getRA
 getDec
 mountGetAzAlt
