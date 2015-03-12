@@ -910,7 +910,7 @@ class UberServer:
                 if self.reconnection_counter==15:
                         dummy=self.email_alert('Failure in function server_check','Uber server is failing to successfully reconnect to one or more servers. Please check!')
 		for s in self.servers:
-			if not s+'_main' in os.popen("ps aux").read():
+			if not 'python ./'+s+'_main' in os.popen("ps aux").read():
 				dead_servers.append(s)
 		#print dead_servers, self.servers
 		if len(dead_servers)!=0:
