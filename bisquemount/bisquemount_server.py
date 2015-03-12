@@ -372,7 +372,7 @@ s		the error conditions (bits 1 through 3 only).'''
                         #Query the alt and az of the mount
                         Az=float(self.cmd_getAzimuth('getAzimuth'))
                         Alt=float(self.cmd_getAltitude('getAltitude'))
-                        #print Az, Alt
+                        print 'Az',Az, 'Alt', Alt
                 elif len(commands)==3:
                         try: 
                                 Az=float(commands[1])
@@ -382,12 +382,18 @@ s		the error conditions (bits 1 through 3 only).'''
                 ut_time=time.gmtime()
                 ut=str(ut_time[2]).zfill(2)+'/'+str(ut_time[1]).zfill(2)+'/'+str(ut_time[0])+':'+str(ut_time[3]).zfill(2)+':'+str(ut_time[4]).zfill(2)+':'+str(ut_time[5]).zfill(2)
                 JD=ctx.ut2jd(ut)
+                print 'JD',JD
                 MSD=ctx.jd2gmst(JD)*24./360.
-
+                print 'MSD',MSD
                 #Grab the hour angle of the target.
                 d=eval(self.cmd_objInfo('objInfo'))
                 hourAngle=float(d['HA_HOURS'])
-                
+                print 'HA',hourAngle
+                MSD=float(d['SIDEREAL'])
+                print 'MSD',MSD
+                calcHA=MSD + self.longitude/15.0 - float(self.cmd_getRA('getRA'))
+                print calcHA,'calcHA'
+                hourAngle=calcHA
                 MountCenter=[self.mountCenterX,self.mountCenterY,self.mountCenterZ]
                 #Calculate the centre of the optical axis at the telescope.
                 OptCenter = self.OpticalCenter(MountCenter, np.sign(hourAngle)*self.otaOffset, self.latitude, hourAngle)
