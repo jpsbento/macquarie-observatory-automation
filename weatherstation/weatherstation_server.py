@@ -117,7 +117,10 @@ class WeatherstationServer:
 	#definition to log the output, stores all data in a file
 	def log(self,message):
 		f = open('weatherlog.txt','a')
-		f.write(str(time.time())+" "+str(datetime.now())+" "+str(message)+'\n'),
+		f.write(str(time.time())+" "+str(datetime.now())+" "+str(message)+'\n')
 		f.close()
+                h = open('weatherlog_detailed.txt','a')
+                h.write("Clarity: "+str(self.clarity)+" Light: "+str(self.light)+" Rain: "+str(self.rain)+" Air temperature: "+str(self.tempair)+" Sky temperature: "+str(self.tempsky)+"\n")
+                h.close()
 
 
