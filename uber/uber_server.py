@@ -1,3 +1,4 @@
+
  # This will do EVERYTHING
 # will make a way to give it a script
 
@@ -127,7 +128,7 @@ class UberServer:
 			elif commands[1]=='sidecam':
 				self.sidecam_client = client_socket.ClientSocket("sidecamera",self.telescope_type) #23459 <- port number
 			elif commands[1]=='camera':
-				self.camera_client = client_socket.ClientSocket("sbig",self.telescope_type) #23460 <- port number 
+				self.camera_client = client_socket.ClientSocket("sx",self.telescope_type) #23460 <- port number 
 			elif commands[1]=='fiberfeed':
 				self.fiberfeed_client = client_socket.ClientSocket("fiberfeed",self.telescope_type) #23459 <- port number
 			elif commands[1]=='labjacku6':
@@ -560,12 +561,12 @@ class UberServer:
 			return 'ERROR: Failed to set the image chopping on the sidecam'
 		logging.info('image chopping activated.')
 		print 'image chopping activated.'
-		try: self.sidecam_client.send_command('setCameraValues default')
-		except Exception: 
-			logging.error('ERROR: Failed to set the default values for the sidecam')
-			return 'ERROR: Failed to set the default values for the sidecam'
-		logging.info('default values for sidecam set.')
-		print 'default values for sidecam set.'
+		#try: self.sidecam_client.send_command('setCameraValues default')
+		#except Exception: 
+		#	logging.error('ERROR: Failed to set the default values for the sidecam')
+		#	return 'ERROR: Failed to set the default values for the sidecam'
+		#logging.info('default values for sidecam set.')
+		#print 'default values for sidecam set.'
 		try: self.sidecam_client.send_command('adjustExposure')
 		except Exception: 
 			logging.error('ERROR: Failed to adjust the exposure of the sidecam')
