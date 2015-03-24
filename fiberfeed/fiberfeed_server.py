@@ -45,21 +45,14 @@ dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_SETTINGS","UPLOAD_PREFIX","TEMPI
 
 class FiberFeedServer:
 
-	try:
-		for i in unicap.enumerate_devices():
-			if (i['model_name']=='DMK 21AU618.AS')&(i['vendor_name']==''):
-				dev = unicap.Device(i) # I am assuming this will be the camera on the fiberfeed
-		print dev
-	except Exception: print 'Could not find the right camera. Check that it is connected.'
-
-
 	magnitude_conversion = 0 # How to convert from the magnitude iraf gives out and the actual magnitude of a star.
 				 # I *think* you just add this number (when calculated) to all Iraf mags and you're set.
 	
 	# The central pixel coordinates
 	target_xpixel = 380.7  # 640 x pixel width
 	target_ypixel = 166.0   # 480 y pixel height
-	north_move_arcmins = 1
+
+	north_move_arcmins = 1  # program variables that indicate the direction of movement when spiralling
 	east_move_arcmins = 1
 	oneArcmininPixelsN = parameterfile.ff_oneArcmininPixelsN  # This tells us how many pixels there are to one arcsecond in the North/South direction
 	oneArcmininPixelsE = parameterfile.ff_oneArcmininPixelsE  # This tells us how many pixels there are to one arcsecond in the East/West direction
@@ -74,19 +67,18 @@ class FiberFeedServer:
 	#
 	# Transformation matrix is a rotation matrix.
 	
-	#Store the default camera settings here
+	#Set the default camera settings here
+        
 	frameRateDefault = 30.0
 	exposureAutoDefault = 1
-	exposureAbsoluteDefault = 333
         dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Exposure (Absolute)',333)
-        exptime=0.033
 	gainDefault = 1023
         dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Gain',1023)
 	brightnessDefault = 0
         dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Brightness',0)
 	gammaDefault = 100
         dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Gamma',100)
-        
+
 	image_chop=False
 	#Put in the allowed values for each option
 	#We give an array for each variable

@@ -70,7 +70,6 @@ class SideCameraServer:
 	#Store the default camera settings here
 	frameRateDefault = 30.0
         exposureAutoDefault = 1
-	exposureAbsoluteDefault = 333
         dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Exposure (Absolute)',333)
         exptime=0.033
 	gainDefault = 1023
