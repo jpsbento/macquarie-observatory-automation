@@ -59,7 +59,7 @@ class FiberFeedServer:
 	axis_flip = 1.0
 	theta = 0 
 	transformation_matrix = [math.cos(theta), math.sin(theta), -1*math.sin(theta), math.cos(theta)]	
-	
+        
 	# Transformation matrix to be visualised as follows:
 	#
 	#    |   cos(theta)   sin(theta)   |      ie      |   transformation_matrix[0]  transformation_matrix[1]   |
@@ -68,33 +68,26 @@ class FiberFeedServer:
 	# Transformation matrix is a rotation matrix.
 	
 	#Set the default camera settings here
-        
-	frameRateDefault = 30.0
-	exposureAutoDefault = 1
-        dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Exposure (Absolute)',333)
-	gainDefault = 1023
-        dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Gain',1023)
-	brightnessDefault = 0
-        dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Brightness',0)
-	gammaDefault = 100
-        dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Gamma',100)
+        def default_settings(self):
+                dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/25","Off")
+                dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/20","Off")
+                dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/15","Off")
+                dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/10","Off")
+                dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/5","Off")
+                dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/30","On")
+                dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Exposure (Absolute)',333)
+                exptime=0.033
+                dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Gain',1023)
+                dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Brightness',0)
+                dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Gamma',100)
+                return True
 
+        try: dummy=self.default_settings()
+        except Exception: print 'Unable to set the default settings'
 	image_chop=False
-	#Put in the allowed values for each option
-	#We give an array for each variable
-	frameRateRange = list(numpy.arange(1,60.25,step=0.25)) #setting up the allowed frame rates to be in 0.25 increments 
-	exposureAutoRange = range(0,4)
-	exposureAbsoluteRange = range(1, 36000001)
-	gammaRange = range(1, 501)
-	brightnessRange = range(0, 64)
-	gainRange = range(260, 1024)
-
+        
 	# writing all these in arrays shortens the code later on
-	properties = ['frame rate', 'Exposure, Auto', 'Exposure (Absolute)', 'Gain', 'Brightness', 'Gamma']
-	set_values = [frameRateDefault, exposureAutoDefault, exposureAbsoluteDefault, gainDefault, brightnessDefault, gammaDefault]
-	allowed_range = [frameRateRange, exposureAutoRange, exposureAbsoluteRange, gainRange, brightnessRange, gammaRange]
-	default_values = [frameRateDefault, exposureAutoDefault, exposureAbsoluteDefault, gainDefault, brightnessDefault, gammaDefault]
-	# We initially have the values to set as being the default values (some values unicap gave)
+	properties = ['Gain', 'Brightness', 'Gamma']
 
 
 	#parameters dictating whether the guiding camera is being used
@@ -199,54 +192,31 @@ class FiberFeedServer:
 			direction_old=direction
 		return 'Finished adjusting exposure'
 		
-	def cmd_setCameraValues(self,the_command):
-		'''This sets up the camera with the exposure settings etc. wanted by the user. If no input is given this will list the allowed values for each of the settings, otherwise a user can set each setting individually. The properties are: \nFrameRate \nExposureAuto \nExposureAbs \nGain \nBrightness \nGamma. \nTo set a property type: setCameraValues FrameRate 3 \nTo get a list of properties type: setCameraValues show.\nTo use the default settings type "setCameraValues default"'''
+        def cmd_setCameraValues(self,the_command):
+		'''This sets up the camera with gain, brightness and gamma settings wanted by the user. A user can set each setting individually. The properties are: \nGain \nBrightness \nGamma. \nTo set a property type: setCameraValues Gain 3 \nTo get a list of properties type: setCameraValues show.\nTo use the default settings type "setCameraValues default"'''
 		comands = str.split(the_command)
-		if len(comands) == 1:
-			message = ""
-			for i in range(0, len(self.properties)-1):
-				message += " property: "+self.properties[i]+', allowed range: '+str(self.allowed_range[i][0])+' to '+str(self.allowed_range[i][-1])+', in increments of: '+str(float(self.allowed_range[i][1]) - int(self.allowed_range[i][0]))+"\n"
-			return message
-		elif len(comands) == 2 and comands[1] == 'show':
-			message = ''
-			for i in range(0, len(self.properties)):
-				message += '\n'+self.properties[i]+': '+str(self.set_values[i])
-			return message+'\n'
-
-		elif len(comands) == 2 and comands[1] == 'default':
-			for i in range(0,len(self.properties)-1):
-				prop = self.dev.get_property( self.properties[i] )
-				prop['value'] = float(self.default_values[i])
-				self.dev.set_property( prop )
-				self.set_values=list(self.default_values)
-			return 'Default settings used for all properties.'
-
+		if len(comands) == 1: return 'An input parameter is required. Type "help setCameraValues" for more information' 
+                elif len(comands) == 2 and comands[1] == 'default':
+                        dummy=self.default_settings()
+                        if dummy==True: 
+                                return 'Default settings used for all properties.'
+                        else: return 'Unable to set default values for camera.'
 		elif len(comands) == 3:
 			#fmts = self.dev.enumerate_formats()
 			#props = self.dev.enumerate_properties()
 			pro = comands[1]
-			try: float(comands[2])
-			except Exception: return 'Invalid input'
-			if pro == 'FrameRate' and float(comands[2]) in self.allowed_range[0]: self.set_values[0] = float(comands[2])
-			elif pro == 'ExposureAuto' and float(comands[2]) in self.allowed_range[1]: self.set_values[1] = int(comands[2])
-			elif pro == 'ExposureAbs' and float(comands[2]) in self.allowed_range[2]: self.set_values[2] = int(comands[2])
-			elif pro == 'Gain' and float(comands[2]) in self.allowed_range[3]: self.set_values[3] = int(comands[2])
-			elif pro == 'Brightness' and float(comands[2]) in self.allowed_range[4]: self.set_values[4] = int(comands[2])
-			elif pro == 'Gamma' and float(comands[2]) in self.allowed_range[5]: self.set_values[5] = int(comands[2])
-			else: return 'Invalid input, type "setCameraValues show" for a list of current values and ranges'
-			for i in range(0,len(self.properties)-1):
-				prop = self.dev.get_property( self.properties[i] )
-				prop['value'] = float(self.set_values[i])
-				try: self.dev.set_property( prop )
-				except Exception: 
-					self.set_values[i] = self.default_values[i]
-					return 'Property update failed. Error when updating: '+str(prop['identifier'])
+                        if pro in self.properties:
+                                try: float(comands[2])
+                                except Exception: return 'Invalid input'
+                                try: dummy=dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments',pro,float(commands[2]))
+                                except Exception: return 'Unable to communicate with the camera server to change property.'
+                        else: return 'Invalid input, type "setCameraValues show" for a list of current values and ranges'
 			return str(pro)+' value updated'
 
 		else: return 'Invalid command. Type "setCameraValues" for a list of allowed inputs and ranges'
-		
 
-	def cmd_starDistanceFromCenter(self, the_command):
+        
+        def cmd_starDistanceFromCenter(self, the_command):
 		'''This checks the position of the brighest star in shot with reference to the desired central pixel of the frame and
 		the sharpness of the same star. A call to this function will return a vector distance between the centeral
 		pixel and the brightest star in arcseconds in the North and East directions. When calling this function 
@@ -402,25 +372,6 @@ class FiberFeedServer:
 		#
 
 
-	def cmd_calibrateMagnitude(self, the_command):
-		'''We need a way to also convert the magnitudes from IRAF to actual magnitudes. Do this by centering on a star with
-		a known magnitude, reading out the maginitude from IRAF and then calculating the conversion to use for all
-		future stars.'''
-		'''Currently unused by any part of the software, but potentially useful for a later stage if we want to find fainter targets'''
-		comands = str.split(the_command)
-		if len(comands) != 2: return 'ERROR, input actual star magnitude'
-		try: star_magnitude = float(comands[1])
-		except Exception: return 'ERROR, input number for star magnitude'
-
-		self.capture_images('magnitudeCalibration', 1) # we need to neaten this up
-
-		star_info = self.analyseImage('magnitudeCalibration.fits', 'magnitudeCalibration.txt') # put in these parameters
-		try: star_magnitude_IRAF = float(star_info[0])
-		except Exception: return 'ERROR reading daofind output'
-
-		self.magnitude_conversion = float(star_magnitude) - float(star_magnitude_IRAF)
-		print magnitude_conversion
-		return 'Magnitude correction calibrated'
 
 	def cmd_imageCube(self, the_command):
 		'''This function can be used to pull a series of images from the camera and coadd them in a simple way. 

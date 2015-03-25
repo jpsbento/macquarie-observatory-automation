@@ -28,13 +28,13 @@ def execute_command(the_command, m):
     '''Find the_command amongst the list of commands like cmd_one in module m
     
     This returns a string containing the response, or a -1 if a quit is commanded.'''
-    the_functions = dict(captureImages=m.cmd_captureImages,brightStarCoords=m.cmd_brightStarCoords,adjustExposure=m.cmd_adjustExposure,setCameraValues=m.cmd_setCameraValues,starDistanceFromCenter=m.cmd_starDistanceFromCenter,orientationCapture=m.cmd_orientationCapture,Chop=m.cmd_Chop,focusCapture=m.cmd_focusCapture,calculateCameraOrientation=m.cmd_calculateCameraOrientation,calibrateMagnitude=m.cmd_calibrateMagnitude,imageCube=m.cmd_imageCube,defineCenter=m.cmd_defineCenter,centerIsHere=m.cmd_centerIsHere,currentExposure=m.cmd_currentExposure,changeExposure=m.cmd_changeExposure,guide=m.cmd_guide,imagingStatus=m.cmd_imagingStatus)
+    the_functions = dict(captureImages=m.cmd_captureImages,brightStarCoords=m.cmd_brightStarCoords,adjustExposure=m.cmd_adjustExposure,setCameraValues=m.cmd_setCameraValues,starDistanceFromCenter=m.cmd_starDistanceFromCenter,orientationCapture=m.cmd_orientationCapture,Chop=m.cmd_Chop,focusCapture=m.cmd_focusCapture,calculateCameraOrientation=m.cmd_calculateCameraOrientation,imageCube=m.cmd_imageCube,defineCenter=m.cmd_defineCenter,centerIsHere=m.cmd_centerIsHere,currentExposure=m.cmd_currentExposure,changeExposure=m.cmd_changeExposure,guide=m.cmd_guide,imagingStatus=m.cmd_imagingStatus)
     commands = string.split(the_command)
     if len(commands) == 0:
         return ""
     if commands[0] == "help":
         if (len(commands) == 1):
-            return 'captureImages\nbrightStarCoords\nadjustExposure\nsetCameraValues\nstarDistanceFromCenter\norientationCapture\nChop\nfocusCapture\ncalculateCameraOrientation\ncalibrateMagnitude\nimageCube\ndefineCenter\ncenterIsHere\ncurrentExposure\nchangeExposure\nguide\nimagingStatus'
+            return 'captureImages\nbrightStarCoords\nadjustExposure\nsetCameraValues\nstarDistanceFromCenter\norientationCapture\nChop\nfocusCapture\ncalculateCameraOrientation\nimageCube\ndefineCenter\ncenterIsHere\ncurrentExposure\nchangeExposure\nguide\nimagingStatus'
         elif commands[1] in the_functions:
             td=pydoc.TextDoc()
             return td.docroutine(the_functions[commands[1]])
