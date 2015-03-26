@@ -166,12 +166,12 @@ class SideCameraServer:
 						print 'Exposure=',value*1000.,'ms'
 						self.exptime=value
 					else: 
-						value=0.020
+						value=0.005
  						deviation=10
 						print 'Exposure=',value*1000.,'ms'
 						self.exptime=value
 				elif value <0.0051 and value >0.0002: 
-					prop['value']-=1
+					value-=1
 					print 'Exposure=',value*1000.,'ms'
 					self.exptime=value
 				else: return 'Exposure too short to reduce. Maybe this is too bright?'

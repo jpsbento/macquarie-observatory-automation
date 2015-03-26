@@ -184,7 +184,7 @@ class FiberFeedServer:
 						print 'Exposure=',value*1000.,'ms'
 						self.exptime=value
 				elif value <0.0051 and value >0.0002: 
-					prop['value']-=1
+					value-=1
 					print 'Exposure=',value*1000.,'ms'
 					self.exptime=value
 				else: return 'Exposure too short to reduce. Maybe this is too bright?'
@@ -463,6 +463,7 @@ class FiberFeedServer:
                         dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_SETTINGS","UPLOAD_PREFIX",filename)
                         dummy=indi.set_and_send_float("V4L2 CCD","CCD_EXPOSURE","CCD_EXPOSURE_VALUE",self.exptime)
                         while not os.path.isfile(filename+'.fits'):
+                                print filename
                                 print 'Still waiting for file'
                                 time.sleep(0.1) 
 			#if show==True:
