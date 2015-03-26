@@ -41,6 +41,8 @@ if not os.path.exists('./images/'):
                 dummy=subprocess.call('mkdir ./program_images', shell=True)
 dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_SETTINGS","UPLOAD_DIR",".")
 dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_SETTINGS","UPLOAD_PREFIX","TEMPIMAGE")
+dummy=indi.set_and_send_text("V4L2 CCD","MENU000","MENU000_OPT001","Off")
+dummy=indi.set_and_send_text("V4L2 CCD","MENU000","MENU000_OPT000","On")
 
 
 
