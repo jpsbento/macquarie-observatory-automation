@@ -634,23 +634,24 @@ class UberServer:
 			self.telescope_client.send_command("focusGoToPosition "+self.initial_focus_position)
 		try: 
 			sidecam_exposure=self.sidecam_client.send_command('currentExposure')
-			fiberfeed_exposure=str(int(float(str.split(sidecam_exposure)[0])*1E4/self.side_fiber_exp_ratio))
+			fiberfeed_exposure=str(int(float(str.split(sidecam_exposure)[0])*1E-3/self.side_fiber_exp_ratio))
 		except Exception:
 			logging.error('ERROR: Failed to query current sidecam exposure time')
 			return 'ERROR: Failed to query current sidecam exposure time'
 		logging.info('Got the sidecamera exposure')
 		print 'Got the sidecamera exposure'
-		try: self.fiberfeed_client.send_command('setCameraValues default')
-		except Exception: 
-			logging.error('ERROR: Failed to set the default values for the fiberfeed')
-			return 'ERROR: Failed to set the default values for the fiberfeed'
-		logging.info('Set default values for fiberfeed')
-		print 'Set default values for fiberfeed'
-		try: self.fiberfeed_client.send_command('setCameraValues ExposureAbs '+fiberfeed_exposure)
+		#try: self.fiberfeed_client.send_command('setCameraValues default')
+		#except Exception: 
+		#	logging.error('ERROR: Failed to set the default values for the fiberfeed')
+	#		return 'ERROR: Failed to set the default values for the fiberfeed'
+	#	logging.info('Set default values for fiberfeed')
+	#	print 'Set default values for fiberfeed'
+		try: self.fiberfeed_client.send_command('changeExposure '+fiberfeed_exposure)
 		except Exception:
 			logging.error('ERROR: Failed set the fiberfeed camera exposure time')
 			return 'ERROR: Failed set the fiberfeed camera exposure time'
 		logging.info('set exposure time for fiberfeed')
+                print self.fiberfeed_client.send_command('currentExposure')
 		print 'set exposure time for fiberfeed'
 		try: self.cmd_spiral('spiral')
 		except Exception:

@@ -37,7 +37,7 @@ dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_MODE","UPLOAD_BOTH","Off")
 dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_MODE","UPLOAD_LOCAL","On")
 #dummy=indi.set_and_send_text("V4L2 CCD","CCD_COOLER","COOLER_ON","On")
 #dummy=indi.set_and_send_text("V4L2 CCD","CCD_COOLER","COOLER_OFF","Off")
-if not os.path.exists('./images/'):
+if not os.path.exists('./program_images/'):
                 dummy=subprocess.call('mkdir ./program_images', shell=True)
 dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_SETTINGS","UPLOAD_DIR",".")
 dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_SETTINGS","UPLOAD_PREFIX","TEMPIMAGE")
@@ -66,24 +66,24 @@ class FiberFeedServer:
 	#    |  -sin(theta)   cos(theta)   |              |   transformation_matrix[2]  transformation_matrix[3]   |
 	#
 	# Transformation matrix is a rotation matrix.
-	
-	#Set the default camera settings here
-        def default_settings(self):
-                dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/25","Off")
-                dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/20","Off")
-                dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/15","Off")
-                dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/10","Off")
-                dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/5","Off")
-                dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/30","On")
-                dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Exposure (Absolute)',333)
-                exptime=0.033
-                dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Gain',1023)
-                dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Brightness',0)
-                dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Gamma',100)
-                return True
 
-        try: dummy=self.default_settings()
-        except Exception: print 'Unable to set the default settings'
+	exptime=0.033
+
+	#Set the default camera settings here
+        #def default_settings(self):
+        dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","2/15","Off")
+        dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","4/15","Off")
+        dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/60","Off")
+        dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/15","Off")
+        dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/30","On")
+        #self.exptime=0.033
+        dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Gain',1023)
+        dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Brightness',0)
+        #dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Gamma',100)
+        #return True
+
+        #dummy= self.default_settings()
+        #except Exception: print 'Unable to set the default settings'
 	image_chop=False
         
 	# writing all these in arrays shortens the code later on
@@ -462,6 +462,7 @@ class FiberFeedServer:
                         dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_SETTINGS","UPLOAD_PREFIX",filename)
                         dummy=indi.set_and_send_float("V4L2 CCD","CCD_EXPOSURE","CCD_EXPOSURE_VALUE",self.exptime)
                         while not os.path.isfile(filename+'.fits'):
+                                print 'Still waiting for file'
                                 time.sleep(0.1) 
 			#if show==True:
 			#	img.show()
@@ -475,7 +476,7 @@ class FiberFeedServer:
 	def analyseImage(self, input_image, outfile):
 		'''Analyse the image using sextractor'''
 		self.check_if_file_exists(outfile)
-		try: os.system('sex '+input_image+' -c fiberfeed.sex -CATALOG_NAME '+outfile) 
+		try: os.system('sextractor '+input_image+' -c fiberfeed.sex -CATALOG_NAME '+outfile) 
 		except Exception: return 0
 		brightest_star_info = self.find_brightest_star(outfile)
 		return brightest_star_info

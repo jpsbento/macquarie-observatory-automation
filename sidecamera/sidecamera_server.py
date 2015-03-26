@@ -67,23 +67,21 @@ class SideCameraServer:
 	#
 	# Transformation matrix is a rotation matrix.
 	
-        def default_settings(self):
+        #def default_settings(self):
                 #Function to set the default values for the camera
-                dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/25","Off")
-                dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/20","Off")
-                dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/15","Off")
-                dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/10","Off")
-                dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/5","Off")
-                dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/30","On")
-                dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Exposure (Absolute)',333)
-                exptime=0.033
-                dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Gain',1023)
-                dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Brightness',0)
-                dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Gamma',100)
-                return True
+        dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","2/15","Off")
+        dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/60","Off")
+        dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","4/15","Off")
+        dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/15","Off")
+        dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/30","On")
+        exptime=0.033
+        dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Gain',1023)
+        dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Brightness',0)
+        dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Gamma',100)
+                #return True
 
-        try: dummy=self.default_settings()
-        except Exception: print 'Unable to set the default settings'
+        #try: dummy=self.default_settings()
+        #except Exception: print 'Unable to set the default settings'
 
         # List of available properties that can be changed by the user.
 	properties = ['Gain', 'Brightness', 'Gamma']
@@ -460,7 +458,7 @@ class SideCameraServer:
 #		iraf.daofind.setParam('threshold',10.0)  #threshold above background where a detection is valid
 #		iraf.daofind.setParam('nsigma',1.5)     #Width of convolution kernel in sigma
 		self.check_if_file_exists(outfile)
-		try: os.system('sex '+input_image+' -c sidecamera.sex -CATALOG_NAME '+outfile)    #iraf.daofind(image = input_image, output = outfile)
+		try: os.system('sextractor '+input_image+' -c sidecamera.sex -CATALOG_NAME '+outfile)    #iraf.daofind(image = input_image, output = outfile)
 		except Exception: return 0
 		brightest_star_info = self.find_brightest_star(outfile)
 		return brightest_star_info
