@@ -10,10 +10,13 @@ import sys
 sys.path.append('../common/')
 import string
 import u3
+import u6
 import ei1050
 import math
 import time
+import parameterfile
 
+labjack_model=parameterfile.labjack_model
 #***********************************************************************#
 #2) Set up the labjack. As the LJ and LJPROBE are declared in the global
 #   module scope, lets give them capitals. These are initialized, but
@@ -21,17 +24,25 @@ import time
 #   would then write to the *same* labjack hardware, but could e.g. 
 #   do different parts of the job. You's almost certainly *not* want to do 
 #   this.
-LJ=u3.U3()
+if labjack_model.upper()=='U3':
+        LJ=u3.U3()
+        LJ.setFIOState(u3.FIO7, state=0) #command to close slits. A good starting point.
+        LJ.setFIOState(u3.FIO4, state=1) #command to stop movement
+        LJ.setFIOState(u3.FIO5, state=1) #command to stop movement
+
+elif labjack_model.upper()=='U6':
+        LJ=u6.U6()
+        LJ.setDIOState(1,0) #Command to power down the RF transmitter and stop slit movement.
+        
+        
 LJPROBE=ei1050.EI1050(LJ, enablePinNum=0, dataPinNum=1, clockPinNum=2) #Sets up the humidity probe
 LJ.configIO(NumberOfTimersEnabled = 2, EnableCounter0 = 1, TimerCounterPinOffset=8)
 LJ.getFeedback(u3.Timer0Config(8), u3.Timer1Config(8)) #Sets up the dome tracking wheel
+
+
 #DAC0_REGISTER = 5000  # clockwise movement
 #DAC1_REGISTER = 5002  # anticlockwise movement
 #LJ.writeRegister(DAC0_REGISTER, 2) # command to stop movement
-#LJ.writeRegister(DAC1_REGISTER, 2)
-LJ.setFIOState(u3.FIO7, state=0) #command to close slits. A good starting point.
-LJ.setFIOState(u3.FIO4, state=1) #command to stop movement
-LJ.setFIOState(u3.FIO5, state=1) #command to stop movement
 
 # ^ This is required to make sure the dome does not start moving when we start the code.
 # With the current set up, absoultely no voltage does not move the relays, but the labjack is not
@@ -44,7 +55,6 @@ LJ.setFIOState(u3.FIO5, state=1) #command to stop movement
 #***********************************************************************#
 #2) Now define our main class, the LabjackServer.
 class LabjackServer:
-	import parameterfile
 #Some properties relating to the relative encoder:
 
 	dome_moving = False     	    	# A variable to keep track of whether the dome is moving due to a remote user command
@@ -66,7 +76,9 @@ class LabjackServer:
 	homing = False
 	watchdog_last_time = time.time()        # The watchdog timer.
 	watchdog_max_delta = 10000                # more than this time between communications means there is a problem
-        
+        time_since_last_slits_command=time.time()   #time stamp since last slits command. Useful to determine how long it's been since the last instruction to open or close the slits at Mt Stromlo has been.
+        slits_moving=False                      #boolean that stores whether the slits are moving. Similar to dome_moving
+        slits_opening_duration=parameterfile.slits_opening_duration #time it takes for the slits to open
         
 
 #*************************************** List of user commands ***************************************#
@@ -161,14 +173,44 @@ class LabjackServer:
 		if len(commands) > 2: return 'ERROR'
 		if len(commands) == 1: return str(self.slits_open)
 		self.watchdog_last_time = time.time()
+                #The commands here depend on which model of the labjack we are using, which determines which model of RF transmitter is in use.
 		if commands[1] == 'open':
-			LJ.setFIOState(u3.FIO7, state=1)
-			self.slits_open = True
-			return 'slits open'
+                        if labjack_model.upper()=='U3':
+                                LJ.setFIOState(u3.FIO7, state=1)
+                                self.slits_open = True
+                                return 'slits open'
+                        elif labjack_model.upper()=='U6':
+                                #First need to power down the transmitter, change the state of the pins and power it up again.
+                                LJ.setDIOState(1,0)
+                                LJ.setDIOState(3,0)
+                                LJ.setDIOState(2,1)
+                                LJ.setDIOState(1,1)
+                                self.time_since_last_slits_command=time.time()
+                                self.slits_open = True
+                                self.slits_moving = True
+                                return 'slits open'
 		elif commands[1] == 'close':
-			LJ.setFIOState(u3.FIO7, state=0)			
-			self.slits_open=False
-			return 'slits closed'
+                        if labjack_model.upper()=='U3':
+                                LJ.setFIOState(u3.FIO7, state=0)
+                                self.slits_open = False
+                                return 'slits closed'
+                        elif labjack_model.upper()=='U6':
+                                LJ.setDIOState(1,0)
+                                LJ.setDIOState(3,1)
+                                LJ.setDIOState(2,0)
+                                LJ.setDIOState(1,1)
+                                self.time_since_last_slits_command=time.time()
+                                self.slits_open = False
+                                self.slits_moving = True
+                                return 'slits closed'
+                elif commands[1] == 'stop':
+                        #option used only for the Stromlo dome, for now. 
+                        if labjack_model.upper()=='U6':
+                              LJ.setDIOState(1,0)
+                              LJ.setDIOState(3,0)
+                              LJ.setDIOState(2,0)
+                              self.slits_moving = False
+                        else: return 'Invalid labjack model. This command does not work on U3'
 		else: return 'ERROR'
 
 	def cmd_ok(self, the_command):
@@ -280,10 +322,13 @@ class LabjackServer:
 	def watchdog_timer(self):
 #		if self.slits_open:
 #			print math.fabs(time.time() - self.watchdog_last_time)
-		if (math.fabs(time.time() - self.watchdog_last_time) > self.watchdog_max_delta) and (self.slits_open==True):
-			    self.cmd_slits('slits close')
-			    self.watchdog_last_time = time.time()
-		            print 'ERROR: No active communications. Slits closing.'
+                if (math.fabs(time.time() - self.watchdog_last_time) > self.watchdog_max_delta) and (self.slits_open==True):
+                        self.cmd_slits('slits close')
+                        self.watchdog_last_time = time.time()
+                        print 'ERROR: No active communications. Slits closing.'
+                if (math.fabs(time.time() - self.time_since_last_slits_command) > self.slits_opening_duration) and (self.slits_moving==True):
+                        self.cmd_slits('slits stop')
+                        self.slits_moving=False
 
 	def log(self):
 		#add a temperature and humidity reading to a log
