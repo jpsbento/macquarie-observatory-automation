@@ -30,6 +30,7 @@ dome_park_position= 100.   # The azimuth of the position the dome is supposed to
 
 
 labjack_model='U6'      #which model of labjack we are using for the dome+slit control determines which ports need to be activated and the way the RF transmitter works
+slits_opening_duration=20  #Time it takes for the slits to open
 counts_per_degree = 11.83   	# how many counts from the wheel encoder there is to a degree. 11.83 for 16" dome. 10.9 for 12" dome. 
 slitoffset = 68.83    # The position, in degrees, of the slits when the home switch is activated. 68.83 for 16" dome. 92.93 for 12" dome.
 
