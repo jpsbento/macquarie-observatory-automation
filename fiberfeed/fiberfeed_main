@@ -17,9 +17,6 @@ try:
 except Exception: print 'Unable to start indi server for fiberfeed'
 
 
-
-
-
 import fiberfeed_server
 import sys
 sys.path.append('../common')
@@ -30,6 +27,9 @@ Port = f.findPort('fiberfeed')
 ff=fiberfeed_server.FiberFeedServer()
 ss=server_socket.ServerSocket(Port, 'fiberfeed', ff)	
 ss.add_job(ff.imaging_loop)
-ss.run()
+try: ss.run()
+except KeyboardInterrupt: 
+        fiberfeed_server.indi.quit()
+        ss.close()
 fiberfeed_server.indi.quit()
 ss.close()

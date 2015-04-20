@@ -52,8 +52,8 @@ class SideCameraServer:
 				 # I *think* you just add this number (when calculated) to all Iraf mags and you're set.
 	
 	# The central pixel coordinates
-	target_xpixel = 277.0   # 640 x pixel width
-	target_ypixel = 227.0   # 480 y pixel height
+	target_xpixel = 289.431    # 640 x pixel width
+	target_ypixel = 236.957   # 480 y pixel height
 	north_move_arcmins = 1
 	east_move_arcmins = 1
 	oneArcmininPixelsN = parameterfile.sc_oneArcmininPixelsN  # This tells us how many pixels there are to one arcsecond in the North/South direction
