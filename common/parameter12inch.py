@@ -70,3 +70,9 @@ ff_oneArcmininPixelsE = 100  # This tells us how many pixels there are to one ar
 csecond in the East/West direction
 
 #############################################
+
+################ FIBERFEEED PARAMETERS #########
+
+weatherstation = 'aurora'   #Variable that defines which weatherstation this is connected to. Use 'aag' for the AAG Cloud Watcher (Stromlo) and 'aurora' for the 'Aurora Cloud Sensor' (MQ)
+
+###############################################

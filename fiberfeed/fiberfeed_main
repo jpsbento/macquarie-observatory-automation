@@ -12,7 +12,7 @@ try:
         if not ('indiserver' and '/tmp/fiberfeed_fifo') in os.popen("ps aux").read():
                 indiserver_process=subprocess.Popen(['indiserver','-f','/tmp/fiberfeed_fifo','-p','7779'],stdin=subprocess.PIPE, stdout=subprocess.PIPE)
                 #indiserver_process=subprocess.Popen('indiserver -f /tmp/myFIFO -p 7779',shell=True)
-                sxserver_process=subprocess.call('echo start indi_v4l2_ccd -n \"V4L2 CCD\" > /tmp/fiberfeed_fifo', shell=True)
+                sxserver_process=subprocess.call('echo start indi_v4l2_ccd > /tmp/fiberfeed_fifo', shell=True)
                 #procs=[indiserver_process]
 except Exception: print 'Unable to start indi server for fiberfeed'
 
