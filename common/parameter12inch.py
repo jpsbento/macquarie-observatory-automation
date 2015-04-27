@@ -26,7 +26,8 @@ dome_park_position= 250.   # The azimuth of the position the dome is supposed to
 #######################################
 
 ####### LABJACK SERVER PARAMETERS ######
-
+labjack_model='U3'      #which model of labjack we are using for the dome+slit control determines which ports need to be activated and the way the RF transmitter works
+slits_opening_duration=45  #Time it takes for the slits to open (Irrelevant for this server)
 counts_per_degree = 10.9   	# how many counts from the wheel encoder there is to a degree. 11.83 for 16" dome. 10.9 for 12" dome. 
 
 
