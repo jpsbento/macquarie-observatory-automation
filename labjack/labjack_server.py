@@ -263,21 +263,27 @@ class LabjackServer:
 		'''Move the dome clockwise, anticlockwise or stop dome motion'''
 		commands = str.split(command)
 		if len(commands) != 1: return 'ERROR'
-		if commands[0] == 'clockwise': 
-			LJ.setFIOState(u3.FIO4, state=0) 
-			LJ.setFIOState(u3.FIO5, state=1)
-#			LJ.writeRegister(DAC1_REGISTER, 2)
-#			LJ.writeRegister(DAC0_REGISTER, 0) # command to move dome clockwise, possibly change to 0.5
-		elif commands[0] == 'anticlockwise': 
-			LJ.setFIOState(u3.FIO4, state=1) 
-			LJ.setFIOState(u3.FIO5, state=0)
-#			LJ.writeRegister(DAC0_REGISTER, 2)
-#			LJ.writeRegister(DAC1_REGISTER, 0) # command to move dome anticlockwise
+		if commands[0] == 'clockwise':
+                        if labjack_model.upper()=='U3':
+                                LJ.setFIOState(u3.FIO4, state=0) 
+                                LJ.setFIOState(u3.FIO5, state=1)
+                        elif labjack_model.upper()=='U6':
+                                LJ.getFeedback(u6.DAC0_8(LJ.voltageToDACBits(0,0)))
+                                LJ.getFeedback(u6.DAC1_8(LJ.voltageToDACBits(5,1)))
+		elif commands[0] == 'anticlockwise':
+                        if labjack_model.upper()=='U3':
+                                LJ.setFIOState(u3.FIO4, state=1) 
+                                LJ.setFIOState(u3.FIO5, state=0)
+                        elif labjack_model.upper()=='U6':
+                                LJ.getFeedback(u6.DAC0_8(LJ.voltageToDACBits(5,0)))
+                                LJ.getFeedback(u6.DAC1_8(LJ.voltageToDACBits(5,1)))
 		elif commands[0] == 'stop':
-			LJ.setFIOState(u3.FIO4, state=1) 
-			LJ.setFIOState(u3.FIO5, state=1)
-#			LJ.writeRegister(DAC0_REGISTER, 2) # command to stop movement
-#			LJ.writeRegister(DAC1_REGISTER, 2)
+                        if labjack_model.upper()=='U3':
+                                LJ.setFIOState(u3.FIO4, state=1) 
+                                LJ.setFIOState(u3.FIO5, state=1)
+                        elif labjack_model.upper()=='U6':
+                                LJ.getFeedback(u6.DAC0_8(LJ.voltageToDACBits(0,0)))
+                                LJ.getFeedback(u6.DAC1_8(LJ.voltageToDACBits(0,1)))
 		else: return 'ERROR'
 
 
