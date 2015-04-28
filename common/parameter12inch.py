@@ -43,7 +43,20 @@ slitoffset = 92.93    # The position, in degrees, of the slits when the home swi
 ipaddress="10.238.16.13"         #This is the ip address of the windows machine
 
 ############################################
+###########DOME ALIGNMENT PARAMETERS##################
 
+#These refer to the dimensions of the dome, the position of the mount with respect to the dome and the position of the optical assembly axis to the mount.
+
+#position of the cross over point of the two axes of the mount. Either alt and az or RA and DEC.
+mountCenterX = 0 #Positive to North. Dimensions in metres
+mountCenterY = 0 #Positive to East. Dimensions in metres
+mountCenterZ = -0.3 #Positive Up. Dimensions in metres
+
+otaOffset = 0.47    #Distance between axis intersect and the optical axis. Dimensions in metres
+domeRadius = 1.950  #Radius of dome in metres
+slitsWidth = 0.70  #Slit width 
+latitude = -33.8 #Telescope latitude
+longitude = 151.1 #Telescope longitude
 
 #############################################
 
@@ -56,19 +69,15 @@ fiberfeed_model='21AU618.AS'
 
 ################ SIDECAM PARAMETERS #########
 
-sc_oneArcmininPixelsN = 1/2.  # This tells us how many pixels there are to one a
-rcsecond in the North/South direction
-sc_oneArcmininPixelsE = 1/2.  # This tells us how many pixels there are to one a
-rcsecond in the East/West direction
+sc_oneArcmininPixelsN = 1/2.  # This tells us how many pixels there are to one arcsecond in the North/South direction
+sc_oneArcmininPixelsE = 1/2.  # This tells us how many pixels there are to one arcsecond in the East/West direction
 
 ############################################
 
 ################ FIBERFEEED PARAMETERS #########
 
-ff_oneArcmininPixelsN = 100  # This tells us how many pixels there are to one ar
-csecond in the North/South direction
-ff_oneArcmininPixelsE = 100  # This tells us how many pixels there are to one ar
-csecond in the East/West direction
+ff_oneArcmininPixelsN = 100  # This tells us how many pixels there are to one arcsecond in the North/South direction
+ff_oneArcmininPixelsE = 100  # This tells us how many pixels there are to one arcsecond in the East/West direction
 
 #############################################
 
