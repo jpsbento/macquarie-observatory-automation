@@ -210,6 +210,7 @@ class LabjackServer:
                               LJ.setDIOState(3,0)
                               LJ.setDIOState(2,0)
                               self.slits_moving = False
+			      print 'Slits stopped'
                         else: return 'Invalid labjack model. This command does not work on U3'
 		else: return 'ERROR'
 
