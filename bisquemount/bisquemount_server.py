@@ -17,7 +17,7 @@ import numpy as np
 #Open port 0 at "9600,8,N,1", timeout of 5 seconds
 #Open port connected to the mount
 try: 
-        ser = serial.Serial('/dev/ttyUSB0',9600, timeout = 100) # non blocking serial port, will wait
+        ser = serial.Serial('/dev/ttyUSB1',9600, timeout = 100) # non blocking serial port, will wait
         print ser.portstr       # check which port was rea3lly used
         # we open a serial port to talk to the focuser
 
@@ -273,7 +273,7 @@ s		the error conditions (bits 1 through 3 only).'''
 				if self.move_focus_amount==0: self.move_focus_amount=5
 			#This is introduced to force the focusser to the minimum HFD position with a 1/50 probability. This is an attempt to try to make sure the system is usually close to the optimal focus.
 			if self.HFD > 20:
-				move_focus_amount=100*np.sign(move_focus_amount)
+				move_focus_amount=100*np.sign(self.move_focus_amount)
 			if np.random.rand()<(1/50.): 
 				self.cmd_focusGoToPosition("focusGoToPosition "+str(int(self.focus_min)))
 				print 'Focuser forced to go to last minimum setting'

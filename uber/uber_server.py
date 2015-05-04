@@ -634,7 +634,7 @@ class UberServer:
 			self.telescope_client.send_command("focusGoToPosition "+self.initial_focus_position)
 		try: 
 			sidecam_exposure=self.sidecam_client.send_command('currentExposure')
-			fiberfeed_exposure=str(int(float(str.split(sidecam_exposure)[0])*1E-3/self.side_fiber_exp_ratio))
+			fiberfeed_exposure=str(float(str.split(sidecam_exposure)[0])*1E-3/self.side_fiber_exp_ratio)
 		except Exception:
 			logging.error('ERROR: Failed to query current sidecam exposure time')
 			return 'ERROR: Failed to query current sidecam exposure time'

@@ -1,15 +1,15 @@
-#   1 X_IMAGE         Object position along x                         [pixel]
-#   2 Y_IMAGE         Object position along y                         [pixel]
-#   3 MAG_AUTO        Kron-like elliptical aperture magnitude         [mag]
-#   4 FWHM_IMAGE      FWHM assuming a gaussian core                   [pixel]
-#   5 FLUX_RADIUS     Fraction-of-light radii                         [pixel]
-#   6 XPEAK_IMAGE     x-coordinate of the brightest pixel             [pixel]
-#   7 YPEAK_IMAGE     y-coordinate of the brightest pixel             [pixel]
-#   8 KRON_RADIUS     Kron apertures in units of A or B
-#   9 BACKGROUND      Background at centroid position                 [count]
-#  10 THRESHOLD       Detection threshold above background            [count]
-#  11 MU_THRESHOLD    Detection threshold above background            [mag * arcsec**(-2)]
-#  12 FLUX_MAX        Peak flux above background                      [count]
-#  13 MU_MAX          Peak surface brightness above background        [mag * arcsec**(-2)]
-#  14 FLAGS           Extraction flags
-   387.567    171.001  -9.8085    11.88      6.286        386        172  4.35            0           10  -5.5103           56  -7.3808   0
+#   1 X_IMAGE                Object position along x                                    [pixel]
+#   2 Y_IMAGE                Object position along y                                    [pixel]
+#   3 MAG_AUTO               Kron-like elliptical aperture magnitude                    [mag]
+#   4 FWHM_IMAGE             FWHM assuming a gaussian core                              [pixel]
+#   5 FLUX_RADIUS            Fraction-of-light radii                                    [pixel]
+#   6 XPEAK_IMAGE            x-coordinate of the brightest pixel                        [pixel]
+#   7 YPEAK_IMAGE            y-coordinate of the brightest pixel                        [pixel]
+#   8 KRON_RADIUS            Kron apertures in units of A or B                         
+#   9 BACKGROUND             Background at centroid position                            [count]
+#  10 THRESHOLD              Detection threshold above background                       [count]
+#  11 MU_THRESHOLD           Detection threshold above background                       [mag * arcsec**(-2)]
+#  12 FLUX_MAX               Peak flux above background                                 [count]
+#  13 MU_MAX                 Peak surface brightness above background                   [mag * arcsec**(-2)]
+#  14 FLAGS                  Extraction flags                                          
+   318.788    201.205 -12.6282    21.53      8.449        317        208  3.50 0.0004051494     3.635916  -4.4118     254.9996  -9.0266   4

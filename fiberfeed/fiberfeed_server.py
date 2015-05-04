@@ -179,7 +179,7 @@ class FiberFeedServer:
 						print 'Exposure=',value*1000.,'ms'
 						self.exptime=value
 					else: 
-						value=0.020
+						value=0.005
 						deviation=10
 						print 'Exposure=',value*1000.,'ms'
 						self.exptime=value
