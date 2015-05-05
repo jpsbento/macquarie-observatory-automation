@@ -49,10 +49,6 @@ class FiberFeedServer:
 	magnitude_conversion = 0 # How to convert from the magnitude iraf gives out and the actual magnitude of a star.
 				 # I *think* you just add this number (when calculated) to all Iraf mags and you're set.
 	
-	# The central pixel coordinates
-	target_xpixel = 380.7  # 640 x pixel width
-	target_ypixel = 166.0   # 480 y pixel height
-
 	north_move_arcmins = 1  # program variables that indicate the direction of movement when spiralling
 	east_move_arcmins = 1
 	oneArcmininPixelsN = parameterfile.ff_oneArcmininPixelsN  # This tells us how many pixels there are to one arcsecond in the North/South direction
@@ -164,7 +160,7 @@ class FiberFeedServer:
 			if max_pix < 100:
 				value = indi.get_float("V4L2 CCD","CCD_EXPOSURE","CCD_EXPOSURE_VALUE")
 				direction=1
-				if value < 20:
+				if value < 10:
 					value+=deviation
 					print 'Exposure=',value*1000.,'ms'
 					self.exptime=value
@@ -173,20 +169,21 @@ class FiberFeedServer:
 			if max_pix > 245:
 				value = indi.get_float("V4L2 CCD","CCD_EXPOSURE","CCD_EXPOSURE_VALUE")
 				direction=-1
-				if value> 0.0051:
+				if value> 0.020:
 					value-=deviation
 					if value>0:
 						print 'Exposure=',value*1000.,'ms'
 						self.exptime=value
 					else: 
-						value=0.005
-						deviation=10
+						value=0.030
+						deviation=0.010
 						print 'Exposure=',value*1000.,'ms'
 						self.exptime=value
-				elif value <0.0051 and value >0.0002: 
-					value-=1
+				elif value <0.020 and value >0.0002: 
+					value=0.020
 					print 'Exposure=',value*1000.,'ms'
 					self.exptime=value
+                                        return 'Reached lowest possible exposure time. Star may still be saturated but nothing can be done.'
 				else: return 'Exposure too short to reduce. Maybe this is too bright?'
 			if direction_old==direction: deviation*=2
 			else: deviation/=2
@@ -234,8 +231,9 @@ class FiberFeedServer:
 		xpixel_pos = float(brightest_star_info[1])  # x pixel position of the brightest star
 		ypixel_pos = float(brightest_star_info[2])  # y pixel position of the brightest star
 		# Find distance from the center of the image
-		x_distance = float(self.target_xpixel) - xpixel_pos # The position of the star relative to the central pixel
-		y_distance = float(self.target_ypixel) - ypixel_pos
+                target_xpixel,target_ypixel = numpy.loadtxt('guiding_coords')
+		x_distance = float(target_xpixel) - xpixel_pos # The position of the star relative to the central pixel
+		y_distance = float(target_ypixel) - ypixel_pos
 		vector_to_move = [x_distance, y_distance]
 		print vector_to_move 
 		translated_N = self.transformation_matrix[0]*x_distance + self.transformation_matrix[1]*y_distance
@@ -407,13 +405,13 @@ class FiberFeedServer:
 		comands=str.split(the_command)
 		if len(comands) > 3: return 'Please specify the x and y coordinates as separate values'
 		if len(comands)==2 and comands[1]=='show':
-			return str(self.target_xpixel)+' '+str(self.target_ypixel)
+                        target_xpixel,target_ypixel = numpy.loadtxt('guiding_coords')
+			return str(target_xpixel)+' '+str(target_ypixel)
 		try: 
 			new_x=float(comands[1])
 			new_y=float(comands[2])
 		except Exception: return 'ERROR: invalid coordinate format. They must be floats'
-		self.target_xpixel=new_x
-		self.target_ypixel=new_y
+                numpy.savetxt('guiding_coords',[new_x,new_y])
 		return 'Central coordinates updated'
 
 	def cmd_centerIsHere(self, the_command):
@@ -559,7 +557,8 @@ class FiberFeedServer:
 			else:
 				self.movement=[0.0,0.0]
 				self.HFD=0.0
-			fileline=[self.HFD,float(self.movement[0]),float(self.movement[1]),self.filename,self.target_xpixel,self.target_ypixel]
+                        target_xpixel,target_ypixel = numpy.loadtxt('guiding_coords')
+			fileline=[self.HFD,float(self.movement[0]),float(self.movement[1]),self.filename,target_xpixel,target_ypixel]
 			print fileline
 			numpy.savetxt('guiding_stats.txt',fileline,fmt='%s')
 			self.exposing=False
@@ -567,8 +566,9 @@ class FiberFeedServer:
 
 	def chop(self,im):
 		'''Function that will return a section of the image that we are interested in. This will just chop off a box of width 'width' centred at middle_x,middle_y. It actually just sets all the values outside this ox to 0'''
-		middle_x=self.target_xpixel
-		middle_y=self.target_ypixel
+                target_xpixel,target_ypixel = numpy.loadtxt('guiding_coords')
+		middle_x=target_xpixel
+		middle_y=target_ypixel
 		width=100
 		im_temp=im.copy()
 		im_temp[:middle_y-width/2]=0
