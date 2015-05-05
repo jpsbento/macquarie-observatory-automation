@@ -414,8 +414,7 @@ class UberServer:
 				logging.error('Unable to switch on backLED during the defGuidingPos routine')
 				return 'Unable to switch on backLED during the defGuidingPos routine'
 			try: 
-				dummy=self.fiberfeed_client.send_command('setCameraValues Gain 1000')
-				dummy=self.fiberfeed_client.send_command('setCameraValues ExposureAbs 10000')
+				dummy=self.fiberfeed_client.send_command('changeExposure 0.02')
 				dummy=self.fiberfeed_client.send_command('Chop on')
 				dummy=self.fiberfeed_client.send_command('centerIsHere')
 			except Exception: 
@@ -430,7 +429,6 @@ class UberServer:
 			except Exception:
 				logging.error('Unable to jog telescope during the defGuidingPos routine')
 				return 'Unable to jog telescope during the defGuidingPos routine'
-			dummy=self.fiberfeed_client.send_command('setCameraValues default')
 			if len(commands)==2 and commands[1]=='adjExp':
 				dummy=self.fiberfeed_client.send_command('adjustExposure')
 			logging.info('Successfully redefined the guiding position.')
@@ -790,7 +788,7 @@ class UberServer:
 				logging.warning('Telescope still moving')
 				return 'Telescope still moving'
 		if ('Fiberfeed' or 'fiberfeed') in commands:
-			try: response = self.fiberfeed_client.send_command('setCameraValues default')
+			try: response = self.fiberfeed_client.send_command('currentExposure')
 			except Exception: 
 				logging.error('Unable to communicate with the fiberfeed server')
 				return 'Unable to communicate with the fiberfeed server'
@@ -798,7 +796,7 @@ class UberServer:
 				logging.error('Unable to work with fiberfeed camera')
 				return 'Unable to work with fiberfeed camera'
 		if ('Sidecam' or 'sidecam' or 'sidecamera' or 'Sidecamera') in commands:
-			try: response = self.sidecam_client.send_command('setCameraValues default')
+			try: response = self.sidecam_client.send_command('currentExposure')
 			except Exception: 
 				logging.error('Unable to communicate with the sidecam server')
 				return 'Unable to communicate with the sidecam server'
