@@ -31,7 +31,7 @@ class UberServer:
 	telescope_client = client_socket.ClientSocket("telescope",telescope_type)  #23458 <- port number
 	weatherstation_client = client_socket.ClientSocket("weatherstation",telescope_type) #23457 <- port number
 	sidecam_client = client_socket.ClientSocket("sidecamera",telescope_type) #23459 <- port number
-	camera_client = client_socket.ClientSocket("sbig",telescope_type) #23460 <- port number 
+	camera_client = client_socket.ClientSocket("sx",telescope_type) #23460 <- port number 
 	print camera_client
 	fiberfeed_client = client_socket.ClientSocket("fiberfeed",telescope_type) #23459 <- port number
         labjacku6_client = client_socket.ClientSocket("labjacku6",telescope_type) #23462 <- port number	override_wx = False
@@ -1173,10 +1173,10 @@ class UberServer:
 					dummy=self.cmd_guiding('guiding halt')
 					dummy=self.telescope_client.send_command('jog South 5')
 					dummy=self.cmd_ippower('ippower HgAr on')
-					result=self.camera_client.send_command('imageInstruction 120 open '+self.filename+' HgAr')
+					result=self.camera_client.send_command('exposeAndWait 120 open '+self.filename+' HgAr')
 					logging.info(result)
 					self.old_filename=self.filename
-					if 'being taken' not in result: 
+					if 'Initiated' not in result: 
 						logging.error('Something went wrong with the image instruction')
 						print 'Something went wrong with the image instruction'
 				except Exception: 
@@ -1186,12 +1186,12 @@ class UberServer:
 				if self.nexps!=0:
 					self.seeing=[]
 					if self.imgtype_keyword=='None':
-						result=self.camera_client.send_command('imageInstruction '+str(self.exptime)+' '+str(self.shutter_position)+' '+self.filename)
-					else: result=self.camera_client.send_command('imageInstruction '+str(self.exptime)+' '+str(self.shutter_position)+' '+self.filename+' '+self.imgtype_keyword)
+						result=self.camera_client.send_command('exposeAndWait '+str(self.exptime)+' '+str(self.shutter_position)+' '+self.filename)
+					else: result=self.camera_client.send_command('exposeAndWait '+str(self.exptime)+' '+str(self.shutter_position)+' '+self.filename+' '+self.imgtype_keyword)
 					self.old_filename=self.filename
 					logging.info(result)
 					print result
-					if 'being taken' not in result: 
+					if 'Initiated' not in result: 
 						logging.error('Something went wrong with the image instruction')
 						print 'Something went wrong with the image instruction'
 					self.nexps-=1
