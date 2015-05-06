@@ -496,9 +496,12 @@ class UberServer:
 		#directions of motion
 		directions=['North','East']
 		while n<11 and found_it==False:
+                        #Keep spiralling in a 20 arcmin box
 			for direction in directions:
+                                #Make the number of offsets larger and larger to increase the search area
 				for i in range(n):
 					result=self.fiberfeed_client.send_command('brightStarCoords')
+                                        #If star found, check coordinates, and determine if it is too close to the edge of the chip. If not, star found, if so, keep spiralling on a smaller scale to refine the position.
 					if 'no stars found' not in result:
 						 starinfo=str.split(result)
 						 try: 
@@ -520,6 +523,13 @@ class UberServer:
 						 else: 
 							 logging.info('Still not good enough. Continuing...')
 							 print 'Still not good enough. Continuing...'
+                                                         if m==0:
+                                                                 #This conditions is triggered the first time a star is found. Reset everything, put the offset much lower and start the spiralling again.
+                                                                 m=1
+                                                                 offset/=4.
+                                                                 n=0
+                                                                 sign=1
+                                                                 break
 					else: 
 						logging.info('Star not found, Continuing...')
 						print 'Star not found, Continuing...'
@@ -626,10 +636,15 @@ class UberServer:
 		except Exception: 
 			logging.error('Could not get the focusser to its initial position')
 			return 'Could not get the focusser to its initial position'
+                try: self.telescope_client.send_command("resetGuidingStats")
+		except Exception: 
+			logging.error('Could not reset the guiding stats')
+			return 'Could not reset the guiding stats'
 		if self.initial_focus_position==0:
 			self.initial_focus_position=self.telescope_client.send_command("focusReadPosition").split('\n')[0]
 		else: 
 			self.telescope_client.send_command("focusGoToPosition "+self.initial_focus_position)
+                
 		try: 
 			sidecam_exposure=self.sidecam_client.send_command('currentExposure')
 			fiberfeed_exposure=str(float(str.split(sidecam_exposure)[0])*1E-3/self.side_fiber_exp_ratio)
