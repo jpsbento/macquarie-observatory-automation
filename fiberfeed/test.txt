@@ -12,4 +12,3 @@
 #  12 FLUX_MAX               Peak flux above background                                 [count]
 #  13 MU_MAX                 Peak surface brightness above background                   [mag * arcsec**(-2)]
 #  14 FLAGS                  Extraction flags                                          
-   422.641    384.871 -13.9808    45.12     15.906        429        368  3.86     1.001204     20.79607  -6.3053     253.9992  -9.0224   4
