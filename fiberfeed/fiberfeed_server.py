@@ -466,6 +466,11 @@ class FiberFeedServer:
                                 time.sleep(0.1) 
 			#if show==True:
 			#	img.show()
+                        im_temp=pyfits.getdata(filename+'.fits')
+                        badmask=pyfits.getdata('badmask.fits')
+                        im=im_temp*badmask
+			os.system('rm '+filename+'.fits')
+			pyfits.writeto(filename+'.fits',im)
 			if self.image_chop:
 				im_temp=pyfits.getdata(filename+'.fits')
 				im=self.chop(im_temp)

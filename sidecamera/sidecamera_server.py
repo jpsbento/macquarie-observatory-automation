@@ -428,13 +428,18 @@ class SideCameraServer:
 			if upperlimit > 1: filename= base_filename+'_'+str(i)  # if we are taking several images we need to number them
 			else: filename = base_filename
                         self.check_if_file_exists(filename+'.fits')
-                        dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_SETTINGS","UPLOAD_PREFIX",filename)
+                        dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_SETTINGS","UPLOAD_PREFIX",TEMPIMAGE)
                         dummy=indi.set_and_send_float("V4L2 CCD","CCD_EXPOSURE","CCD_EXPOSURE_VALUE",self.exptime)
                         print 'started image',filename
-                        while not os.path.isfile(filename+'.fits'):
+                        while not os.path.isfile(TEMPIMAGE+'.fits'):
                                 time.sleep(0.1)
 			#if show==True:
 			#	img.show()
+                        im_temp=pyfits.getdata(filename+'.fits')
+                        badmask=pyfits.getdata('badmask.fits')
+                        im=im_temp*badmask
+			os.system('rm '+filename+'.fits')
+			pyfits.writeto(filename+'.fits',im)
 			if self.image_chop:
 				im_temp=pyfits.getdata(filename+'.fits')
 				im=self.chop(im_temp)
