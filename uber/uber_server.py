@@ -1123,11 +1123,11 @@ class UberServer:
 
 	def imaging_loop(self):
 		#Function that sets the camera going if the imaging boolean is true
-		if os.path.exists('../sbig/images/'+self.old_filename+'.fits'):
+		if os.path.exists('../sx/images/'+self.old_filename+'.fits'):
 			time.sleep(0.5)
-			a=pyfits.getheader('../sbig/images/'+self.old_filename+'.fits')
-			if not a.has_key('TELESCOP'):
-				im=pyfits.open('../sbig/images/'+self.old_filename+'.fits',mode='update')
+			a=pyfits.getheader('../sx/images/'+self.old_filename+'.fits')
+			if not 'TELESCOP' in a:
+				im=pyfits.open('../sx/images/'+self.old_filename+'.fits',mode='update')
 				h=im[0].header
 				h.update('TELESCOP', 'Meade LX200 f/10 16 inch', 'Which telescope used')
 				h.update('LAT', -33.77022, 'Telescope latitude (deg)')
@@ -1181,6 +1181,7 @@ class UberServer:
 						dummy=self.cmd_guiding('guiding resume')
 						self.current_imtype='light'
 		if self.exposing and self.old_filename=='None':
+                        print 'Identified that the image should start being taken'
 			localtime=time.localtime(time.time())
 			self.filename=str(localtime[0])+str(localtime[1]).zfill(2)+str(localtime[2]).zfill(2)+str(localtime[3]).zfill(2)+str(localtime[4]).zfill(2)+str(localtime[5]).zfill(2)
 			if self.current_imtype=='lamp':
@@ -1197,8 +1198,9 @@ class UberServer:
 				except Exception: 
 					logging.error('Unable to start a calibration lamp exposure')
 					print 'Unable to start a calibration lamp exposure'
-			else:	
+			else:
 				if self.nexps!=0:
+                                        print self.nexps, 'Here we go'
 					self.seeing=[]
 					if self.imgtype_keyword=='None':
 						result=self.camera_client.send_command('exposeAndWait '+str(self.exptime)+' '+str(self.shutter_position)+' '+self.filename)
