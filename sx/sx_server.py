@@ -3,7 +3,7 @@ sys.path.append('../common/')
 from indiclient import *
 import numpy as np
 import matplotlib.pyplot as plt
-import pyfits
+import pyfits, commands
 import time
 import ctypes
 import os,subprocess
@@ -85,7 +85,7 @@ class SX:
         def cmd_checkTemperature(self,the_command):
 		'''This command checks the temperature at the time it is run. No inputs for this function'''
                 try: 
-                        temp=indi.get_float("SX CCD SXVR-H694","CCD_TEMPERATURE","CCD_TEMPERATURE_VALUE")
+                        temp=float(commands.getoutput('indi_getprop -p 7777 "SX CCD SXVR-H694.CCD_TEMPERATURE.CCD_TEMPERATURE_VALUE"').split('=')[1])
                 except Exception: return 'Unable to check CCD temperature for some reason'
                 return 'CCD temperature is '+str(temp)+' degrees C'
         
@@ -235,7 +235,7 @@ class SX:
 		self.filename= fileInput.partition('.fits')[0]
 		#calls checking functions	
 		self.checkFile(self.filename)
-                print 'Got this far'
+                #print 'Got this far'
                 try: 
                         result=indi.set_and_send_float("SX CCD SXVR-H694","CCD_EXPOSURE","CCD_EXPOSURE_VALUE",exposureTime)
                 except Exception: return 0
@@ -301,7 +301,7 @@ class SX:
 		end=time.localtime(self.endTime)
 		endtime=str(end[3]).zfill(2)+':'+str(end[4]).zfill(2)+':'+str(end[5]).zfill(2)
 		hdu.header.update('LTEND', endtime , 'Local HH:MM:SS.ss Exp. End')
-		hdu.header.update('CAMTEMP', indi.get_float("SX CCD SXVR-H694","CCD_TEMPERATURE","CCD_TEMPERATURE_VALUE"), 'Camera temperature (C)')
+		hdu.header.update('CAMTEMP', float(commands.getoutput('indi_getprop -p 7777 "SX CCD SXVR-H694.CCD_TEMPERATURE.CCD_TEMPERATURE_VALUE"').split('=')[1]), 'Camera temperature (C)')
 		hdu.header.update('SETPOINT', self.ccdSetpoint, 'Camera temperature setpoint (C)')
 		hdu.header.update('COOLING', indi.get_text("SX CCD SXVR-H694","CCD_COOLER","COOLER_ON"), 'Camera cooling enabled?')
 		if self.exposureTime==0:

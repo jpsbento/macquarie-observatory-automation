@@ -1181,7 +1181,7 @@ class UberServer:
 						dummy=self.cmd_guiding('guiding resume')
 						self.current_imtype='light'
 		if self.exposing and self.old_filename=='None':
-                        print 'Identified that the image should start being taken'
+                        #print 'Identified that the image should start being taken'
 			localtime=time.localtime(time.time())
 			self.filename=str(localtime[0])+str(localtime[1]).zfill(2)+str(localtime[2]).zfill(2)+str(localtime[3]).zfill(2)+str(localtime[4]).zfill(2)+str(localtime[5]).zfill(2)
 			if self.current_imtype=='lamp':
@@ -1200,7 +1200,7 @@ class UberServer:
 					print 'Unable to start a calibration lamp exposure'
 			else:
 				if self.nexps!=0:
-                                        print self.nexps, 'Here we go'
+                                        #print self.nexps, 'Here we go'
 					self.seeing=[]
 					if self.imgtype_keyword=='None':
 						result=self.camera_client.send_command('exposeAndWait '+str(self.exptime)+' '+str(self.shutter_position)+' '+self.filename)
