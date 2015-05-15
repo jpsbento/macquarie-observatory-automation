@@ -19,6 +19,7 @@ class Application(Tkinter.Frame):
     def __init__(self, master=None):
         root=Tkinter.Tk()
         root.update()
+        root.protocol("WM_DELETE_WINDOW",self.on_closing)
         root.minsize(300,250)
         Tkinter.Frame.__init__(self, master)
         self.grid(sticky=Tkinter.N+Tkinter.S+Tkinter.E+Tkinter.W)
@@ -58,7 +59,7 @@ class Application(Tkinter.Frame):
         self.Bsubmit.grid()
         self.slitsframe.grid(column=0,row=0, columnspan=1,rowspan=1)#sticky=Tkinter.NW)
         
-        #Radiobuttons for open and closed slits.
+        #Radiobuttons for dome syncronisation.
         self.domeframe=Tkinter.LabelFrame(self, text='Dome Sync',labelanchor='n')
         self.trackvar=Tkinter.IntVar()
         self.ROpen=Tkinter.Radiobutton(self.domeframe, text='Dome Tracking on',value=1,variable=self.trackvar)
@@ -69,9 +70,9 @@ class Application(Tkinter.Frame):
         #self.label.grid()
         self.Csubmit=Tkinter.Button(self.domeframe, text='Submit',command=self.dometrack_command)
         self.Csubmit.grid()
-        self.domeframe.grid(column=0,row=1, columnspan=1,rowspan=1)#sticky=Tkinter.SW)
+        self.domeframe.grid(column=0,row=1, columnspan=1,rowspan=2)#sticky=Tkinter.SW)
         
-        #Radiobuttons for improved pointing slits.
+        #Button for fixing dome endlessly rotating.
         self.domefixframe=Tkinter.LabelFrame(self, text='Stop/Fix Dome',labelanchor='n')
         self.moreinfo=Tkinter.Label(self.domefixframe)
         self.moreinfo.grid()
@@ -82,16 +83,16 @@ class Application(Tkinter.Frame):
 
         #focuser button
         self.focusButton=Tkinter.Button(self, text='Reset Focuser',command=self.focuser_command)
-        self.focusButton.grid(column=1,row=2)
+        self.focusButton.grid(column=1,row=3)
         #reconnection button
         self.reconnectButton=Tkinter.Button(self, text='Reconnect to server',command=self.reconnect_command)
-        self.reconnectButton.grid(column=1,row=1)
-        #quit button
-        #self.quitButton=Tkinter.Button(self, text='Quit',command=self.quit_command)
-        #self.quitButton.grid(column=1,row=2)
+        self.reconnectButton.grid(column=1,row=2)
+        #dome park button
+        self.domeparkButton=Tkinter.Button(self, text='Park Dome',command=self.domepark_command)
+        self.domeparkButton.grid(column=1,row=1)
         #help button
         self.helpButton=Tkinter.Button(self, text='Help',command=self.help_command)
-        self.helpButton.grid(column=0,row=2)
+        self.helpButton.grid(column=0,row=3)
         #global label
         self.outputmessage=Tkinter.LabelFrame(self, text='Output Messages',labelanchor='n')
         self.globallabel=Tkinter.Label(self.outputmessage)
@@ -109,6 +110,14 @@ class Application(Tkinter.Frame):
         else:
             self.labjack_client.send_command('labjack dome home')
         sys.exit()
+
+    #Function to park the dome
+    def domepark_command(self):
+        if self.client=='uber':
+            self.uber_client.send_command('setDomeTracking off')
+            self.uber_client.send_command('dome park')
+        else:
+            self.labjack_client.send_command('dome park')
     #Function that is triggered upon pressing the 'submit' button on the Slits control frame
     def slits_command(self):
         v=self.slitsvar.get()
@@ -191,6 +200,15 @@ class Application(Tkinter.Frame):
             self.uber_client.send_command('override_wx')
         else:
             self.globallabel.config(text='Can not connect to uber server. Check that it is working.')
+
+    def on_closing(self):
+        if app.client=='uber':
+            app.uber_client.send_command('setDomeTracking off')
+            #app.uber_client.send_command('labjack dome home')
+            app.uber_client.send_command('override_wx off')
+        else:
+            app.labjack_client.send_command('labjack dome home')
+        sys.exit()
 
 #go!
 app= Application()
