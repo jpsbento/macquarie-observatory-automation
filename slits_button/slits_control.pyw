@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!c:/Python27/python
 
 #python script that shows a GUI with a radiobutton and a submit button that opens and  closes the telescope slits for the 16" dome. Useful for the windows machine as a GUI for some useful tools of the python software. Requires at least for the labjack server to be running, but if the uber server is on as well, then the capability of the script is enhanced.
 
@@ -15,12 +15,14 @@ telescope_type = parameterfile.telescope_type
 
 client='uber'
 #Setup the connection to the servers. This script can only be ran from inside campus
-global uber_client = client_socket.ClientSocket("uber",telescope_type)
+global uber_client
+global labjack_client
+uber_client = client_socket.ClientSocket("uber",telescope_type)
 result1= uber_client.send_command('setDomeTracking off')
 result2= uber_client.send_command('override_wx')
 #If the uber is not on, then connect to the labjack server. Only slits control here...
 if ('Error' in result1) or ('Error' in result2):
-    global labjack_client = client_socket.ClientSocket("labjack",telescope_type)
+    labjack_client = client_socket.ClientSocket("labjack",telescope_type)
     client='labjack'
     result=labjack_client.send_command('ok')
     if 'Error' in result:
@@ -89,14 +91,16 @@ class Application(Tkinter.Frame):
         
         #Radiobuttons for improved pointing slits.
         self.domefixframe=Tkinter.LabelFrame(self, text='Stop/Fix Dome',labelanchor='n')
-        self.moreinfo=Tkinter.Label('Press this button\nif dome does\nnot stop rotating')
+        self.moreinfo=Tkinter.Label(self.domefixframe)
+        self.moreinfo.grid()
+        self.moreinfo.config(text='Push this button\nif dome does\nnot stop rotating')
         self.Psubmit=Tkinter.Button(self.domefixframe, text='Submit',command=self.domestop_command)
         self.Psubmit.grid()
         self.domefixframe.grid(column=1,row=0, columnspan=1,rowspan=1)#sticky=Tkinter.NE)
 
         #focuser button
-        self.focusButton=Tkinter.Button(self, text='Reset Focuser',command=self.focuser_command)
-        self.focusButton.grid(column=1,row=1)
+        #self.focusButton=Tkinter.Button(self, text='Reset Focuser',command=self.focuser_command)
+        #self.focusButton.grid(column=1,row=1)
         #reconnection button
         self.reconnectButton=Tkinter.Button(self, text='Reconnect to server',command=self.reconnect_command)
         self.reconnectButton.grid(column=1,row=1)
@@ -147,7 +151,7 @@ class Application(Tkinter.Frame):
             uber_client = client_socket.ClientSocket("uber",telescope_type)
             response_after = uber_client.send_command('setDomeTracking '+t)
             if 'Tracking' not in response_after:         
-            tkMessageBox.showinfo('ERROR','Unsucessful attempt at setting the dome tracking status. Check if the uber server is on.')
+                tkMessageBox.showinfo('ERROR','Unsucessful attempt at setting the dome tracking status. Check if the uber server is on.')
         else:
             self.globallabel.config(text='Instruction to turn '+t+' dome tracking sent!')
 
