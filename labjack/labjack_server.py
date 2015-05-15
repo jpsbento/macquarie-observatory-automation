@@ -79,7 +79,7 @@ class LabjackServer:
         time_since_last_slits_command=time.time()   #time stamp since last slits command. Useful to determine how long it's been since the last instruction to open or close the slits at Mt Stromlo has been.
         slits_moving=False                      #boolean that stores whether the slits are moving. Similar to dome_moving
         slits_opening_duration=parameterfile.slits_opening_duration #time it takes for the slits to open
-        
+        dome_park_position=parameterfile.dome_park_position      #Position that the dome should be left in at the end of the night
 
 #*************************************** List of user commands ***************************************#
 
@@ -146,6 +146,8 @@ class LabjackServer:
 			return 'Dome Homing'
 		elif len(commands) == 2:
 			user_command = commands[1]
+                        if user_command=='park':
+                                counts_to_move_temp = self.analyse_dome_command(float(self.dome_park_position))
 			counts_to_move_temp = self.analyse_dome_command(user_command)
 			print str(counts_to_move_temp)
 			try: counts_to_move_temp = int(counts_to_move_temp)
