@@ -3,7 +3,7 @@
 #python script that shows a GUI with a radiobutton and a submit button that opens and  closes the telescope slits for the 16" dome. Useful for the windows machine as a GUI for some useful tools of the python software. Requires at least for the labjack server to be running, but if the uber server is on as well, then the capability of the script is enhanced.
 
 #Import the Tkinter and client socket modules
-import Tkinter,sys,ttk
+import Tkinter,sys,ttk, time
 import tkMessageBox
 sys.path.append('../common/')
 import client_socket
@@ -15,12 +15,12 @@ telescope_type = parameterfile.telescope_type
 
 client='uber'
 #Setup the connection to the servers. This script can only be ran from inside campus
-uber_client = client_socket.ClientSocket("uber",telescope_type)
+global uber_client = client_socket.ClientSocket("uber",telescope_type)
 result1= uber_client.send_command('setDomeTracking off')
 result2= uber_client.send_command('override_wx')
 #If the uber is not on, then connect to the labjack server. Only slits control here...
 if ('Error' in result1) or ('Error' in result2):
-    labjack_client = client_socket.ClientSocket("labjack",telescope_type)
+    global labjack_client = client_socket.ClientSocket("labjack",telescope_type)
     client='labjack'
     result=labjack_client.send_command('ok')
     if 'Error' in result:
@@ -34,7 +34,9 @@ if ('Error' in result1) or ('Error' in result2):
 def quit_command():
     if client=='uber':
         uber_client.send_command('setDomeTracking off')
+        time.sleep(1)
         uber_client.send_command('labjack dome home')
+        time.sleep(1)
         uber_client.send_command('override_wx off')
     else:
         labjack_client.send_command('labjack dome home')
@@ -86,19 +88,18 @@ class Application(Tkinter.Frame):
         self.domeframe.grid(column=0,row=1, columnspan=1,rowspan=1)#sticky=Tkinter.SW)
         
         #Radiobuttons for improved pointing slits.
-        self.sidecamframe=Tkinter.LabelFrame(self, text='Improve Pointing',labelanchor='n')
-        self.sidecamvar=Tkinter.IntVar()
-        self.Reyepiece=Tkinter.Radiobutton(self.sidecamframe, text='Eyepiece',value=1,variable=self.sidecamvar)
-        self.Reyepiece.grid()
-        self.Rfiberfeed=Tkinter.Radiobutton(self.sidecamframe, text='Fiberfeed',value=2,variable=self.sidecamvar)
-        self.Rfiberfeed.grid()
-        self.Psubmit=Tkinter.Button(self.sidecamframe, text='Submit',command=self.pointing_command)
+        self.domefixframe=Tkinter.LabelFrame(self, text='Stop/Fix Dome',labelanchor='n')
+        self.moreinfo=Tkinter.Label('Press this button\nif dome does\nnot stop rotating')
+        self.Psubmit=Tkinter.Button(self.domefixframe, text='Submit',command=self.domestop_command)
         self.Psubmit.grid()
-        self.sidecamframe.grid(column=1,row=0, columnspan=1,rowspan=1)#sticky=Tkinter.NE)
+        self.domefixframe.grid(column=1,row=0, columnspan=1,rowspan=1)#sticky=Tkinter.NE)
 
         #focuser button
         self.focusButton=Tkinter.Button(self, text='Reset Focuser',command=self.focuser_command)
         self.focusButton.grid(column=1,row=1)
+        #reconnection button
+        self.reconnectButton=Tkinter.Button(self, text='Reconnect to server',command=self.reconnect_command)
+        self.reconnectButton.grid(column=1,row=1)
         #quit button
         self.quitButton=Tkinter.Button(self, text='Quit',command=quit_command)
         self.quitButton.grid(column=1,row=2)
@@ -124,7 +125,10 @@ class Application(Tkinter.Frame):
         else: response = uber_client.send_command('labjack slits '+t)
         #if the word 'slits' is not on the response, something went wrong
         if 'slits' not in response:
-            tkMessageBox.showinfo('ERROR','Unsucessful attempt at changing the slits position. Check if labjack server is on and that the slits are powered up')
+            uber_client = client_socket.ClientSocket("uber",telescope_type)
+            response_after = uber_client.send_command('labjack slits'+t)
+            if 'slits' not in response_after:
+                tkMessageBox.showinfo('ERROR','Unsucessful attempt at changing the slits position. Check if labjack server is on and that the slits are powered up')
         else:
             self.globallabel.config(text='Instruction to '+t+' slits sent!')
 
@@ -136,9 +140,13 @@ class Application(Tkinter.Frame):
         else:
             t='off'
         #talk to labjack, send intructions
-        response = uber_client.send_command('setDomeTracking '+t)
+        try: response = uber_client.send_command('setDomeTracking '+t)
+        except Exception: pass
         #if the word 'slits' is not on the response, something went wrong
         if 'Tracking' not in response:
+            uber_client = client_socket.ClientSocket("uber",telescope_type)
+            response_after = uber_client.send_command('setDomeTracking '+t)
+            if 'Tracking' not in response_after:         
             tkMessageBox.showinfo('ERROR','Unsucessful attempt at setting the dome tracking status. Check if the uber server is on.')
         else:
             self.globallabel.config(text='Instruction to turn '+t+' dome tracking sent!')
@@ -152,27 +160,38 @@ class Application(Tkinter.Frame):
     #Function that is triggered upon pressing the 'Reset Focuser' button
     def focuser_command(self):
         #talk to uber, send intructions
-        response = uber_client.send_command('telescope focusGoToPosition 4000')
+        response = uber_client.send_command('telescope focusGoToPosition 1000')
         #if the word 'slits' is not on the response, something went wrong
         if 'complete' not in response:
-            tkMessageBox.showinfo('ERROR','Unsucessful attempt at resetting the focuser. Check if the uber server is on.')
+            uber_client = client_socket.ClientSocket("uber",telescope_type)
+            response_after = uber_client.send_command('telescope focusGoToPosition 1000')
+            if 'complete' not in response_after:
+                tkMessageBox.showinfo('ERROR','Unsucessful attempt at resetting the focuser. Check if the uber server is on.')
         else:
             self.globallabel.config(text='Instruction to reset the focuser sent!')
 
     #Function that is triggered upon pressing the 'submit' button on the pointing frame
-    def pointing_command(self):
-        v=self.sidecamvar.get()
-        if v ==1:
-            t='eyepiece'
-        else:
-            t='fiberfeed'
+    def domestop_command(self):
         #talk to labjack, send intructions
-        response = uber_client.send_command('offset '+t)
+        response = uber_client.send_command('labjack dome stop')
         #if the word 'slits' is not on the response, something went wrong
-        if 'sucessfully' not in response:
-            tkMessageBox.showinfo('ERROR','Unsucessful attempt at improving the pointing. Check if the uber server is on.')
+        if 'stopped' not in response:
+            uber_client = client_socket.ClientSocket("uber",telescope_type)
+            response_after = uber_client.send_command('labjack dome stop')
+            if 'stopped' not in response_after:
+                tkMessageBox.showinfo('ERROR','Unsucessful attempt at stopping dome. Check if the uber server is on.')
         else:
-            self.label.config(text='Instruction to improve pointing sent!')
+            self.label.config(text='Instruction to stop dome sent!')
+    
+    def reconnect_command(self):
+        #try reconnecting to the servers
+        try: uber_client = client_socket.ClientSocket("uber",telescope_type)
+        except Exception: pass
+        response = uber_client.send_command('labjack ok')
+        if 'reset' in response:
+            self.globallabel.config(text='Successfully reconnected to the uber server')
+        else:
+            self.globallabel.config(text='Can not connect to uber server. Check that it is working.')
 
 #go!
 app= Application()
