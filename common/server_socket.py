@@ -56,13 +56,15 @@ class ServerSocket:
 			return data
 		else:
 		#handle all other sockets
-			data = str(s.recv(1024))
+			try: data = str(s.recv(1024))
+			except Exception: data=0
 			if data:
 				return data
 			else:
 				s.close()
 				self.input.remove(s)
 				self.clients.remove(s)
+				self.log("A client has left, number of clients connected: "+str(len(self.clients)))
 				return 0
 
 #We will use this to log what is happening in a file with a timestamp, but for now, print to screen
