@@ -33,6 +33,7 @@ dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_MODE","UPLOAD_BOTH","Off
 dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_MODE","UPLOAD_LOCAL","On")
 dummy=indi.set_and_send_text("SX CCD SXVR-H694","CCD_COOLER","COOLER_ON","On")
 dummy=indi.set_and_send_text("SX CCD SXVR-H694","CCD_COOLER","COOLER_OFF","Off")
+dummy=indi.set_and_send_float("SX CCD SXVR-H694","CCD_BINNING","HOR_BIN",2)
 if not os.path.exists('./images/'):
                 dummy=subprocess.call('mkdir ./images', shell=True)
 dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_SETTINGS","UPLOAD_DIR","images")

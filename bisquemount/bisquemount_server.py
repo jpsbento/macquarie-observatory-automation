@@ -17,7 +17,7 @@ import numpy as np
 #Open port 0 at "9600,8,N,1", timeout of 5 seconds
 #Open port connected to the mount
 try: 
-        ser = serial.Serial('/dev/ttyUSB1',9600, timeout = 100) # non blocking serial port, will wait
+        ser = serial.Serial('/dev/ttyUSB0',9600, timeout = 100) # non blocking serial port, will wait
         print ser.portstr       # check which port was rea3lly used
         # we open a serial port to talk to the focuser
 
@@ -28,6 +28,7 @@ ipaddress=parameterfile.ipaddress
 
 
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # This client_socket is to communicate with the windows machine
+print 'Connecting to ip address: '+ipaddress
 client_socket.connect((ipaddress,3040))			  # running 'TheSkyX'. If it doesn't receive a response after 50 mins
 client_socket.settimeout(3000)					  # I need to make it do something
 class BisqueMountServer:
