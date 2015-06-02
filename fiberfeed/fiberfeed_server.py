@@ -74,7 +74,7 @@ class FiberFeedServer:
         dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/15","Off")
         dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/30","On")
         #self.exptime=0.033
-        dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Gain',1023)
+        dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Gain',300)
         dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Brightness',0)
         #dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Gamma',100)
         #return True
@@ -143,7 +143,7 @@ class FiberFeedServer:
 	def cmd_adjustExposure(self, the_command):
 		'''This function will adjust the exposure time of the camera until the brightest pixel is between a given range, close to the 8 bit resolution maximum of the imagingsource cameras (255). Takes no inputs'''
                 print 'Resetting Gain to maximum'
-                dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Gain',1023)
+                dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Gain',300)
 		max_pix=0
 		direction=0
 		direction_old=0
