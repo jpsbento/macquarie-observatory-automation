@@ -13,7 +13,8 @@ import u3
 import u6
 import ei1050
 import math
-import time
+import time, os
+import numpy as np
 import parameterfile
 
 labjack_model=parameterfile.labjack_model
@@ -53,7 +54,6 @@ LJ.getFeedback(LJclass.Timer0Config(8), LJclass.Timer1Config(8)) #Sets up the do
 # So for now, setting the DAC reigster to zero is to activate movement, and setting them to 2 
 # halts movement
 
-
 #***********************************************************************#
 #2) Now define our main class, the LabjackServer.
 class LabjackServer:
@@ -74,7 +74,6 @@ class LabjackServer:
 	home_sensor_count = 0		     	# Whenever the homing sensor is activated the Counter0 labjack output changes 
 					    	# by a positive amount, so every time the number changes, we know we've hit home.
 					     	# home_sensor_count keeps track of this change
-
 	homing = False
 	watchdog_last_time = time.time()        # The watchdog timer.
 	watchdog_max_delta = 10000                # more than this time between communications means there is a problem
@@ -82,6 +81,13 @@ class LabjackServer:
         slits_moving=False                      #boolean that stores whether the slits are moving. Similar to dome_moving
         slits_opening_duration=parameterfile.slits_opening_duration #time it takes for the slits to open
         dome_park_position=parameterfile.dome_park_position      #Position that the dome should be left in at the end of the night
+        if not os.path.isfile('dome_status.txt'):
+                np.savetxt('dome_status.txt',[0,0,False])
+        #Recover information since last labjack crash
+        total_counts_offset,since_last_offset,slits_state=np.loadtxt('dome_status.txt')
+        #if slits_state: cmd_slits('slits open')
+
+
 
 #*************************************** List of user commands ***************************************#
 
@@ -152,9 +158,8 @@ class LabjackServer:
                                 counts_to_move_temp = self.analyse_dome_command(float(self.dome_park_position))
 			counts_to_move_temp = self.analyse_dome_command(user_command)
 			print str(counts_to_move_temp)
-			try: counts_to_move_temp = int(counts_to_move_temp)
+			try: counts_to_move_temp = int(float(counts_to_move_temp))
 			except Exception: return 'ERROR'
-
 			self.counts_at_start = self.total_counts
 			self.dome_moving = True #This will tell background task 'dome_location' to call task 'dome_moving'
 			self.counts_to_move = counts_to_move_temp
@@ -217,7 +222,7 @@ class LabjackServer:
 			      print 'Slits stopped'
                         else: return 'Invalid labjack model. This command does not work on U3'
 		else: return 'ERROR'
-
+        
 	def cmd_ok(self, the_command):
 		'''Let the labjack know that all is OK and the slits can stay open'''
 		self.watchdog_last_time = time.time()
@@ -243,13 +248,24 @@ class LabjackServer:
 		self.total_counts = -int(raw_wheel_output[-1])
 		#print 'total counts: '+str(self.total_counts)
 		#print 'counts at last home: '+str(self.total_count_at_last_home)
-		current_position_temp = self.total_counts - self.total_count_at_last_home + self.slitoffset # what is our relative distance to home?
+                if self.home_sensor_count == 0:
+                        current_position_temp = self.total_counts+self.total_counts_offset - (self.total_count_at_last_home+self.since_last_offset) + self.slitoffset # what is our relative distance to home?
+                        np.savetxt('dome_status.txt',[self.total_counts+self.total_counts_offset,self.total_count_at_last_home+self.since_last_offset,self.slits_open])
+                else:
+                        current_position_temp = self.total_counts - self.total_count_at_last_home + self.slitoffset # what is our relative distance to home?
+                        np.savetxt('dome_status.txt',[self.total_counts,self.total_count_at_last_home,self.slits_open])
 		#print 'current position temp: '+str(current_position_temp)
 		if current_position_temp < 0: current_position_temp = int(360*self.counts_per_degree) + current_position_temp
 		if current_position_temp > int(360*self.counts_per_degree): current_position_temp = current_position_temp - int(360*self.counts_per_degree)
 		self.current_position = current_position_temp
+                #If we have homed, update the dome status to file, so that in a crash we know where the dome was.
 		#print 'current position: '+str(self.current_position)
 		#print '\n'
+                
+                #On the first run of this function, if the slits were open when the program crashed, open them again.
+                if self.slits_state: 
+                        self.cmd_slits('slits open')
+                        self.slits_state=False                
  		if self.dome_moving == True:
 
 			if self.counts_to_move <= 0:
@@ -301,7 +317,9 @@ class LabjackServer:
 			print 'Dome homed'
 			self.home_sensor_count = int(str( (LJ.getFeedback( LJclass.Counter0() ))[0] ))
 			self.total_count_at_last_home = self.total_counts # We have a new count as our zero reference point
-			if self.homing:
+                        self.total_counts_offset=0
+                        self.since_last_offset=0
+ 			if self.homing:
 				self.dome_relays("stop")
 				self.homing = False
 
