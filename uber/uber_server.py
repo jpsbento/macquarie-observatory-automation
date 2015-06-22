@@ -603,7 +603,7 @@ class UberServer:
 			logging.info('current location images taken for sidecam.')
 			print 'current location images taken for sidecam.'
 			try: 
-				moving=str.split(self.sidecam_client.send_command('starDistanceFromCenter test'+sideofmeridian))
+				moving=str.split(self.sidecam_client.send_command('starDistanceFromCenter test '+sideofmeridian))
 				dummy=float(moving[0])
 			except Exception: 
 				logging.error('ERROR: Failed to work out what the stellar distance to the optimal coordinates is')

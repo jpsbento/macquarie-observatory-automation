@@ -224,8 +224,8 @@ class SideCameraServer:
 		y_distance = float(target_ypixel) - ypixel_pos
 		vector_to_move = [x_distance, y_distance]
 		print vector_to_move 
-		if comands[2]=='east': self.axis_flip=1.; self.theta=0
-		else: self.axis_flip=1.; self.theta=math.pi
+		if comands[2]=='east': self.axis_flip=1.; self.theta=math.pi
+		else: self.axis_flip=-1.; self.theta=0
 		print self.axis_flip
 		self.transformation_matrix = [math.cos(self.theta), math.sin(self.theta), -1*math.sin(self.theta), math.cos(self.theta)]
 		translated_N = self.transformation_matrix[0]*x_distance + self.transformation_matrix[1]*y_distance
@@ -507,7 +507,7 @@ class SideCameraServer:
                 target_xpixel,target_ypixel = numpy.loadtxt('guiding_coords')
 		middle_x=target_xpixel
 		middle_y=target_ypixel
-		width=60
+		width=150
 		im_temp=im.copy()
 		im_temp[:middle_y-width/2]=0
 		im_temp[middle_y+width/2:]=0

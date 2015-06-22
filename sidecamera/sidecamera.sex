@@ -12,9 +12,9 @@ PARAMETERS_NAME  default.param  # name of the file containing catalog contents
 #------------------------------- Extraction ----------------------------------
  
 DETECT_TYPE      CCD            # CCD (linear) or PHOTO (with gamma correction)
-DETECT_MINAREA   1              # minimum number of pixels above threshold
-DETECT_THRESH    5            # <sigmas> or <threshold>,<ZP> in mag.arcsec-2
-ANALYSIS_THRESH  5            # <sigmas> or <threshold>,<ZP> in mag.arcsec-2
+DETECT_MINAREA   4              # minimum number of pixels above threshold
+DETECT_THRESH    4            # <sigmas> or <threshold>,<ZP> in mag.arcsec-2
+ANALYSIS_THRESH  4            # <sigmas> or <threshold>,<ZP> in mag.arcsec-2
  
 FILTER           N              # apply filter for detection (Y or N)?
 FILTER_NAME      default.conv   # name of the file containing the filter
@@ -30,21 +30,21 @@ MASK_TYPE        CORRECT        # type of detection MASKing: can be one of
  
 #------------------------------ Photometry -----------------------------------
  
-PHOT_APERTURES   5              # MAG_APER aperture diameter(s) in pixels
+PHOT_APERTURES   10              # MAG_APER aperture diameter(s) in pixels
 PHOT_AUTOPARAMS  2.5, 3.5       # MAG_AUTO parameters: <Kron_fact>,<min_radius>
 PHOT_PETROPARAMS 2.0, 3.5       # MAG_PETRO parameters: <Petrosian_fact>,
                                 # <min_radius>
  
-SATUR_LEVEL      255        # level (in ADUs) at which arises saturation
+SATUR_LEVEL      256        # level (in ADUs) at which arises saturation
  
 MAG_ZEROPOINT    0.0            # magnitude zero-point
 MAG_GAMMA        4.0            # gamma of emulsion (for photographic scans)
 GAIN             0.0            # detector gain in e-/ADU
-PIXEL_SCALE      120            # size of pixel in arcsec (0=use FITS WCS info)
+PIXEL_SCALE      20            # size of pixel in arcsec (0=use FITS WCS info)
  
 #------------------------- Star/Galaxy Separation ----------------------------
  
-SEEING_FWHM      100           # stellar FWHM in arcsec
+SEEING_FWHM      5           # stellar FWHM in arcsec
 STARNNW_NAME     default.nnw    # Neural-Network_Weight table filename
  
 #------------------------------ Background -----------------------------------
@@ -69,7 +69,7 @@ MEMORY_PIXSTACK  300000         # number of pixels in stack
 MEMORY_BUFSIZE   1024           # number of lines in buffer
  
 WEIGHT_IMAGE	weightmap.fits
-WEIGHT_TYPE	MAP_WEIGHT
+WEIGHT_TYPE	NONE
 
 #----------------------------- Miscellaneous ---------------------------------
  

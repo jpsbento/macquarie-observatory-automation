@@ -71,8 +71,8 @@ fiberfeed_model='21AU618.AS'
 
 ################ SIDECAM PARAMETERS #########
 
-sc_oneArcmininPixelsN = 1/2.  # This tells us how many pixels there are to one arcsecond in the North/South direction
-sc_oneArcmininPixelsE = 1/2.  # This tells us how many pixels there are to one arcsecond in the East/West direction
+sc_oneArcmininPixelsN = 2.  # This tells us how much one arcmin is in pixels in the North/South direction
+sc_oneArcmininPixelsE = 2.  # This tells us how much one arcmin is in pixels in the East/West direction
 
 ############################################
 
