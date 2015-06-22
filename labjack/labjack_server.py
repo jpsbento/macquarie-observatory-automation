@@ -25,20 +25,21 @@ labjack_model=parameterfile.labjack_model
 #   do different parts of the job. You's almost certainly *not* want to do 
 #   this.
 if labjack_model.upper()=='U3':
+	LJclass=u3
         LJ=u3.U3()
         LJ.setFIOState(u3.FIO7, state=0) #command to close slits. A good starting point.
         LJ.setFIOState(u3.FIO4, state=1) #command to stop movement
         LJ.setFIOState(u3.FIO5, state=1) #command to stop movement
+	LJ.configIO(NumberOfTimersEnabled = 2, EnableCounter0 = 1, TimerCounterPinOffset=8)
 
 elif labjack_model.upper()=='U6':
+	LJclass=u6
         LJ=u6.U6()
         LJ.setDIOState(1,0) #Command to power down the RF transmitter and stop slit movement.
-        
+	LJ.configIO(NumberTimersEnabled = 2, EnableCounter0 = 1, TimerCounterPinOffset=8)
         
 LJPROBE=ei1050.EI1050(LJ, enablePinNum=0, dataPinNum=1, clockPinNum=2) #Sets up the humidity probe
-LJ.configIO(NumberOfTimersEnabled = 2, EnableCounter0 = 1, TimerCounterPinOffset=8)
-LJ.getFeedback(u3.Timer0Config(8), u3.Timer1Config(8)) #Sets up the dome tracking wheel
-
+LJ.getFeedback(LJclass.Timer0Config(8), LJclass.Timer1Config(8)) #Sets up the dome tracking wheel
 
 #DAC0_REGISTER = 5000  # clockwise movement
 #DAC1_REGISTER = 5002  # anticlockwise movement
@@ -105,7 +106,7 @@ class LabjackServer:
 
 	def cmd_numHomes(self,the_command):
 		'''Return the number of times the dome home sensor has been pressed.'''
- 		#home_output = str( (LJ.getFeedback( u3.Counter0() ))[0] )
+ 		#home_output = str( (LJ.getFeedback( LJclass.Counter0() ))[0] )
 		return str(self.home_sensor_count)
 	
 
@@ -138,7 +139,7 @@ class LabjackServer:
 #			while self.homing:
 #				print 'home sensor count: '+str(self.home_sensor_count)
 #				print 'temp count: '+str(self.temp_home)
-#				print 'raw output: '+str( (LJ.getFeedback( u3.Counter0() ))[0] )
+#				print 'raw output: '+str( (LJ.getFeedback( LJclass.Counter0() ))[0] )
 #				if self.temp_home != self.home_sensor_count:
 #					self.homing = False
 #					self.dome_relays("stop")
@@ -226,17 +227,17 @@ class LabjackServer:
 		commands = str.split(the_command)
 		if len(commands) != 2: return 'ERROR'
 		if commands[1] == 'on':
-		#	LJ.setFIOState(u3.FIO7, state=1) waiting to install to define port			
+		#	LJ.setFIOState(LJclass.FIO7, state=1) waiting to install to define port			
 			return 'LED on'
 		elif commands[1] == 'off':
-			# LJ.setFIOState(u3.FIO7, state=0) waiting to install to define port			
+			# LJ.setFIOState(LJclass.FIO7, state=0) waiting to install to define port			
 			return 'LED off'
 		else: return 'ERROR'               
 		
 #******************************* End of user commands ********************************#              
 
 	def dome_location(self):
-		raw_wheel_output = LJ.getFeedback(u3.QuadratureInputTimer()) #This will constantly update the current position of the dome
+		raw_wheel_output = LJ.getFeedback(LJclass.QuadratureInputTimer()) #This will constantly update the current position of the dome
 
 		self.total_counts = -int(raw_wheel_output[-1])
 		#print 'total counts: '+str(self.total_counts)
@@ -295,9 +296,9 @@ class LabjackServer:
 		'''Return the number of times the dome home sensor has been pressed.'''
  		#home_output = int(str( (LJ.getFeedback( u3.Counter0() ))[0] ))
 		#print self.home_sensor_count
-		if int(str( (LJ.getFeedback( u3.Counter0() ))[0] )) != self.home_sensor_count:  # We've hit home!
+		if int(str( (LJ.getFeedback( LJclass.Counter0() ))[0] )) != self.home_sensor_count:  # We've hit home!
 			print 'Dome homed'
-			self.home_sensor_count = int(str( (LJ.getFeedback( u3.Counter0() ))[0] ))
+			self.home_sensor_count = int(str( (LJ.getFeedback( LJclass.Counter0() ))[0] ))
 			self.total_count_at_last_home = self.total_counts # We have a new count as our zero reference point
 			if self.homing:
 				self.dome_relays("stop")
