@@ -30,15 +30,16 @@ if labjack_model.upper()=='U3':
         LJ.setFIOState(u3.FIO7, state=0) #command to close slits. A good starting point.
         LJ.setFIOState(u3.FIO4, state=1) #command to stop movement
         LJ.setFIOState(u3.FIO5, state=1) #command to stop movement
+        LJPROBE=ei1050.EI1050(LJ, enablePinNum=0, dataPinNum=1, clockPinNum=2) #Sets up the humidity probe
 	LJ.configIO(NumberOfTimersEnabled = 2, EnableCounter0 = 1, TimerCounterPinOffset=8)
 
 elif labjack_model.upper()=='U6':
 	LJclass=u6
         LJ=u6.U6()
         LJ.setDIOState(1,0) #Command to power down the RF transmitter and stop slit movement.
+        LJPROBE=ei1050.EI1050(LJ, enablePinNum=0, dataPinNum=1, clockPinNum=2) #Sets up the humidity probe
 	LJ.configIO(NumberTimersEnabled = 2, EnableCounter0 = 1, TimerCounterPinOffset=8)
         
-LJPROBE=ei1050.EI1050(LJ, enablePinNum=0, dataPinNum=1, clockPinNum=2) #Sets up the humidity probe
 LJ.getFeedback(LJclass.Timer0Config(8), LJclass.Timer1Config(8)) #Sets up the dome tracking wheel
 
 #DAC0_REGISTER = 5000  # clockwise movement
