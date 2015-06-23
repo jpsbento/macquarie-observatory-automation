@@ -54,6 +54,7 @@ cd ../../
 sudo cp data/udev/80-theimagingsource-cameras.rules /etc/udev/rules.d/
 sudo service udev restart
 cd ~/
+sudo apt-get install python-pyds9
 
 
 --------------------INDI devices-------------------------

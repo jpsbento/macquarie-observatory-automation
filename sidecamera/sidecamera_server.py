@@ -4,6 +4,7 @@ import sys
 sys.path.append('../common/')
 import ImageCombination
 from indiclient import *
+from ds9 import *
 import time
 import pyfits
 import numpy
@@ -433,8 +434,6 @@ class SideCameraServer:
                         print 'started image',filename
                         while not os.path.isfile(filename+'.fits'):
                                 time.sleep(0.1)
-			#if show==True:
-			#	img.show()
                         im_temp=pyfits.getdata(filename+'.fits')
                         badmask=pyfits.getdata('badmask.fits')
                         im=im_temp*badmask
@@ -445,6 +444,9 @@ class SideCameraServer:
 				im=self.chop(im_temp)
 				os.system('rm '+filename+'.fits')
 				pyfits.writeto(filename+'.fits',im)
+                        if show:
+                                d=ds9(target='sidecam')
+                                d.set('file '+filename+'.fits')
 		return True
 
 	def analyseImage(self, input_image, outfile):
