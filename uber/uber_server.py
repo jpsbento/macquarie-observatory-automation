@@ -83,25 +83,31 @@ class UberServer:
 #***************************** A list of user commands *****************************#
 	def cmd_finishSession(self,the_command):
 		'''Command to stop the guiding, the imaging loop, close the slits, home the dome, park the telescope and stop the dome tracking.'''
-		try:
-			dummy = self.cmd_guiding('guiding off')
-			if self.exposing:
-				dummy=self.camera_client.send_command('abortExposure')
-			dummy = self.cmd_Imaging('Imaging off')
-			dummy = self.labjack_client.send_command('slits close')
-			self.dome_tracking=False
-			dummy = self.labjack_client.send_command('dome '+dome_park_position)
-			dummy = self.telescope_client.send_command('park')
-			self.override_wx=False
-		except Exception: 
-			logging.error('Failed to finish the session sucessfully')
-			return 'Failed to finish the session sucessfully'
-                        dummy=self.email_alert('Failure in function cmd_finishSession','Failed to finish session')
+		#try:
+                dummy = self.cmd_guiding('guiding off')
+                time.sleep(1)
+                if self.exposing:
+                        dummy=self.camera_client.send_command('abortExposure')
+                time.sleep(1)
+                dummy = self.cmd_Imaging('Imaging off')
+                time.sleep(1)
+                dummy = self.labjack_client.send_command('slits close')
+                self.dome_tracking=False
+                time.sleep(1)
+                dummy = self.labjack_client.send_command('dome '+self.dome_park_position)
+                time.sleep(1)
+                dummy = self.telescope_client.send_command('park')
+                self.override_wx=False
+		#except Exception: 
+		#	logging.error('Failed to finish the session sucessfully')
+		#	return 'Failed to finish the session sucessfully'
+                #        dummy=self.email_alert('Failure in function cmd_finishSession','Failed to finish session')
 		logging.info('Sucessfully finished session')
 		return 'Sucessfully finished session'
 	
 	def cmd_startSession(self,the_command):
 		'''Command to begin a session. It opens the slits, homes the dome, homes the telescope, resets the focuser and sets the dome tracking going.'''
+                print 'Starting session. Opening slits, homing dome, homing telescope and resetting focuser. Wait until telescope is done homing.'
 		try:
 			dummy = self.cmd_guiding('guiding off')
 			dummy = self.labjack_client.send_command('slits open')
@@ -114,8 +120,8 @@ class UberServer:
 			logging.error('Failed to initiate the session sucessfully')
 			return 'Failed to initiate the session sucessfully'
                         dummy=self.email_alert('Failure in function cmd_startSession','Failed to start session')
-		logging.info('Sucessfully initiated session. You should wait a little bit for the dome and telescope to stop moving before trying anything else.')
-		return 'Sucessfully initiated session. You should wait a little bit for the dome and telescope to stop moving before trying anything else.'
+		logging.info('Sucessfully initiated session.')
+		return 'Sucessfully initiated session.'
 
 	def cmd_reconnect(self,the_command):
 		'''Command to force a reconnection to a server. The server options are "labjack", "telescope", "sidecam", "camera", "fiberfeed", "labjacku6" and "weatherstation"'''
