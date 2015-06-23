@@ -569,7 +569,7 @@ class UberServer:
 		'''Function to move improve the pointing for TPoint model purposes. Based on the MasterAlign function.
 
 		This function will require more thorough checks along the way. This will be added whilst this is being tested.'''
-		try: self.sidecam_client.send_command('Chop on')
+		try: self.sidecam_client.send_command('Chop off')
 		except Exception: 
 			logging.error('ERROR: Failed to set the image chopping on the sidecam')
 			return 'ERROR: Failed to set the image chopping on the sidecam'
