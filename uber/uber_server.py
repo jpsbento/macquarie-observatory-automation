@@ -601,6 +601,7 @@ class UberServer:
 			else: sideofmeridian='east'
 			print sideofmeridian
 		except Exception: print 'Unable to query objInfo for east or west of meridian'
+                attempts=0
 		while distance>0.3:
 			try: self.sidecam_client.send_command('imageCube test 10')
 			except Exception: 
@@ -626,6 +627,9 @@ class UberServer:
 			except Exception:
 				logging.error('ERROR: Failed to move telescope to desired coordinates')
 				return 'ERROR: Failed to move telescope to desired coordinates'
+                        if attempts==9:
+                                return 'Attempted this too many times. might be worth trying again...'
+                        attempts+=1
 		logging.info('successfully moved telescope to location')
 		return 'successfully moved telescope to location'
 
