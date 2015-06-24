@@ -325,7 +325,7 @@ s		the error conditions (bits 1 through 3 only).'''
 		commands = str.split(the_command)
 		if len(commands)<2: return 'This function takes a single argument with the object name'
 		dummy=self.cmd_find('find '+' '.join(commands[1:]))
-                if ('not found' in dummy) or ('Error' in dummy):
+                if ('not found' in dummy):
                         return 'Unable to identify object. Please try a different object name'
 		if 'ERROR' in dummy: return 'Unsuccessful attempt at finding object of interest' 
 		#get the dictionary of object properties from TheSkyX
