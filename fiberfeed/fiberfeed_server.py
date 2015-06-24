@@ -14,15 +14,19 @@ import socket,subprocess
 import commands
 
 import parameterfile
+failed=False
 #Try to connect to the camera
 try: 
         indi=indiclient("localhost",7779)
         video_dev=os.popen('uvcdynctrl -l | grep '+parameterfile.fiberfeed_model).read().split('DM')[0].strip()
-        dummy=indi.set_and_send_text("V4L2 CCD","DEVICE_PORT","PORT","/dev/"+video_dev)
-        dummy=indi.set_and_send_text("V4L2 CCD","CONNECTION","CONNECT","On")
-        dummy=indi.set_and_send_text("V4L2 CCD","CONNECTION","DISCONNECT","Off")
-        #set the camera saving images locally instead of sending them onto some sort of client. This is not designed to have a client. 
-        print 'successfully connected to camera'
+        if len(video_dev)>0:
+                dummy=indi.set_and_send_text("V4L2 CCD","DEVICE_PORT","PORT","/dev/"+video_dev)
+                dummy=indi.set_and_send_text("V4L2 CCD","CONNECTION","CONNECT","On")
+                dummy=indi.set_and_send_text("V4L2 CCD","CONNECTION","DISCONNECT","Off")
+                #set the camera saving images locally instead of sending them onto some sort of client. This is not designed to have a client. 
+                print 'successfully connected to camera'
+        else:
+                print 'Can not connect to camera, camera might not connected!'
 except Exception: print 'Can not connect to camera'
 time.sleep(1)
 #Check connection
@@ -30,21 +34,24 @@ try:
         result=indi.get_text("V4L2 CCD","CONNECTION","CONNECT")
         if result=='Off':
                 print 'Unable to connect to imagingsource side camera'
+                failed=True
 except Exception: print 'Unable to check camera connection'
 
-#set up some options that should not change often
-dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_MODE","UPLOAD_CLIENT","Off")
-dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_MODE","UPLOAD_BOTH","Off")
-dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_MODE","UPLOAD_LOCAL","On")
-#dummy=indi.set_and_send_text("V4L2 CCD","CCD_COOLER","COOLER_ON","On")
-#dummy=indi.set_and_send_text("V4L2 CCD","CCD_COOLER","COOLER_OFF","Off")
-if not os.path.exists('./program_images/'):
-                dummy=subprocess.call('mkdir ./program_images', shell=True)
-dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_SETTINGS","UPLOAD_DIR",".")
-dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_SETTINGS","UPLOAD_PREFIX","TEMPIMAGE")
-dummy=indi.set_and_send_text("V4L2 CCD","MENU000","MENU000_OPT001","Off")
-dummy=indi.set_and_send_text("V4L2 CCD","MENU000","MENU000_OPT000","On")
+if result!='Off':
+        #set up some options that should not change often
+        dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_MODE","UPLOAD_CLIENT","Off")
+        dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_MODE","UPLOAD_BOTH","Off")
+        dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_MODE","UPLOAD_LOCAL","On")
+        #dummy=indi.set_and_send_text("V4L2 CCD","CCD_COOLER","COOLER_ON","On")
+        #dummy=indi.set_and_send_text("V4L2 CCD","CCD_COOLER","COOLER_OFF","Off")
+        if not os.path.exists('./program_images/'):
+                        dummy=subprocess.call('mkdir ./program_images', shell=True)
+        dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_SETTINGS","UPLOAD_DIR",".")
+        dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_SETTINGS","UPLOAD_PREFIX","TEMPIMAGE")
+        dummy=indi.set_and_send_text("V4L2 CCD","MENU000","MENU000_OPT001","Off")
+        dummy=indi.set_and_send_text("V4L2 CCD","MENU000","MENU000_OPT000","On")
 
+        
 class FiberFeedServer:
 
 	magnitude_conversion = 0 # How to convert from the magnitude iraf gives out and the actual magnitude of a star.
@@ -67,21 +74,22 @@ class FiberFeedServer:
 
 	exptime=0.033
 
-	#Set the default camera settings here
-        #def default_settings(self):
-        dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","2/15","Off")
-        dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","4/15","Off")
-        dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/60","Off")
-        dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/15","Off")
-        dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/30","On")
-        #self.exptime=0.033
-        dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Gain',300)
-        dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Brightness',0)
-        #dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Gamma',100)
-        #return True
+	if result!='Off':
+                #Set the default camera settings here
+                #def default_settings(self):
+                dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","2/15","Off")
+                dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","4/15","Off")
+                dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/60","Off")
+                dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/15","Off")
+                dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/30","On")
+                #self.exptime=0.033
+                dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Gain',300)
+                dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Brightness',0)
+                #dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Gamma',100)
+                #return True
 
-        #dummy= self.default_settings()
-        #except Exception: print 'Unable to set the default settings'
+                #dummy= self.default_settings()
+                #except Exception: print 'Unable to set the default settings'
 	image_chop=False
         
 	# writing all these in arrays shortens the code later on

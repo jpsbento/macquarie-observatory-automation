@@ -10,7 +10,7 @@ import os,subprocess
 #import the tools to do time and coordinate transforms
 import ctx
 
-
+failed=False
 #Try to connect to the camera
 try: 
         indi=indiclient("localhost",7777)
@@ -25,19 +25,21 @@ try:
         result=indi.get_text("SX CCD SXVR-H694","CONNECTION","CONNECT")
         if result=='Off':
                 print 'Unable to connect to SX camera'
+                failed=True
 except Exception: print 'Unable to check camera connection'
 
-#set up some options that should not change often
-dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_MODE","UPLOAD_CLIENT","Off")
-dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_MODE","UPLOAD_BOTH","Off")
-dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_MODE","UPLOAD_LOCAL","On")
-dummy=indi.set_and_send_text("SX CCD SXVR-H694","CCD_COOLER","COOLER_ON","On")
-dummy=indi.set_and_send_text("SX CCD SXVR-H694","CCD_COOLER","COOLER_OFF","Off")
-dummy=indi.set_and_send_float("SX CCD SXVR-H694","CCD_BINNING","HOR_BIN",2)
-if not os.path.exists('./images/'):
-                dummy=subprocess.call('mkdir ./images', shell=True)
-dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_SETTINGS","UPLOAD_DIR","images")
-dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_SETTINGS","UPLOAD_PREFIX","TEMPIMAGE")
+if result!='Off':
+        #set up some options that should not change often
+        dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_MODE","UPLOAD_CLIENT","Off")
+        dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_MODE","UPLOAD_BOTH","Off")
+        dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_MODE","UPLOAD_LOCAL","On")
+        dummy=indi.set_and_send_text("SX CCD SXVR-H694","CCD_COOLER","COOLER_ON","On")
+        dummy=indi.set_and_send_text("SX CCD SXVR-H694","CCD_COOLER","COOLER_OFF","Off")
+        dummy=indi.set_and_send_float("SX CCD SXVR-H694","CCD_BINNING","HOR_BIN",2)
+        if not os.path.exists('./images/'):
+                        dummy=subprocess.call('mkdir ./images', shell=True)
+        dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_SETTINGS","UPLOAD_DIR","images")
+        dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_SETTINGS","UPLOAD_PREFIX","TEMPIMAGE")
 
 
 

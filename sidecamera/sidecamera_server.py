@@ -14,6 +14,7 @@ import socket,subprocess
 import commands
 
 import parameterfile
+failed=False
 #Try to connect to the camera
 try: 
         indi=indiclient("localhost",7778)
@@ -30,20 +31,22 @@ try:
         result=indi.get_text("V4L2 CCD","CONNECTION","CONNECT")
         if result=='Off':
                 print 'Unable to connect to imagingsource side camera'
+                failed=True
 except Exception: print 'Unable to check camera connection'
 
-#set up some options that should not change often
-dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_MODE","UPLOAD_CLIENT","Off")
-dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_MODE","UPLOAD_BOTH","Off")
-dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_MODE","UPLOAD_LOCAL","On")
-#dummy=indi.set_and_send_text("V4L2 CCD","CCD_COOLER","COOLER_ON","On")
-#dummy=indi.set_and_send_text("V4L2 CCD","CCD_COOLER","COOLER_OFF","Off")
-if not os.path.exists('./images/'):
-                dummy=subprocess.call('mkdir ./program_images', shell=True)
-dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_SETTINGS","UPLOAD_DIR",".")
-dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_SETTINGS","UPLOAD_PREFIX","TEMPIMAGE")
-dummy=indi.set_and_send_text("V4L2 CCD","MENU000","MENU000_OPT001","Off")
-dummy=indi.set_and_send_text("V4L2 CCD","MENU000","MENU000_OPT000","On")
+if result!='Off':
+        #set up some options that should not change often
+        dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_MODE","UPLOAD_CLIENT","Off")
+        dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_MODE","UPLOAD_BOTH","Off")
+        dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_MODE","UPLOAD_LOCAL","On")
+        #dummy=indi.set_and_send_text("V4L2 CCD","CCD_COOLER","COOLER_ON","On")
+        #dummy=indi.set_and_send_text("V4L2 CCD","CCD_COOLER","COOLER_OFF","Off")
+        if not os.path.exists('./images/'):
+                        dummy=subprocess.call('mkdir ./program_images', shell=True)
+        dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_SETTINGS","UPLOAD_DIR",".")
+        dummy=indi.set_and_send_text("V4L2 CCD","UPLOAD_SETTINGS","UPLOAD_PREFIX","TEMPIMAGE")
+        dummy=indi.set_and_send_text("V4L2 CCD","MENU000","MENU000_OPT001","Off")
+        dummy=indi.set_and_send_text("V4L2 CCD","MENU000","MENU000_OPT000","On")
 
 
 
@@ -67,17 +70,18 @@ class SideCameraServer:
 	#
 	# Transformation matrix is a rotation matrix.
 	
-        #def default_settings(self):
+        if result!='Off':
+                #def default_settings(self):
                 #Function to set the default values for the camera
-        dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","2/15","Off")
-        dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/60","Off")
-        dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","4/15","Off")
-        dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/15","Off")
-        dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/30","On")
-        exptime=0.033
-        dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Gain',1023)
-        dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Brightness',0)
-        dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Gamma',100)
+                dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","2/15","Off")
+                dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/60","Off")
+                dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","4/15","Off")
+                dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/15","Off")
+                dummy=indi.set_and_send_text("V4L2 CCD","V4L2_FRAMEINT_DISCRETE","1/30","On")
+                exptime=0.033
+                dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Gain',1023)
+                dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Brightness',0)
+                dummy=indi.set_and_send_float('V4L2 CCD','Image Adjustments','Gamma',100)
                 #return True
 
         #try: dummy=self.default_settings()

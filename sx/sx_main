@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #This is the main program. It should be *very* simple.
-import subprocess, atexit
+import subprocess, atexit,sys
 import commands, os
 
 #the following lines establish a link with the camera via the USB port, these run 
@@ -15,9 +15,15 @@ try:
                 #procs=[indiserver_process]
 except Exception: print 'Unable to start indi server'
 
+def kill_everything(ss,server,process):
+        server.indi.quit()
+        ss.close()
+        process.terminate()
+        returncode = process.wait()
+        print 'Successfully terminated the indiserver with return code: %s' % returncode
+        sys.exit()
 
 import sx_server
-import sys
 sys.path.append('../common')
 import server_socket
 import find_port
@@ -26,9 +32,9 @@ Port = f.findPort('sx')
 sx=sx_server.SX()
 ss=server_socket.ServerSocket(Port, 'sx', sx)	
 ss.add_job(sx.checkIfFinished)
+if sx_server.failed:
+        kill_everything(ss,sx_server,indiserver_process)
 try: ss.run()
 except KeyboardInterrupt:
-        sx_server.indi.quit()
-        ss.close()
-sx_server.indi.quit()
-ss.close()
+        kill_everything(ss,sx_server,indiserver_process)
+kill_everything(ss,sx_server,indiserver_process)

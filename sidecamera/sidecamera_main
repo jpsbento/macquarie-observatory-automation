@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #This is the main program. It should be *very* simple.
-import subprocess, atexit
+import subprocess, atexit,sys
 import commands, os
 
 
@@ -16,9 +16,16 @@ try:
                 #procs=[indiserver_process]
 except Exception: print 'Unable to start indi server for sidecam'
 
+def kill_everything(ss,server,process):
+        server.indi.quit()
+        ss.close()
+        process.terminate()
+        returncode = process.wait()
+        print 'Successfully terminated the indiserver with return code: %s' % returncode
+        sys.exit()
+
 
 import sidecamera_server
-import sys
 sys.path.append('../common/')
 import server_socket
 import find_port
@@ -26,9 +33,9 @@ f = find_port.FindPort()
 Port = f.findPort('sidecamera')
 isc=sidecamera_server.SideCameraServer()
 ss=server_socket.ServerSocket(Port, 'sidecamera', isc)	
+if sidecamera_server.failed:
+        kill_everything(ss,sidecamera_server,indiserver_process)
 try: ss.run()
 except KeyboardInterrupt: 
-        sidecamera_server.indi.quit()
-        ss.close()
-sidecamera_server.indi.quit()
-ss.close()
+        kill_everything(ss,sidecamera_server,indiserver_process)
+kill_everything(ss,sidecamera_server,indiserver_process)
