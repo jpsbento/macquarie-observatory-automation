@@ -330,7 +330,8 @@ s		the error conditions (bits 1 through 3 only).'''
 		if 'ERROR' in dummy: return 'Unsuccessful attempt at finding object of interest' 
 		#get the dictionary of object properties from TheSkyX
 		d=ast.literal_eval(self.cmd_objInfo('objInfo'))
-		if d['ALT']<0.0: return 'Unable to slew. Object below the horizon!'
+		if float(d['ALT'])<0.0: return 'Unable to slew. Object below the horizon!'
+                print d['ALT']
 		#slew the telescope
 		result=self.cmd_slewToRaDec('slewToRaDec '+str(d['RA_2000'])+' '+str(d['DEC_2000']))
 		if 'ERROR' in result: return 'Unable to slew the telescope to the intended target'
