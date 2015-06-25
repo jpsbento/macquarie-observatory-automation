@@ -229,10 +229,10 @@ class SideCameraServer:
 		y_distance = float(target_ypixel) - ypixel_pos
 		vector_to_move = [x_distance, y_distance]
 		print vector_to_move 
-		if comands[2]=='east': self.axis_flip=1.; self.theta=0
-		else: self.axis_flip=1.; self.theta=math.pi
-		print self.axis_flip
-		self.transformation_matrix = [math.cos(self.theta), math.sin(self.theta), -1*math.sin(self.theta), math.cos(self.theta)]
+		#if comands[2]=='east': self.axis_flip=1.; self.theta=0
+		#else: self.axis_flip=1.; self.theta=math.pi
+		#print self.axis_flip
+		#self.transformation_matrix = [math.cos(self.theta), math.sin(self.theta), -1*math.sin(self.theta), math.cos(self.theta)]
 		translated_N = self.transformation_matrix[0]*x_distance + self.transformation_matrix[1]*y_distance
 		translated_E =  (self.transformation_matrix[2]*x_distance + self.transformation_matrix[3]*y_distance)*self.axis_flip
 		#Need to convert distance into coordinates for the telescope orientation
