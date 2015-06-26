@@ -900,11 +900,8 @@ class UberServer:
 	def monitor_slits(self):
 		'''This will be a background task that monitors the output from the weatherstation and will decide whether
 		it is safe to keep the slits open or not'''
-		try: slits_opened = self.labjack_client.send_command('slits').split()[0]
-		except Exception: 
-			logging.error('Could not query the status of the slits from Labjack.')
-			print 'Could not query the status of the slits from Labjack.'
-                        dummy=self.email_alert('Failure in function monitor_slits','Failed to query the status of the slits from Labjack')
+                try: slits_opened=self.labjack_client.send_command('slits').split()[0]
+                except Exception: slits_opened='None'
 		if (not self.override_wx) & (slits_opened=='True'):
 			try: weather = self.weatherstation_client.send_command('safe')
 			except Exception: 

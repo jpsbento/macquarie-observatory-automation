@@ -31,7 +31,7 @@ slits_opening_duration=45  #Time it takes for the slits to open (Irrelevant for 
 counts_per_degree = 10.9   	# how many counts from the wheel encoder there is to a degree. 11.83 for 16" dome. 10.9 for 12" dome. 
 
 
-slitoffset = 92.93    # The position, in degrees, of the slits when the home switch is activated. 68.83 for 16" dome. 92.93 for 12" dome.
+slitoffset = 85.93    # The position, in degrees, of the slits when the home switch is activated. 68.83 for 16" dome. 85.93 for 12" dome.
 
 
 ########################################
