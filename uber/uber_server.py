@@ -1137,6 +1137,7 @@ class UberServer:
 			time.sleep(0.5)
 			a=pyfits.getheader('../sx/images/'+self.old_filename+'.fits')
 			if not 'TELESCOP' in a:
+                                dummy=self.cmd_ippower('ippower HgAr off')
 				im=pyfits.open('../sx/images/'+self.old_filename+'.fits',mode='update')
 				h=im[0].header
 				h.update('TELESCOP', 'Meade LX200 f/10 16 inch', 'Which telescope used')
