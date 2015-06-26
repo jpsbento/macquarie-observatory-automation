@@ -53,7 +53,7 @@ class SX:
 	shutter_position='Closed'
 	filename='None'
         imtype='none'
-	gain='Unknown'
+	gain=0.3
 	exposure_active=False
         #FUNCTIONS: the following two functions are used in the imaging process, they relate to filenames and prevet crashes 
 	#when there are typos in directories or	duplicate filenames
@@ -268,7 +268,7 @@ class SX:
                 hdu=im[0]
 		#sets up fits header. Most things are self explanatory
 		#This ensures that any headers that can be populated at this time are actually done.
-		hdu.header.update('EXPTIME', self.endTime-self.startTime, comment='The frame exposure time in seconds')	
+		#hdu.header.update('EXPTIME', self.endTime-self.startTime, comment='The frame exposure time in seconds')	
 		hdu.header.update('ETINSTRU',float(self.exposureTime), 'Instructed exposure time in seconds')
 		hdu.header.update('NAXIS1', indi.get_float("SX CCD SXVR-H694","CCD_FRAME","WIDTH"), comment='Width of the CCD in pixels')
 		hdu.header.update('NAXIS2', indi.get_float("SX CCD SXVR-H694","CCD_FRAME","HEIGHT"), comment='Height of the CCD in pixels')
