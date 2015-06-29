@@ -31,7 +31,7 @@ slits_opening_duration=45  #Time it takes for the slits to open (Irrelevant for 
 counts_per_degree = 10.9   	# how many counts from the wheel encoder there is to a degree. 11.83 for 16" dome. 10.9 for 12" dome. 
 
 
-slitoffset = 92.93    # The position, in degrees, of the slits when the home switch is activated. 68.83 for 16" dome. 92.93 for 12" dome.
+slitoffset = 85.93    # The position, in degrees, of the slits when the home switch is activated. 68.83 for 16" dome. 85.93 for 12" dome.
 
 
 ########################################
@@ -50,11 +50,11 @@ ipaddress="10.238.16.13"         #This is the ip address of the windows machine
 #position of the cross over point of the two axes of the mount. Either alt and az or RA and DEC.
 mountCenterX = 0 #Positive to North. Dimensions in metres
 mountCenterY = 0 #Positive to East. Dimensions in metres
-mountCenterZ = -0.3 #Positive Up. Dimensions in metres
+mountCenterZ = -0.7 #Positive Up. Dimensions in metres
 
-otaOffset = 0.47    #Distance between axis intersect and the optical axis. Dimensions in metres
-domeRadius = 1.950  #Radius of dome in metres
-slitsWidth = 0.70  #Slit width 
+otaOffset = 0.46    #Distance between axis intersect and the optical axis. Dimensions in metres
+domeRadius = 1.900  #Radius of dome in metres
+slitsWidth = 0.80  #Slit width 
 latitude = -33.8 #Telescope latitude
 longitude = 151.1 #Telescope longitude
 
