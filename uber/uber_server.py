@@ -905,6 +905,7 @@ class UberServer:
 			logging.error('Could not query the status of the slits from Labjack.')
 			print 'Could not query the status of the slits from Labjack.'
                         dummy=self.email_alert('Failure in function monitor_slits','Failed to query the status of the slits from Labjack')
+                        slits_opened='None'
 		if (not self.override_wx) & (slits_opened=='True'):
 			try: weather = self.weatherstation_client.send_command('safe')
 			except Exception: 

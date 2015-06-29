@@ -84,7 +84,11 @@ class LabjackServer:
         if not os.path.isfile('dome_status.txt'):
                 np.savetxt('dome_status.txt',[0,0,False])
         #Recover information since last labjack crash
-        total_counts_offset,since_last_offset,slits_state=np.loadtxt('dome_status.txt')
+        try:
+                total_counts_offset,since_last_offset,slits_state=np.loadtxt('dome_status.txt')
+        except Exception: 
+                np.savetxt('dome_status.txt',[0,0,False])
+                total_counts_offset,since_last_offset,slits_state=np.loadtxt('dome_status.txt')
         #if slits_state: cmd_slits('slits open')
 
 
