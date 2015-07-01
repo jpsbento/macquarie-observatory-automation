@@ -3,7 +3,7 @@
 
 
 ###### UBER SERVER PARAMETERS ########
-servers=['labjack','bisquemount']    #List of active servers. example: servers=['labjack','labjacku6','bisquemount','sidecamera','fiberfeed','sbigudrv']
+servers=['labjack','bisquemount','weatherstation']    #List of active servers. example: servers=['labjack','labjacku6','bisquemount','sidecamera','fiberfeed','sbigudrv','weatherstation']
 
 # A list of the telescopes we have, comment out all but the telescope you wish to connect with:
 telescope_type = 'meademount'

@@ -1028,6 +1028,20 @@ class UberServer:
 				if 'Successfully' not in result:
 					logging.error('Could not reconnect to camera server')
 					return 'Could not reconnect the camera server'
+                        if 'weatherstation' in dead_servers:
+				print 'weatherstation server dead, restarting and reconnecting'
+				logging.info('weatherstation server dead, restarting and reconnecting')
+				try: 
+					dummy=os.system('screen -X -S weatherstation quit')
+					dummy=os.system('screen -dmS weatherstation bash -c "cd $MQOBSSOFT/weatherstation/; ./weatherstation_main; exec bash"')
+				except Exception: 
+					logging.error('Could not restart the weatherstation server')
+					return 'Could not restart the weatherstation server'
+				time.sleep(3)
+				result=self.cmd_reconnect('reconnect weatherstation')
+				if 'Successfully' not in result:
+					logging.error('Could not reconnect to weatherstation server')
+					return 'Could not reconnect the weatherstation server'
                 else: self.reconnection_counter=0
 
 
