@@ -1,11 +1,11 @@
 This file contains a detailed description of all the steps required to install the software. More importantly, it should contain the most up-to-date instructions on what software is required to run all aspects of the obs.
 
 
-- Tested on Ubuntu 14.04
+- Tested on Ubuntu 14.04 LTS
 
 - Start by installing a few things that won't hurt and will be useful in the future, along with things that are needed.
 
-sudo apt-get install emacs vim screen uvcdynctrl ipython python-numpy python-scipy python-pyfits python-pip python-matplotlib ssh
+sudo apt-get install emacs vim screen uvcdynctrl ipython python-numpy python-scipy python-pyfits python-pip python-matplotlib tightvncserver python-software-properties
 sudo adduser `whoami` dialout
 sudo apt-get remove modemmanager
 
@@ -18,7 +18,7 @@ Ok, lets get going....
 - Firstly, clone the repository: 
 
 sudo apt-get install git gitk
-git clone https://jpsbento@code.google.com/p/macquarie-observatory-automation/ 
+git clone https://github.com/jpsbento/macquarie-observatory-automation
 
 - Then, each of these sections refers to installing stuff necessary for aspects of running the obs
 
@@ -54,7 +54,6 @@ cd ../../
 sudo cp data/udev/80-theimagingsource-cameras.rules /etc/udev/rules.d/
 sudo service udev restart
 cd ~/
-sudo apt-get install python-pyds9
 
 
 --------------------INDI devices-------------------------
@@ -66,3 +65,27 @@ sudo apt-get install indi-full
 -------------------SEXTRACTOR---------------------------
 
 sudo apt-get install sextractor
+
+-------------------FOR THORLABS CAMERAS----------------
+Install this if you want to use the thorlabs USB cameras:
+
+For normal linux machines:
+
+Go to https://en.ids-imaging.com/download-ueye.html and download the linux driver software for you system (32 or 64 bit)
+Unpack with 'tar zxvf uEye_Linux*'
+cd uEye_Linux*/
+sudo sh ./ueyesdk-setup*.run
+Then, to run the camera, do 'sudo /etc/init.d/ueyeusbdrc start'
+This should bring the drivers up to speed.
+If you want to control the camera graphically, do 'ueyecameramanager' and then right click on selected the camera to open.
+
+For raspberry pi
+
+Go to https://en.ids-imaging.com/linux-embedded-downloads.html and download the raspberry pi specific drivers
+On the pi, move the downloaded tar file onto the room directory /
+cd /
+sudo tar zxvf uEyeSDK*
+sudo /usr/local/share/ueye/bin/ueyesdk-setup.sh
+sudo apt-get install libqt4-qt3support
+Then, to run camera, do the same thing you would do for normal linux machines (see above)
+
