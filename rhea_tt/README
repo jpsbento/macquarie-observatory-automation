@@ -1,0 +1,5 @@
+This code was copied directly from rhea_subaru.
+
+There could probably be common libraries for both, but this enabled
+quick development. In any case, uicoms.c is supposed to be generic, and
+rhea_tt should also be generic if at all possible.
