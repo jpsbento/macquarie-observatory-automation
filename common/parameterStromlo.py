@@ -7,8 +7,8 @@ servers=['labjack']    #List of active servers. example: servers=['labjack','lab
 
 # A list of the telescopes we have, comment out all but the telescope you wish to connect with:
 #telescope_id = 'mq_northdome'
-#telescope_type = 'mq_southdome'
-telescope_type = 'mtstromlo'
+#telescope_id = 'mq_southdome'
+telescope_id = 'mtstromlo'
 
 
 

@@ -8,8 +8,8 @@ servers=['labjack','bisquemount']    #List of active servers. example: servers=[
 
 # A list of the telescopes we have, comment out all but the telescope you wish to connect with:
 telescope_id = 'mq_northdome'
-#telescope_type = 'mq_southdome'
-#telescope_type = 'mtstromlo'
+#telescope_id = 'mq_southdome'
+#telescope_id = 'mtstromlo'
 
 guiding_camera='fiberfeed'     #This can either be sidecam, fiberfeed, or later some guiding package.
 
