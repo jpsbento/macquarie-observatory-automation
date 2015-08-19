@@ -2,13 +2,14 @@
 #The point of this file is that in principle a casual user of the software should only have to edit this parameter file and not touch any of the _server.py files to operate the observatory.
 
 
+
 ###### UBER SERVER PARAMETERS ########
 servers=['labjack','bisquemount']    #List of active servers. example: servers=['labjack','labjacku6','bisquemount','sidecamera','fiberfeed','sbigudrv']
 
 # A list of the telescopes we have, comment out all but the telescope you wish to connect with:
-telescope_type = 'bisquemount'
-#telescope_type = 'meademount'
-
+telescope_id = 'mq_northdome'
+#telescope_type = 'mq_southdome'
+#telescope_type = 'mtstromlo'
 
 guiding_camera='fiberfeed'     #This can either be sidecam, fiberfeed, or later some guiding package.
 

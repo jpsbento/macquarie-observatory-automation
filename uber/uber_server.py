@@ -24,7 +24,7 @@ class UberServer:
 	servers=parameterfile.servers
         
 	# A list of the telescopes we have, comment out all but the telescope you wish to connect with:
-	telescope_type = parameterfile.telescope_type
+	telescope_type = parameterfile.telescope_id
 
 	# We set clients, one for each device we are talking to
 	labjack_client = client_socket.ClientSocket("labjack",telescope_type) #23456 <- port number
@@ -1052,12 +1052,7 @@ class UberServer:
                 try: 
                         username = 'mqobservatory'
                         password = 'macquarieobservatory'
-                        message = """From: From MQ Obs <mqobservatory@gmail.com>
-                        To: To Joao <jpsbento@gmail.com>
-                        Subject: %s
-
-                        %s
-                        """ % (subject,body)
+                        message = "From: From MQ Obs <mqobservatory@gmail.com>\nTo: %s\nSubject: %s\n\n%s" % (', '.join(self.toaddrs),subject,telescope_type+': '+body) 
                         # The actual mail send
                         server = smtplib.SMTP('smtp.gmail.com:587')
                         server.starttls()

@@ -1,4 +1,4 @@
-#Hardware_Object       bisquemountIP   meademountIP   Port
+#Hardware_Object       mq_northdomeIP   mq_southdomeIP   Port
 # Do NOT leave a blank line at the end of this file!
 # Do NOT change the first line of this file!
 labjack                10.238.16.11    10.238.16.12   23456
