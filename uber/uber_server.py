@@ -1052,7 +1052,7 @@ class UberServer:
                 try: 
                         username = 'mqobservatory'
                         password = 'macquarieobservatory'
-                        message = "From: From MQ Obs <mqobservatory@gmail.com>\nTo: %s\nSubject: %s\n\n%s" % (', '.join(self.toaddrs),subject,telescope_type+': '+body) 
+                        message = "From: From MQ Obs <mqobservatory@gmail.com>\nTo: %s\nSubject: %s\n\n%s" % (', '.join(self.toaddrs),subject,self.telescope_type+': '+body) 
                         # The actual mail send
                         server = smtplib.SMTP('smtp.gmail.com:587')
                         server.starttls()
