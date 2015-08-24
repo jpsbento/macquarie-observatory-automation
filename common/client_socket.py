@@ -1,4 +1,4 @@
-import sys
+import sys, time
 import string
 import select
 import socket
@@ -47,6 +47,7 @@ class ClientSocket:
 #sends a command to the device server and waits for a response
 		try: self.client.send(command)
 		except Exception: return 'Error sending command, connection likely lost.'
+		time.sleep(0.2)
 		try: return self.client.recv(15000)
 		except Exception: return 'Error receiving response'
 

@@ -8,6 +8,7 @@
 #   but is in the "examples" directory of the labjack code.
 import sys
 sys.path.append('../common/')
+import client_socket
 import string
 import u3
 import u6
@@ -35,13 +36,22 @@ if labjack_model.upper()=='U3':
 	LJ.configIO(NumberOfTimersEnabled = 2, EnableCounter0 = 1, TimerCounterPinOffset=8)
 
 elif labjack_model.upper()=='U6':
-	LJclass=u6
-        LJ=u6.U6()
-        LJ.setDIOState(1,0) #Command to power down the RF transmitter and stop slit movement.
-        LJPROBE=ei1050.EI1050(LJ, enablePinNum=0, dataPinNum=1, clockPinNum=2) #Sets up the humidity probe
-	LJ.configIO(NumberTimersEnabled = 2, EnableCounter0 = 1, TimerCounterPinOffset=8)
-        
-LJ.getFeedback(LJclass.Timer0Config(8), LJclass.Timer1Config(8)) #Sets up the dome tracking wheel
+	#Attempt to connect to Mike's rhea_tt server running the connection to the actual labjack
+	try: rheatt_client = client_socket.ClientSocket("rhea_tt",parameterfile.telescope_id)  #3001 <- port number
+	except Exception: print 'Unable to connect to rhea_tt server'
+	try: 
+		dummy=rheatt_client.send_command('eio 5 0')
+		dummy=rheatt_client.send_command('eio 6 0')
+                dummy=rheatt_client.send_command('eio 7 0')
+	except Exception: print 'Could not send a command to the rhea_tt server'
+# OLD CODE TO RUN LABJACK DIRECTLY
+#	LJclass=u6
+#        LJ=u6.U6()
+#        LJ.setDIOState(1,0) #Command to power down the RF transmitter and stop slit movement.
+#        LJPROBE=ei1050.EI1050(LJ, enablePinNum=0, dataPinNum=1, clockPinNum=2) #Sets up the humidity probe
+#	LJ.configIO(NumberTimersEnabled = 2, EnableCounter0 = 1, TimerCounterPinOffset=8)
+       
+#LJ.getFeedback(LJclass.Timer0Config(8), LJclass.Timer1Config(8)) #Sets up the dome tracking wheel
 
 #DAC0_REGISTER = 5000  # clockwise movement
 #DAC1_REGISTER = 5002  # anticlockwise movement
@@ -194,10 +204,10 @@ class LabjackServer:
                                 return 'slits open'
                         elif labjack_model.upper()=='U6':
                                 #First need to power down the transmitter, change the state of the pins and power it up again.
-                                LJ.setDIOState(1,0)
-                                LJ.setDIOState(3,0)
-                                LJ.setDIOState(2,1)
-                                LJ.setDIOState(1,1)
+                                dummy=rheatt_client.send_command('eio 5 0')
+                                dummy=rheatt_client.send_command('eio 6 0')
+                                dummy=rheatt_client.send_command('eio 7 1')
+                                dummy=rheatt_client.send_command('eio 5 1')
                                 self.time_since_last_slits_command=time.time()
                                 self.slits_open = True
                                 self.slits_moving = True
@@ -208,10 +218,10 @@ class LabjackServer:
                                 self.slits_open = False
                                 return 'slits closed'
                         elif labjack_model.upper()=='U6':
-                                LJ.setDIOState(1,0)
-                                LJ.setDIOState(3,1)
-                                LJ.setDIOState(2,0)
-                                LJ.setDIOState(1,1)
+                                dummy=rheatt_client.send_command('eio 5 0')
+                                dummy=rheatt_client.send_command('eio 6 1')
+                                dummy=rheatt_client.send_command('eio 7 0')
+                                dummy=rheatt_client.send_command('eio 5 1')
                                 self.time_since_last_slits_command=time.time()
                                 self.slits_open = False
                                 self.slits_moving = True
@@ -219,9 +229,9 @@ class LabjackServer:
                 elif commands[1] == 'stop':
                         #option used only for the Stromlo dome, for now. 
                         if labjack_model.upper()=='U6':
-                              LJ.setDIOState(1,0)
-                              LJ.setDIOState(3,0)
-                              LJ.setDIOState(2,0)
+                              dummy=rheatt_client.send_command('eio 5 0')
+                              dummy=rheatt_client.send_command('eio 6 0')
+                              dummy=rheatt_client.send_command('eio 7 0')
                               self.slits_moving = False
 			      print 'Slits stopped'
                         else: return 'Invalid labjack model. This command does not work on U3'
@@ -247,9 +257,11 @@ class LabjackServer:
 #******************************* End of user commands ********************************#              
 
 	def dome_location(self):
-		raw_wheel_output = LJ.getFeedback(LJclass.QuadratureInputTimer()) #This will constantly update the current position of the dome
-
-		self.total_counts = -int(raw_wheel_output[-1])
+		if labjack_model.upper()=='U3':
+			raw_wheel_output = -float(LJ.getFeedback(LJclass.QuadratureInputTimer())[-1]) #This will constantly update the current position of the dome
+		elif labjack_model.upper()=='U6':
+			raw_wheel_output = str.split(rheatt_client.send_command('get_timers'))[0] #This will constantly update the current position of the dome
+		self.total_counts = int(raw_wheel_output)
 		#print 'total counts: '+str(self.total_counts)
 		#print 'counts at last home: '+str(self.total_count_at_last_home)
                 if self.home_sensor_count == 0:
@@ -293,22 +305,30 @@ class LabjackServer:
                                 LJ.setFIOState(u3.FIO4, state=0) 
                                 LJ.setFIOState(u3.FIO5, state=1)
                         elif labjack_model.upper()=='U6':
-                                LJ.getFeedback(u6.DAC0_8(LJ.voltageToDACBits(0,0)))
-                                LJ.getFeedback(u6.DAC1_8(LJ.voltageToDACBits(5,1)))
+				#LJ.getFeedback(u6.DAC0_8(LJ.voltageToDACBits(0,0)))
+                                #LJ.getFeedback(u6.DAC1_8(LJ.voltageToDACBits(5,1)))
+				dummy=rheatt_client.send_command('cio 0 1')
+                                dummy=rheatt_client.send_command('cio 1 1')
+                                dummy=rheatt_client.send_command('cio 2 1')
 		elif commands[0] == 'anticlockwise':
                         if labjack_model.upper()=='U3':
                                 LJ.setFIOState(u3.FIO4, state=1) 
                                 LJ.setFIOState(u3.FIO5, state=0)
                         elif labjack_model.upper()=='U6':
-                                LJ.getFeedback(u6.DAC0_8(LJ.voltageToDACBits(5,0)))
-                                LJ.getFeedback(u6.DAC1_8(LJ.voltageToDACBits(5,1)))
+                                #LJ.getFeedback(u6.DAC0_8(LJ.voltageToDACBits(5,0)))
+                                #LJ.getFeedback(u6.DAC1_8(LJ.voltageToDACBits(5,1)))
+				dummy=rheatt_client.send_command('cio 0 1')
+                                dummy=rheatt_client.send_command('cio 1 0')
+                                dummy=rheatt_client.send_command('cio 2 1')
 		elif commands[0] == 'stop':
                         if labjack_model.upper()=='U3':
                                 LJ.setFIOState(u3.FIO4, state=1) 
                                 LJ.setFIOState(u3.FIO5, state=1)
                         elif labjack_model.upper()=='U6':
-                                LJ.getFeedback(u6.DAC0_8(LJ.voltageToDACBits(0,0)))
-                                LJ.getFeedback(u6.DAC1_8(LJ.voltageToDACBits(0,1)))
+                                #LJ.getFeedback(u6.DAC0_8(LJ.voltageToDACBits(0,0)))
+                                #LJ.getFeedback(u6.DAC1_8(LJ.voltageToDACBits(0,1)))
+				dummy=rheatt_client.send_command('cio 2 0')
+                                dummy=rheatt_client.send_command('cio 0 0')
 		else: return 'ERROR'
 
 
@@ -317,9 +337,13 @@ class LabjackServer:
 		'''Return the number of times the dome home sensor has been pressed.'''
  		#home_output = int(str( (LJ.getFeedback( u3.Counter0() ))[0] ))
 		#print self.home_sensor_count
-		if int(str( (LJ.getFeedback( LJclass.Counter0() ))[0] )) != self.home_sensor_count:  # We've hit home!
+		if labjack_model.upper()=='U3':
+			current_home_counts=int(str( (LJ.getFeedback( LJclass.Counter0() ))[0] ))
+		elif labjack_model.upper()=='U6':
+			current_home_counts=int(str.split(rheatt_client.send_command('get_counters'))[0])
+		if current_home_counts != self.home_sensor_count:  # We've hit home!
 			print 'Dome homed'
-			self.home_sensor_count = int(str( (LJ.getFeedback( LJclass.Counter0() ))[0] ))
+			self.home_sensor_count = current_home_counts
 			self.total_count_at_last_home = self.total_counts # We have a new count as our zero reference point
                         self.total_counts_offset=0
                         self.since_last_offset=0
