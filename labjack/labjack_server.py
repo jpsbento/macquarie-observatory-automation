@@ -34,6 +34,7 @@ if labjack_model.upper()=='U3':
         LJ.setFIOState(u3.FIO5, state=1) #command to stop movement
         LJPROBE=ei1050.EI1050(LJ, enablePinNum=0, dataPinNum=1, clockPinNum=2) #Sets up the humidity probe
 	LJ.configIO(NumberOfTimersEnabled = 2, EnableCounter0 = 1, TimerCounterPinOffset=8)
+        LJ.getFeedback(LJclass.Timer0Config(8), LJclass.Timer1Config(8)) #Sets up the dome tracking wheel
 
 elif labjack_model.upper()=='U6':
 	#Attempt to connect to Mike's rhea_tt server running the connection to the actual labjack

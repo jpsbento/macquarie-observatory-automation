@@ -5,7 +5,7 @@
 #Code the runs on module import starts here.
 #1) Import all modules that we need. 
 
-import sys
+import sys, time
 import string
 import select
 import socket
@@ -85,6 +85,7 @@ class ServerSocket:
 		self.log("Waiting for connection, number of clients connected: "+str(len(self.clients)))
 		running=True
 		while running:
+                        time.sleep(0.1)
 			inputready,outputready,exceptready = select.select(self.input,[],[],0)
 		
 			for s in inputready:  #loop through our array of sockets/inputs
