@@ -24,9 +24,11 @@ class WeatherstationServer:
 	clarity = 0
 	light = 0
 	rain = 0
+	wind=0
 	alertstate = 0
 	slitvariable = 0 #This is the variable to send to the slits to tell them whether
 			 #it's okay to be open or not. 0 to close, 1 to open.
+	time_delay=10 #time delay between each reading of the 
 
         #set some variables that can be adjusted to redefine which limits are used for cloudy, rainy, light etc.
         dummy=indi.set_and_send_float("AAG Cloud Watcher","limitsCloud","clear",-5)
@@ -38,6 +40,8 @@ class WeatherstationServer:
         dummy=indi.set_and_send_float("AAG Cloud Watcher","limitsBrightness","dark",2100)
         dummy=indi.set_and_send_float("AAG Cloud Watcher","limitsBrightness","light",100)
         dummy=indi.set_and_send_float("AAG Cloud Watcher","limitsBrightness","veryLight",0)
+	dummy=indi.set_and_send_float("AAG Cloud Watcher","limitsWind","calm",10)
+        dummy=indi.set_and_send_float("AAG Cloud Watcher","limitsWind","moderateWind",40)
         dummy=indi.set_and_send_float("AAG Cloud Watcher","skyCorrection","k1",33)
         dummy=indi.set_and_send_float("AAG Cloud Watcher","skyCorrection","k2",0)
         dummy=indi.set_and_send_float("AAG Cloud Watcher","skyCorrection","k3",4)
@@ -78,7 +82,7 @@ class WeatherstationServer:
 
 	def cmd_status(self,the_command):
 		'''Returns all the latest data output from the weather station.'''
-		return "Clarity: "+str(self.clarity)+"\nLight: "+str(self.light)+"\nRain: "+str(self.rain)+"\nAir temperature: "+str(self.tempair)+"\nSky temperature: "+str(self.tempsky)
+		return "Clarity: "+str(self.clarity)+"\nLight: "+str(self.light)+"\nRain: "+str(self.rain)+"\nAir temperature: "+str(self.tempair)+"\nSky temperature: "+str(self.tempsky)+"\nWind Speed: "+str(self.wind)
 
 	def cmd_safe(self, the_command):
 		'''Returns a 1 if it is safe to open the dome slits, and returns a zero otherwise.'''
@@ -92,54 +96,66 @@ class WeatherstationServer:
 	#definition to read from the serial port
 	#I am assuming that only the rainsensortemp and heaterPWM are in hexadecimal
 	#I'll know for sure when the aurora guys email me back
+	currentTime=time.time()
 	def main(self):
-                self.tempair = indi.get_float("AAG Cloud Watcher","sensors","ambientTemperatureSensor")  #sensor temperature
-		self.tempsky = indi.get_float("AAG Cloud Watcher","sensors","correctedInfraredSky") #sky temperature
-		self.clarity = self.tempair-self.tempsky #is the difference between the air temperature and the sky temperature
-		self.light =  indi.get_float("AAG Cloud Watcher","sensors","brightnessSensor") #brightness Sensor reading
-		self.rain = indi.get_float("AAG Cloud Watcher","sensors","rainSensor") #Rain Sensor reading
+		if time.time()-self.currentTime > self.time_delay:
+			self.currentTime=time.time()
+			self.tempair = indi.get_float("AAG Cloud Watcher","sensors","ambientTemperatureSensor")  #sensor temperature
+			self.tempsky = indi.get_float("AAG Cloud Watcher","sensors","correctedInfraredSky") #sky temperature
+			self.clarity = self.tempair-self.tempsky #is the difference between the air temperature and the sky temperature
+			self.light =  indi.get_float("AAG Cloud Watcher","sensors","brightnessSensor") #brightness Sensor reading
+			self.rain = indi.get_float("AAG Cloud Watcher","sensors","rainSensor") #Rain Sensor reading
+			self.wind= indi.get_float("AAG Cloud Watcher","readings","windSpeed") #anemometer reading
 
-		#Initally set the alert variable to 0 (= Unsafe)
-		#cloudvariable = 0 #this will be set to 1 if it is clear
-		#rainvariable = 0  #this will be set to 1 if it is dry
-		#lightvariable = 0 #this will be set to 1 if it is dark
-		message = ''
-                rain_list=['dry','wet','rain','unknown']
-                cloud_list=['clear','cloudy','overcast','unknown']
-                light_list=['dark','light','veryLight']
-                
-                for i in cloud_list:
-                        #print indi.get_text("AAG Cloud Watcher","cloudConditions",i)
-                        if indi.get_text("AAG Cloud Watcher","cloudConditions",i)=='On':
-                                #print i
-                                message += i+','
-                                if i=='clear': 
-                                        cloudvariable=1
-                                else:
-                                        cloudvariable=0
-                for i in rain_list:
-                        if indi.get_text("AAG Cloud Watcher","rainConditions",i)=='On':
-                                message += ' '+i+','
-                                if i=='dry':
-                                        rainvariable=1
-                                else:
-                                        rainvariable=0
-                for i in light_list:
-                        if indi.get_text("AAG Cloud Watcher","brightnessConditions",i)=='On':
-                                message += ' '+i+','
-                                if i=='dark':
-                                        lightvariable=1
-                                else:
-                                        lightvariable=0
+			#Initally set the alert variable to 0 (= Unsafe)
+			#cloudvariable = 0 #this will be set to 1 if it is clear
+			#rainvariable = 0  #this will be set to 1 if it is dry
+			#lightvariable = 0 #this will be set to 1 if it is dark
+			message = ''
+			rain_list=['dry','wet','rain','unknown']
+			cloud_list=['clear','cloudy','overcast','unknown']
+			light_list=['dark','light','veryLight']
+			wind_list=['calm','moderateWind','strongWind','unknown']
 
-		try: self.slitvariable = cloudvariable*rainvariable*lightvariable #if = 1, it's safe for slits to be open! Unsafe otherwise.
-                except Exception: print 'Unable to define slit variable'
+			for i in cloud_list:
+				#print indi.get_text("AAG Cloud Watcher","cloudConditions",i)
+				if indi.get_text("AAG Cloud Watcher","cloudConditions",i)=='On':
+					#print i
+					message += i+','
+					if i=='clear': 
+						cloudvariable=1
+					else:
+						cloudvariable=0
+			for i in rain_list:
+				if indi.get_text("AAG Cloud Watcher","rainConditions",i)=='On':
+					message += ' '+i+','
+					if i=='dry':
+						rainvariable=1
+					else:
+						rainvariable=0
+			for i in light_list:
+				if indi.get_text("AAG Cloud Watcher","brightnessConditions",i)=='On':
+					message += ' '+i+','
+					if i=='dark':
+						lightvariable=1
+					else:
+						lightvariable=0
+			for i in wind_list:
+				if indi.get_text("AAG Cloud Watcher","windConditions",i)=='On':
+					message += ' '+i+','
+					if i=='strongWind':
+						windvariable=0
+					else:
+						windvariable=1
 
-		if self.slitvariable: message+=' Safe for dome to open.'
-		else: message+=' NOT safe for dome to open.************' 
-		self.log(message)
+			try: self.slitvariable = cloudvariable*rainvariable*lightvariable*windvariable #if = 1, it's safe for slits to be open! Unsafe otherwise.
+			except Exception: print 'Unable to define slit variable'
 
-		return
+			if self.slitvariable: message+=' Safe for dome to open.'
+			else: message+=' NOT safe for dome to open.************' 
+			self.log(message)
+
+			return
 
 	#definition to log the output, stores all data in a file
 	def log(self,message):
@@ -147,7 +163,7 @@ class WeatherstationServer:
 		f.write(str(time.time())+" "+str(datetime.now())+" "+str(message)+'\n')
 		f.close()
                 h = open('weatherlog_detailed.txt','a')
-                h.write(str(time.time())+" "+str(datetime.now())+" "+"Clarity: "+str(self.clarity)+" Light: "+str(self.light)+" Rain: "+str(self.rain)+" Air temperature: "+str(self.tempair)+" Sky temperature: "+str(self.tempsky)+"\n")
+                h.write(str(time.time())+" "+str(datetime.now())+" "+"Clarity: "+str(self.clarity)+" Light: "+str(self.light)+" Rain: "+str(self.rain)+" Air temperature: "+str(self.tempair)+" Sky temperature: "+str(self.tempsky)+"\n"+" Wind Speed: "+str(self.wind)+"\n")
                 h.close()
 
 
