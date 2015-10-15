@@ -170,8 +170,8 @@ class LabjackServer:
 		elif len(commands) == 2:
 			user_command = commands[1]
                         if user_command=='park':
-                                counts_to_move_temp = self.analyse_dome_command(float(self.dome_park_position))
-			counts_to_move_temp = self.analyse_dome_command(user_command)
+                                counts_to_move_temp = self.analyse_dome_command(str(self.dome_park_position))
+			else: counts_to_move_temp = self.analyse_dome_command(user_command)
 			print str(counts_to_move_temp)
 			try: counts_to_move_temp = int(float(counts_to_move_temp))
 			except Exception: return 'ERROR'
