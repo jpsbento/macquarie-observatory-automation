@@ -115,9 +115,9 @@ class Application(Tkinter.Frame):
     def domepark_command(self):
         if self.client=='uber':
             self.uber_client.send_command('setDomeTracking off')
-            self.uber_client.send_command('dome park')
+            self.uber_client.send_command('labjack dome park')
         else:
-            self.labjack_client.send_command('dome park')
+            self.labjack_client.send_command('labjack dome park')
     #Function that is triggered upon pressing the 'submit' button on the Slits control frame
     def slits_command(self):
         v=self.slitsvar.get()
