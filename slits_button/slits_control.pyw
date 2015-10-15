@@ -6,12 +6,12 @@
 import Tkinter,sys,ttk, time
 import tkMessageBox
 sys.path.append('../common/')
-import client_socket
+import client_socket, time
 
 #import all the parameterfile.py parameters
 import parameterfile
 # A list of the telescopes we have, comment out all but the telescope you wish to connect with:
-telescope_type = parameterfile.telescope_type
+telescope_type= parameterfile.telescope_id
 
 
 #Define class with the window properties
@@ -82,7 +82,7 @@ class Application(Tkinter.Frame):
         self.domefixframe.grid(column=1,row=0, columnspan=1,rowspan=1)#sticky=Tkinter.NE)
 
         #focuser button
-        self.focusButton=Tkinter.Button(self, text='Reset Focuser',command=self.focuser_command)
+        self.focusButton=Tkinter.Button(self, text='Reset Dome',command=self.resetdome_command)
         self.focusButton.grid(column=1,row=3)
         #reconnection button
         self.reconnectButton=Tkinter.Button(self, text='Reconnect to server',command=self.reconnect_command)
@@ -165,17 +165,29 @@ class Application(Tkinter.Frame):
 
 
     #Function that is triggered upon pressing the 'Reset Focuser' button
-    def focuser_command(self):
+    def resetdome_command(self):
         #talk to uber, send intructions
-        response = self.uber_client.send_command('telescope focusGoToPosition 1000')
+        response = self.uber_client.send_command('setDomeTracking off')
         #if the word 'slits' is not on the response, something went wrong
-        if 'complete' not in response:
+        if 'off' not in response:
             self.uber_client = client_socket.ClientSocket("uber",telescope_type)
-            response_after = self.uber_client.send_command('telescope focusGoToPosition 1000')
-            if 'complete' not in response_after:
+            response_after = self.uber_client.send_command('setDomeTracking off')
+            if 'off' not in response_after:
                 tkMessageBox.showinfo('ERROR','Unsucessful attempt at resetting the focuser. Check if the uber server is on.')
         else:
             self.globallabel.config(text='Instruction to reset the focuser sent!')
+        starttime=time.time()
+        try:
+            tkMessageBox.showinfo('WARNING','Dome will now home and then will sync with telescope. Please wait a few minutes.')
+            nhomes=int(self.uber_client.send_command('labjack numHomes'))
+            response=self.uber_client.send_command('labjack dome home')
+            while int(self.uber_client.send_command('labjack numHomes')==nhomes) and (time.time()-starttime<300):
+                time.sleep(1)
+            response = self.uber_client.send_command('setDomeTracking on')
+        except Exception:
+            tkMessageBox.showinfo('ERROR','Unable to reset dome. Move manually.')
+        tkMessageBox.showinfo('Success!','Dome is now moving to sync with telescope')
+                        
 
     #Function that is triggered upon pressing the 'submit' button on the pointing frame
     def domestop_command(self):
