@@ -180,12 +180,19 @@ class Application(Tkinter.Frame):
             self.globallabel.config(text='Instruction to reset the focuser sent!')
         starttime=time.time()
         try:
-            tkMessageBox.showinfo('WARNING','Dome will now home and then will sync with telescope. Please wait a few minutes.')
+            tkMessageBox.showinfo('WARNING','Dome will now home and then will sync with telescope. Please wait a few minutes. This application may freeze... Press OK')
             nhomes=int(self.uber_client.send_command('labjack numHomes'))
             time.sleep(0.5)
             response=self.uber_client.send_command('labjack dome home')
+            if 'Homing' not in response:
+                try:
+                    dummy=self.uber_client.send_command('labjack dome stop')
+                    dummy=self.uber_client.send_command('labjack dome home')
+                except Exception:
+                    self.globallabel.config(text='Instruction to reset the focuser sent!')
+            self.globallabel.config(text='Instruction to reset the dome sent!')
             time.sleep(0.5)
-            while int(self.uber_client.send_command('labjack numHomes')==nhomes) and (time.time()-starttime<300):
+            while (int(self.uber_client.send_command('labjack numHomes'))==nhomes) and ((time.time()-starttime)<300):
                 time.sleep(1)
             response = self.uber_client.send_command('setDomeTracking on')
         except Exception:
