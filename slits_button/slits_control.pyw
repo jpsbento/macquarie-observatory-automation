@@ -115,6 +115,7 @@ class Application(Tkinter.Frame):
     def domepark_command(self):
         if self.client=='uber':
             self.uber_client.send_command('setDomeTracking off')
+            time.sleep(0.5)
             self.uber_client.send_command('labjack dome park')
         else:
             self.labjack_client.send_command('labjack dome park')
@@ -168,6 +169,7 @@ class Application(Tkinter.Frame):
     def resetdome_command(self):
         #talk to uber, send intructions
         response = self.uber_client.send_command('setDomeTracking off')
+        time.sleep(0.5)
         #if the word 'slits' is not on the response, something went wrong
         if 'off' not in response:
             self.uber_client = client_socket.ClientSocket("uber",telescope_type)
@@ -180,12 +182,15 @@ class Application(Tkinter.Frame):
         try:
             tkMessageBox.showinfo('WARNING','Dome will now home and then will sync with telescope. Please wait a few minutes.')
             nhomes=int(self.uber_client.send_command('labjack numHomes'))
+            time.sleep(0.5)
             response=self.uber_client.send_command('labjack dome home')
+            time.sleep(0.5)
             while int(self.uber_client.send_command('labjack numHomes')==nhomes) and (time.time()-starttime<300):
                 time.sleep(1)
             response = self.uber_client.send_command('setDomeTracking on')
         except Exception:
             tkMessageBox.showinfo('ERROR','Unable to reset dome. Move manually.')
+        time.sleep(0.5)
         tkMessageBox.showinfo('Success!','Dome is now moving to sync with telescope')
                         
 

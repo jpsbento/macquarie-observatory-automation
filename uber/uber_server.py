@@ -1,4 +1,7 @@
 
+
+
+
  # This will do EVERYTHING
 # will make a way to give it a script
 
@@ -6,7 +9,7 @@ import os, sys
 sys.path.append('../common/')
 import client_socket
 import time, math, datetime, csv, ippower
-import pyfits,scipy
+import pyfits,scipy, pickle
 import pylab as pl
 import numpy, commands, os
 #from apscheduler.scheduler import Scheduler
@@ -37,7 +40,10 @@ class UberServer:
         labjacku6_client = client_socket.ClientSocket("labjacku6",telescope_type) #23462 <- port number	override_wx = False
 	
 	dome_tracking = True
-        override_wx = False
+        if not os.path.isfile('override_status'):
+                temp=False
+                pickle.dump(temp,open('override_status','wb'))
+        override_wx = pickle.load(open('override_status','rb'))
 
 	weather_counts = 1 #integer that gets incremented if the slits are open, the override_wx is false and the weather station returns an unsafe status. If this gets above 3, close slits (see function where this is used)
 	#dome_last_sync=time.time()
@@ -98,6 +104,7 @@ class UberServer:
                 time.sleep(1)
                 dummy = self.telescope_client.send_command('park')
                 self.override_wx=False
+                self.update_override_status()
 		#except Exception: 
 		#	logging.error('Failed to finish the session sucessfully')
 		#	return 'Failed to finish the session sucessfully'
@@ -115,6 +122,7 @@ class UberServer:
 			dummy = self.labjack_client.send_command('dome home')
 			dummy = self.telescope_client.send_command('findHome')
 			self.override_wx=False
+                        self.update_override_status()
 			dummy = self.telescope_client.send_command('focusGoToPosition 1000')
 		except Exception: 
 			logging.error('Failed to initiate the session sucessfully')
@@ -396,7 +404,10 @@ class UberServer:
 		commands=str.split(the_command)
 		if len(commands) == 2 and (commands[1] == 'off' or commands[1]=='0'):
 			self.override_wx=False
-		else: self.override_wx=True
+                        self.update_override_status()
+		else: 
+                        self.override_wx=True
+                        self.update_override_status()
 		logging.info('override_wx '+str(self.override_wx))
 		return str(self.override_wx)
 
@@ -1142,7 +1153,9 @@ class UberServer:
 				print 'Something went wrong with the image instruction'
 
 
-
+        def update_override_status(self):
+                pickle.dump(self.override_wx,open('override_status','wb'))
+                                
 	def imaging_loop(self):
 		#Function that sets the camera going if the imaging boolean is true
 		if os.path.exists('../sx/images/'+self.old_filename+'.fits'):
