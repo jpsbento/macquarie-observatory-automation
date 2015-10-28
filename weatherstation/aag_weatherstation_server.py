@@ -101,6 +101,7 @@ class WeatherstationServer:
 		if time.time()-self.currentTime > self.time_delay:
 			self.currentTime=time.time()
 			self.tempair = indi.get_float("AAG Cloud Watcher","sensors","ambientTemperatureSensor")  #sensor temperature
+			
 			self.tempsky = indi.get_float("AAG Cloud Watcher","sensors","correctedInfraredSky") #sky temperature
 			self.clarity = self.tempair-self.tempsky #is the difference between the air temperature and the sky temperature
 			self.light =  indi.get_float("AAG Cloud Watcher","sensors","brightnessSensor") #brightness Sensor reading
@@ -148,8 +149,8 @@ class WeatherstationServer:
 					else:
 						windvariable=1
 
-			try: self.slitvariable = cloudvariable*rainvariable*lightvariable*windvariable #if = 1, it's safe for slits to be open! Unsafe otherwise.
-			except Exception: print 'Unable to define slit variable'
+			self.slitvariable = cloudvariable*rainvariable*lightvariable*windvariable #if = 1, it's safe for slits to be open! Unsafe otherwise.
+			#except Exception: print 'Unable to define slit variable'
 
 			if self.slitvariable: message+=' Safe for dome to open.'
 			else: message+=' NOT safe for dome to open.************' 

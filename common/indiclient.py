@@ -1980,7 +1980,7 @@ class bigindiclient:
 		self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.socket.settimeout(2)
 		self.socket.connect((host, port))
-		self.socket.settimeout(0.001)
+		self.socket.settimeout(2)
 		self.host=host;
 		self.port=port;
 		self.socket.send("<getProperties version='1.5'/>")
