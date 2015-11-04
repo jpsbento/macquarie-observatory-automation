@@ -106,7 +106,8 @@ class ServerSocket:
 						else:
 							s.send(response + '\n')
 			for the_job in self.jobs:
-				message=the_job()
+				try: message=the_job()
+                                except Exception: print 'Unable to do the',the_job,'function. Check if the hardward needed is connected.'
 				if message:
 					for i in self.clients:
 						i.send(message)
