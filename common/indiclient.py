@@ -2322,7 +2322,7 @@ class bigindiclient:
 		@rtype: NoneType
 		"""
 		print "Timeout",devicename,vectorname
-		#raise Exception
+		raise Exception
 		#self._receive()
 
 	def set_timeout_handler(self,handler):

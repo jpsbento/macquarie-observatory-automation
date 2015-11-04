@@ -12,13 +12,21 @@ import ctx
 
 failed=False
 #Try to connect to the camera
+def new_timeout(devicename,vectorname,indi):
+        print 'This is a custom timeout. Possibly connection with the device has '
+        raise Exception
+
 try: 
         indi=indiclient("localhost",7777)
+        print 'Got here'
+        dummy=indi.set_timeout_handler(new_timeout)
         dummy=indi.set_and_send_text("SX CCD SXVR-H694","CONNECTION","CONNECT","On")
         dummy=indi.set_and_send_text("SX CCD SXVR-H694","CONNECTION","DISCONNECT","Off")
         #set the camera saving images locally instead of sending them onto some sort of client. This is not designed to have a client. 
         print 'successfully connected to camera'
-except Exception: print 'Can not connect to camera'
+except Exception: 
+        print 'Can not connect to camera'
+        failed=True
 time.sleep(1)
 #Check connection
 try: 
@@ -26,9 +34,11 @@ try:
         if result=='Off':
                 print 'Unable to connect to SX camera'
                 failed=True
-except Exception: print 'Unable to check camera connection'
+except Exception: 
+        print 'Unable to check camera connection'
+        failed=True
 
-if result!='Off':
+if failed==False:
         #set up some options that should not change often
         dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_MODE","UPLOAD_CLIENT","Off")
         dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_MODE","UPLOAD_BOTH","Off")
@@ -37,7 +47,7 @@ if result!='Off':
         dummy=indi.set_and_send_text("SX CCD SXVR-H694","CCD_COOLER","COOLER_OFF","Off")
         dummy=indi.set_and_send_float("SX CCD SXVR-H694","CCD_BINNING","HOR_BIN",2)
         if not os.path.exists('./images/'):
-                        dummy=subprocess.call('mkdir ./images', shell=True)
+                dummy=subprocess.call('mkdir ./images', shell=True)
         dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_SETTINGS","UPLOAD_DIR","images")
         dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_SETTINGS","UPLOAD_PREFIX","TEMPIMAGE")
 
