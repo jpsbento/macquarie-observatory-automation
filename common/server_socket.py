@@ -29,11 +29,12 @@ class ServerSocket:
 #See /usr/include/sus/socket.h
 #SOL_SOCK and SO_REUSE_ADDR. This stops the port from blocking after a crash etc.
 #		self.server.setsockopt(0xffff, 0x0004, 1)
-		self.server.setsockopt(1, 2, 1)
+#		self.server.setsockopt(1, 2, 1)
+		self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 #See /usr/include/netinet/in.h
 #IPPROTO_TCP, TCP_NODELAY. This makes the packet get sent straight away (instead of waiting for extra data 
 #that might arrive).
-		self.server.setsockopt(6, 1, 1)
+		self.server.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 		self.server.bind(ADS)
 		self.server.setblocking(0)
 		self.server.listen(5) #will allow 5 clients to connect with server

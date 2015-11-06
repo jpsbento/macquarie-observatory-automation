@@ -3,7 +3,11 @@ sys.path.append('../common/')
 from indiclient import *
 import numpy as np
 import matplotlib.pyplot as plt
-import pyfits, commands
+import commands
+try:
+    import pyfits
+except:
+    import astropy.io.fits as pyfits
 import time
 import ctypes
 import os,subprocess
