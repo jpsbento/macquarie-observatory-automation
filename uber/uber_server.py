@@ -1,7 +1,3 @@
-
-
-
-
  # This will do EVERYTHING
 # will make a way to give it a script
 
