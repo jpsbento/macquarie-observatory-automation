@@ -541,7 +541,7 @@ class Subaru:
         #ipPower options. This is a unit that is used to control power to units.
 	#This dictionary contains which device is plugged into each port. If the connections change, this needs to be changed too! 
 	power_order=['XeAr','WhiteLight',' ',' ']
-        ippower.Options.ipaddr='10.238.16.151'
+        ippower.Options.ipaddr='150.203.89.62'
         ippower.Options.login = 'admin'
         ippower.Options.passwd = '12345678'
         ippower.Options.port = 80
@@ -570,8 +570,8 @@ class Subaru:
 			else: return 'Invalid power status option'
 			try: ippower.set_power(ippower.Options,port,s) 
 			except Exception: 
-				logging.error('Unable to set power status for port')
+				#logging.error('Unable to set power status for port')
 				return 'Unable to set power status for port'
-			logging.info(commands[1]+' successfully switched '+commands[2])
+			#logging.info(commands[1]+' successfully switched '+commands[2])
 			return commands[1]+' successfully switched '+commands[2]
 		else: return 'Invalid ippower command'
