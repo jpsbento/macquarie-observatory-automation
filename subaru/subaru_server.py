@@ -540,7 +540,7 @@ class Subaru:
         #-----------------------ippower-------------------------------------#
         #ipPower options. This is a unit that is used to control power to units.
 	#This dictionary contains which device is plugged into each port. If the connections change, this needs to be changed too! 
-	power_order=['XeAr','WhiteLight',' ',' ']
+	power_order={'XeAr':1,'WhiteLight':2,'none':3,'none':4}
         ippower.Options.ipaddr='150.203.89.62'
         ippower.Options.login = 'admin'
         ippower.Options.passwd = '12345678'
@@ -550,6 +550,8 @@ class Subaru:
 		'''Function to control the ippower unit. The first argument is either the name of the device or the port number of the relevant device or "show" for the device list. The second argument is optional, either "on" or "off". Leave blank for power status of device.'''
 		commands = str.split(the_command)
                 skip_word_check=False
+                if len(commands)<2:
+                    return 'This function requires extra arguments'
 		if commands[1]=='show': return str(self.power_order)
                 try: 
                         port=int(commands[1])
@@ -557,8 +559,8 @@ class Subaru:
                         skip_word_check=True
                 except Exception: pass
                 if not skip_word_check:
-                        if commands[1] in self.power_order.values():
-                                for number,unit in self.power_order.iteritems():
+                        if commands[1] in self.power_order.keys():
+                                for unit,number in self.power_order.iteritems():
                                         if unit == commands[1]:
                                                 port=number
                         else: return 'Invalid device. type "ippower show" for a list of devices.'
@@ -575,3 +577,4 @@ class Subaru:
 			#logging.info(commands[1]+' successfully switched '+commands[2])
 			return commands[1]+' successfully switched '+commands[2]
 		else: return 'Invalid ippower command'
+                if len(commands)>3: return 'Too many arguments'

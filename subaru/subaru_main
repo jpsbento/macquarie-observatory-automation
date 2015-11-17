@@ -36,5 +36,5 @@ ss.add_job(sx.checkIfFinished)
 #ss.add_job(sx.feedbackLoop)
 try: ss.run()
 except KeyboardInterrupt:
-        kill_everything(ss,subaru_server,indiserver_process)
-kill_everything(ss,subaru_server,indiserver_process)
+        kill_everything(ss,subaru_server,[indiserver_process])
+kill_everything(ss,subaru_server,[indiserver_process])
