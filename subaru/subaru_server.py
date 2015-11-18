@@ -63,8 +63,8 @@ try:
         #LJ.getFeedback(u3.Timer0Config(8), u3.Timer1Config(8)) #Sets up the dome tracking wheel
 
         #Start off with no current: 
-        LJ.getFeedback(u6.BitStateWrite(1,0)) #H-Bridge bit 1
-        LJ.getFeedback(u6.BitStateWrite(2,0)) #H-Bridge bit 2
+        LJ.getFeedback(u3.BitStateWrite(1,0)) #H-Bridge bit 1
+        LJ.getFeedback(u3.BitStateWrite(2,0)) #H-Bridge bit 2
 except Exception:
         print 'Unable to connect to the labjack.'
 
@@ -398,10 +398,10 @@ class Subaru:
 		commands = str.split(the_command)
 		if len(commands) != 2: return 'ERROR'
 		if commands[1] == 'on':
-			LJ.getFeedback(u6.BitStateWrite(3,1))			
+			LJ.getFeedback(u3.BitStateWrite(3,1))			
 			return 'LED on'
 		elif commands[1] == 'off':
-			LJ.getFeedback(u6.BitStateWrite(3,0))			
+			LJ.getFeedback(u3.BitStateWrite(3,0))			
 			return 'LED off'
 		else: return 'ERROR'     
 #******************************* End of user commands ********************************#              
@@ -412,14 +412,14 @@ class Subaru:
                 if (self.heater_frac < 0): self.heater_frac=0
                 if (self.heater_frac > 1): self.heater_frac=1
               #Switch the heater on...
-                if (self.heater_frac==0): LJ.getFeedback(u6.DAC0_8(0))
-                else: LJ.getFeedback(u6.DAC0_8(255))
+                if (self.heater_frac==0): LJ.getFeedback(u3.DAC0_8(0))
+                else: LJ.getFeedback(u3.DAC0_8(255))
 
               #Wait
                 time.sleep(self.pcm_time*self.heater_frac)
               #Switch the heater off...
-                if (self.heater_frac==1): LJ.getFeedback(u6.DAC0_8(255))
-                else: LJ.getFeedback(u6.DAC0_8(0))
+                if (self.heater_frac==1): LJ.getFeedback(u3.DAC0_8(255))
+                else: LJ.getFeedback(u3.DAC0_8(0))
               #Wait
                 time.sleep(self.pcm_time*(1.0 - self.heater_frac))
                  
@@ -443,20 +443,20 @@ class Subaru:
                 #ResolutionIndex: 0=default, 1-8 for high-speed ADC, 9-13 for high-res ADC on U6-Pro.
                 #GainIndex: 0=x1, 1=x10, 2=x100, 3=x1000, 15=autorange.
                 #SettlingFactor: 0=Auto, 1=20us, 2=50us, 3=100us, 4=200us, 5=500us, 6=1ms, 7=2ms, 8=5ms, 9=10ms.
-                        a0 = LJ.getAIN(0,resolutionIndex=8,gainIndex=1,settlingFactor=9,differential=1)
-			a1 = LJ.getAIN(1,resolutionIndex=8,gainIndex=0,settlingFactor=0)        #T1: optical bench
+                        a0 = LJ.getAIN(0,negChannel=1,quickSample=True,longSettle=True)/10.  #BUT THIS DOESN'T WORK BECAUSE HIGH-VOLTAGE CHANNELS CAN'T BE DIFFERENTIAL!!
+			a1 = LJ.getAIN(1,quickSample=True,longSettle=False)        #T1: optical bench
 			#--> Differential measurement is made between a0 and a1!
 			
-			a2 = LJ.getAIN(2,resolutionIndex=8,gainIndex=0,settlingFactor=0)        #chamber
-			a3 = LJ.getAIN(3,resolutionIndex=8,gainIndex=0,settlingFactor=0)        #F/N-system    
-			a4 = LJ.getAIN(4,resolutionIndex=8,gainIndex=0,settlingFactor=0)        #icebox_1
-			a5 = LJ.getAIN(5,resolutionIndex=8,gainIndex=0,settlingFactor=0)        #icebox_2
-                        a6 = LJ.getAIN(6,resolutionIndex=8,gainIndex=0,settlingFactor=0)        #wooden_box
-                        a7 = LJ.getAIN(7,resolutionIndex=8,gainIndex=0,settlingFactor=0)        #external
-                        a8 = LJ.getAIN(8,resolutionIndex=8,gainIndex=0,settlingFactor=0)        #CCD heat sink
-                        a9 = LJ.getAIN(9,resolutionIndex=8,gainIndex=0,settlingFactor=0)        #humidity
-                        a10 = LJ.getAIN(10,resolutionIndex=8,gainIndex=0,settlingFactor=0)      #pressure
-                        Vref = LJ.getAIN(11,resolutionIndex=8,gainIndex=0,settlingFactor=0)     #Reference voltage (5V)
+			a2 = LJ.getAIN(2,quickSample=True,longSettle=False)        #chamber
+			a3 = LJ.getAIN(3,quickSample=True,longSettle=False)        #F/N-system    
+			a4 = LJ.getAIN(4,quickSample=True,longSettle=False)        #icebox_1
+			a5 = LJ.getAIN(5,quickSample=True,longSettle=False)        #icebox_2
+                        a6 = LJ.getAIN(6,quickSample=True,longSettle=False)        #wooden_box
+                        a7 = LJ.getAIN(7,quickSample=True,longSettle=False)        #external
+                        a8 = LJ.getAIN(8,quickSample=True,longSettle=False)        #CCD heat sink
+                        a9 = LJ.getAIN(9,quickSample=True,longSettle=False)        #humidity
+                        a10 = LJ.getAIN(10,quickSample=True,longSettle=False)      #pressure
+                        Vref = LJ.getAIN(11,quickSample=True,longSettle=False)     #Reference voltage (5V)
 			
                         R0 = 10 #10KOhm at 25deg!
 
