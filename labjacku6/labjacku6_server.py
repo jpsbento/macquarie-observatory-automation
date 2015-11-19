@@ -22,7 +22,7 @@ import copy
 #   would then write to the *same* labjack hardware, but could e.g. 
 #   do different parts of the job. You's almost certainly *not* want to do 
 #   this.
-LJ=u6.U6(serial=360009388)
+LJ=u6.U6()
 #Need to set up fancy DAC here for the temperature control
 #LJ.configIO(NumberOfTimersEnabled = 2, EnableCounter0 = 1, TimerCounterPinOffset=8)
 #LJ.getFeedback(u3.Timer0Config(8), u3.Timer1Config(8)) #Sets up the dome tracking wheel
