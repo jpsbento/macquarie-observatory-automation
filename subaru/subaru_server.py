@@ -542,7 +542,7 @@ class Subaru:
         #-----------------------ippower-------------------------------------#
         #ipPower options. This is a unit that is used to control power to units.
 	#This dictionary contains which device is plugged into each port. If the connections change, this needs to be changed too! 
-	power_order={'XeAr':1,'WhiteLight':2,'none':3,'none':4}
+	power_order={'NUC':1,'SX':2,'XeAr':3,'WhiteLight':4}
         ippower.Options.ipaddr='150.203.89.62'
         ippower.Options.login = 'admin'
         ippower.Options.passwd = '12345678'
