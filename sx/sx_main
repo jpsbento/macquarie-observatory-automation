@@ -34,8 +34,8 @@ sx=sx_server.SX()
 ss=server_socket.ServerSocket(Port, 'sx', sx)	
 ss.add_job(sx.checkIfFinished)
 if sx_server.failed:
-        kill_everything(ss,sx_server,indiserver_process)
+        kill_everything(ss,sx_server,[indiserver_process])
 try: ss.run()
 except KeyboardInterrupt:
-        kill_everything(ss,sx_server,indiserver_process)
-kill_everything(ss,sx_server,indiserver_process)
+        kill_everything(ss,sx_server,[indiserver_process])
+kill_everything(ss,sx_server,[indiserver_process])
