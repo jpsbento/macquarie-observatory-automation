@@ -543,7 +543,7 @@ class Subaru:
         #ipPower options. This is a unit that is used to control power to units.
 	#This dictionary contains which device is plugged into each port. If the connections change, this needs to be changed too! 
 	power_order={'NUC':1,'SX':2,'XeAr':3,'WhiteLight':4}
-        ippower.Options.ipaddr='150.203.89.62'
+        ippower.Options.ipaddr='192.168.2.19'
         ippower.Options.login = 'admin'
         ippower.Options.passwd = '12345678'
         ippower.Options.port = 80
@@ -553,7 +553,7 @@ class Subaru:
 		commands = str.split(the_command)
                 skip_word_check=False
                 if len(commands)<2:
-                    return 'This function requires extra arguments'
+                    return 'Useage: ippower port [on|off]'
 		if commands[1]=='show': return str(self.power_order)
                 try: 
                         port=int(commands[1])
