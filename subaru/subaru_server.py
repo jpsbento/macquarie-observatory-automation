@@ -65,6 +65,7 @@ try:
     #Start off with no current:
     LJ.getFeedback(u6.BitStateWrite(1,0)) #H-Bridge bit 1
     LJ.getFeedback(u6.BitStateWrite(2,0)) #H-Bridge bit 2
+    LJ.getFeedback(u6.BitStateWrite(3,0)) #Back-LED Off
 except Exception:
     print 'Unable to connect to the labjack.'
 
