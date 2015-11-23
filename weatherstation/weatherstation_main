@@ -4,17 +4,17 @@ import sys, subprocess,os
 sys.path.append('../common')
 import parameterfile
 if parameterfile.weatherstation=='aag':
-    try: 
+    try:
         if not os.path.exists('/tmp/weatherstation_fifo'):
-                dummy=subprocess.call('mkfifo /tmp/weatherstation_fifo', shell=True)
+            dummy=subprocess.call('mkfifo /tmp/weatherstation_fifo', shell=True)
         if not ('indiserver' and '/tmp/weatherstation_fifo') in os.popen("ps aux").read():
-                indiserver_process=subprocess.Popen(['indiserver','-f','/tmp/weatherstation_fifo','-p','7780'],stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-                weatherstationserver_process=subprocess.call('echo start indi_aagcloudwatcher > /tmp/weatherstation_fifo', shell=True)
+            indiserver_process=subprocess.Popen(['indiserver','-f','/tmp/weatherstation_fifo','-p','7780'],stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+            weatherstationserver_process=subprocess.call('echo start indi_aagcloudwatcher > /tmp/weatherstation_fifo', shell=True)
     except Exception: print 'Unable to start indi server for weatherstation'
     import aag_weatherstation_server as weatherstation_server
 elif parameterfile.weatherstation=='aurora':
     import aurora_weatherstation_server as weatherstation_server
-else: 
+else:
     print 'Unable to determine which weatherstation server to load'
     exit
 
@@ -23,7 +23,7 @@ import find_port
 f = find_port.FindPort()
 Port = f.findPort('weatherstation')
 ws=weatherstation_server.WeatherstationServer()
-ss=server_socket.ServerSocket(Port, 'weatherstation', ws)	
+ss=server_socket.ServerSocket(Port, 'weatherstation', ws)
 ss.add_job(ws.main)
 try: ss.run()
 except KeyboardInterrupt:

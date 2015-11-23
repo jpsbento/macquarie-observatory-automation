@@ -8,7 +8,7 @@ import find_port
 f = find_port.FindPort()
 Port = f.findPort('telescope')
 bm=bisquemount_server.BisqueMountServer()
-ss=server_socket.ServerSocket(Port, 'bisquemount', bm)	
+ss=server_socket.ServerSocket(Port, 'bisquemount', bm)
 ss.add_job(bm.adjustFocus)
 ss.run()
 ss.close()

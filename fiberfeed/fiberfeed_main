@@ -4,26 +4,26 @@ import subprocess, atexit, sys
 import commands, os
 
 
-#the following lines establish a link with the camera via the USB port, these run 
+#the following lines establish a link with the camera via the USB port, these run
 #automatically when sx_main is excecuted
-try: 
-        if not os.path.exists('/tmp/fiberfeed_fifo'):
-                dummy=subprocess.call('mkfifo /tmp/fiberfeed_fifo', shell=True)
-        if not ('indiserver' and '/tmp/fiberfeed_fifo') in os.popen("ps aux").read():
-                indiserver_process=subprocess.Popen(['indiserver','-f','/tmp/fiberfeed_fifo','-p','7779'],stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-                #indiserver_process=subprocess.Popen('indiserver -f /tmp/myFIFO -p 7779',shell=True)
-                sxserver_process=subprocess.call('echo start indi_v4l2_ccd > /tmp/fiberfeed_fifo', shell=True)
-                #procs=[indiserver_process]
+try:
+    if not os.path.exists('/tmp/fiberfeed_fifo'):
+        dummy=subprocess.call('mkfifo /tmp/fiberfeed_fifo', shell=True)
+    if not ('indiserver' and '/tmp/fiberfeed_fifo') in os.popen("ps aux").read():
+        indiserver_process=subprocess.Popen(['indiserver','-f','/tmp/fiberfeed_fifo','-p','7779'],stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        #indiserver_process=subprocess.Popen('indiserver -f /tmp/myFIFO -p 7779',shell=True)
+        sxserver_process=subprocess.call('echo start indi_v4l2_ccd > /tmp/fiberfeed_fifo', shell=True)
+        #procs=[indiserver_process]
 except Exception: print 'Unable to start indi server for fiberfeed'
 
 
 def kill_everything(ss,server,process):
-        server.indi.quit()
-        ss.close()
-        process.terminate()
-        returncode = process.wait()
-        print 'Successfully terminated the indiserver with return code: %s' % returncode
-        sys.exit()
+    server.indi.quit()
+    ss.close()
+    process.terminate()
+    returncode = process.wait()
+    print 'Successfully terminated the indiserver with return code: %s' % returncode
+    sys.exit()
 
 import fiberfeed_server
 sys.path.append('../common')
@@ -32,12 +32,12 @@ import find_port
 f = find_port.FindPort()
 Port = f.findPort('fiberfeed')
 ff=fiberfeed_server.FiberFeedServer()
-ss=server_socket.ServerSocket(Port, 'fiberfeed', ff)	
+ss=server_socket.ServerSocket(Port, 'fiberfeed', ff)
 ss.add_job(ff.imaging_loop)
 if fiberfeed_server.failed:
-        kill_everything(ss,fiberfeed_server,indiserver_process)
-try: 
-        ss.run()
-except KeyboardInterrupt: 
-        kill_everything(ss,fiberfeed_server,indiserver_process)
+    kill_everything(ss,fiberfeed_server,indiserver_process)
+try:
+    ss.run()
+except KeyboardInterrupt:
+    kill_everything(ss,fiberfeed_server,indiserver_process)
 kill_everything(ss,fiberfeed_server,indiserver_process)

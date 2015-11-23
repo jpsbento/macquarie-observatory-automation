@@ -39,7 +39,7 @@ class Application(Tkinter.Frame):
             tkMessageBox.showinfo('ERROR','Unsucessful attempt connecting to any server')
             self.client='None'
             sys.exit()
-    
+
     def createWidgets(self):
         top=self.winfo_toplevel()
         top.rowconfigure(0,weight=1)
@@ -58,7 +58,7 @@ class Application(Tkinter.Frame):
         self.Bsubmit=Tkinter.Button(self.slitsframe, text='Submit',command=self.slits_command)
         self.Bsubmit.grid()
         self.slitsframe.grid(column=0,row=0, columnspan=1,rowspan=1)#sticky=Tkinter.NW)
-        
+
         #Radiobuttons for dome syncronisation.
         self.domeframe=Tkinter.LabelFrame(self, text='Dome Sync',labelanchor='n')
         self.trackvar=Tkinter.IntVar()
@@ -71,7 +71,7 @@ class Application(Tkinter.Frame):
         self.Csubmit=Tkinter.Button(self.domeframe, text='Submit',command=self.dometrack_command)
         self.Csubmit.grid()
         self.domeframe.grid(column=0,row=1, columnspan=1,rowspan=2)#sticky=Tkinter.SW)
-        
+
         #Button for fixing dome endlessly rotating.
         self.domefixframe=Tkinter.LabelFrame(self, text='Stop/Fix Dome',labelanchor='n')
         self.moreinfo=Tkinter.Label(self.domefixframe)
@@ -127,7 +127,7 @@ class Application(Tkinter.Frame):
         else:
             t='close'
         #talk to labjack, send intructions
-        if self.client=='labjack': 
+        if self.client=='labjack':
             response = self.labjack_client.send_command('slits '+t)
         else: response = self.uber_client.send_command('labjack slits '+t)
         #if the word 'slits' is not on the response, something went wrong
@@ -154,7 +154,7 @@ class Application(Tkinter.Frame):
         if 'Tracking' not in response:
             self.uber_client = client_socket.ClientSocket("uber",telescope_type)
             response_after = self.uber_client.send_command('setDomeTracking '+t)
-            if 'Tracking' not in response_after:         
+            if 'Tracking' not in response_after:
                 tkMessageBox.showinfo('ERROR','Unsucessful attempt at setting the dome tracking status. Check if the uber server is on.')
         else:
             self.globallabel.config(text='Instruction to turn '+t+' dome tracking sent!')
@@ -199,7 +199,7 @@ class Application(Tkinter.Frame):
             tkMessageBox.showinfo('ERROR','Unable to reset dome. Move manually.')
         time.sleep(0.5)
         tkMessageBox.showinfo('Success!','Dome is now moving to sync with telescope')
-                        
+
 
     #Function that is triggered upon pressing the 'submit' button on the pointing frame
     def domestop_command(self):
@@ -213,7 +213,7 @@ class Application(Tkinter.Frame):
                 tkMessageBox.showinfo('ERROR','Unsucessful attempt at stopping dome. Check if the uber server is on.')
         else:
             self.globallabel.config(text='Instruction to stop dome sent!')
-    
+
     def reconnect_command(self):
         #try reconnecting to the servers
         try: self.uber_client = client_socket.ClientSocket("uber",telescope_type)
@@ -238,6 +238,3 @@ class Application(Tkinter.Frame):
 app= Application()
 app.master.title('Dome slits control')
 app.mainloop()
-
-
-
