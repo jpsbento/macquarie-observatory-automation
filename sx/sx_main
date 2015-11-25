@@ -3,26 +3,26 @@
 import subprocess, atexit,sys
 import commands, os
 
-#the following lines establish a link with the camera via the USB port, these run 
+#the following lines establish a link with the camera via the USB port, these run
 #automatically when sx_main is excecuted
-try: 
-        if not os.path.exists('/tmp/sx_fifo'):
-                dummy=subprocess.call('mkfifo /tmp/sx_fifo', shell=True)
-        if not ('indiserver' and '/tmp/sx_fifo') in os.popen("ps aux").read():
-                indiserver_process=subprocess.Popen(['indiserver','-f','/tmp/sx_fifo','-p','7777'],stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-                #indiserver_process=subprocess.Popen('indiserver -f /tmp/sx_fifo -p 7777',shell=True)
-                sxserver_process=subprocess.call('echo start indi_sx_ccd > /tmp/sx_fifo',shell=True)
-                #procs=[indiserver_process]
+try:
+    if not os.path.exists('/tmp/sx_fifo'):
+        dummy=subprocess.call('mkfifo /tmp/sx_fifo', shell=True)
+    if not ('indiserver' and '/tmp/sx_fifo') in os.popen("ps aux").read():
+        indiserver_process=subprocess.Popen(['indiserver','-f','/tmp/sx_fifo','-p','7777'],stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        #indiserver_process=subprocess.Popen('indiserver -f /tmp/sx_fifo -p 7777',shell=True)
+        sxserver_process=subprocess.call('echo start indi_sx_ccd > /tmp/sx_fifo',shell=True)
+        #procs=[indiserver_process]
 except Exception: print 'Unable to start indi server'
 
 def kill_everything(ss,server,processes):
-        server.indi.quit()
-        ss.close()
-        for i in processes:
-                i.terminate()
-                returncode = i.wait()
-        print 'Successfully terminated the indiserver with return code: %s' % returncode
-        sys.exit()
+    server.indi.quit()
+    ss.close()
+    for i in processes:
+        i.terminate()
+        returncode = i.wait()
+    print 'Successfully terminated the indiserver with return code: %s' % returncode
+    sys.exit()
 
 import sx_server
 sys.path.append('../common')
@@ -31,11 +31,11 @@ import find_port
 f = find_port.FindPort()
 Port = f.findPort('sx')
 sx=sx_server.SX()
-ss=server_socket.ServerSocket(Port, 'sx', sx)	
+ss=server_socket.ServerSocket(Port, 'sx', sx)
 ss.add_job(sx.checkIfFinished)
 if sx_server.failed:
-        kill_everything(ss,sx_server,[indiserver_process])
+    kill_everything(ss,sx_server,[indiserver_process])
 try: ss.run()
 except KeyboardInterrupt:
-        kill_everything(ss,sx_server,[indiserver_process])
+    kill_everything(ss,sx_server,[indiserver_process])
 kill_everything(ss,sx_server,[indiserver_process])

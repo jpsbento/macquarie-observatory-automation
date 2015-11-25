@@ -3,16 +3,16 @@
 import labjack_server
 import sys
 import os
-#Find if we're calling this with ./   
+#Find if we're calling this with ./
 if sys.argv[0][0] != '.':
-	os.chdir('/usr/local/obs/labjack/')
+    os.chdir('/usr/local/obs/labjack/')
 sys.path.append('../common')
 import server_socket
 import find_port
 f = find_port.FindPort()
 Port = f.findPort('labjack')
 lj=labjack_server.LabjackServer()
-ss=server_socket.ServerSocket(Port, 'labjack', lj)	
+ss=server_socket.ServerSocket(Port, 'labjack', lj)
 ss.add_job(lj.dome_location)
 ss.add_job(lj.home_tracker)
 #ss.add_job(lj.log)

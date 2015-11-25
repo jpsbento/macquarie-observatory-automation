@@ -4,25 +4,25 @@ import subprocess, atexit,sys
 import commands, os
 
 
-#the following lines establish a link with the camera via the USB port, these run 
+#the following lines establish a link with the camera via the USB port, these run
 #automatically when sx_main is excecuted
-try: 
-        if not os.path.exists('/tmp/sidecam_fifo'):
-                dummy=subprocess.call('mkfifo /tmp/sidecam_fifo', shell=True)
-        if not ('indiserver' and '/tmp/sidecam_fifo') in os.popen("ps aux").read():
-                indiserver_process=subprocess.Popen(['indiserver','-f','/tmp/sidecam_fifo','-p','7778'],stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-                #indiserver_process=subprocess.Popen('indiserver -f /tmp/myFIFO -p 7778',shell=True)
-                sxserver_process=subprocess.call('echo start indi_v4l2_ccd > /tmp/sidecam_fifo', shell=True)
-                #procs=[indiserver_process]
+try:
+    if not os.path.exists('/tmp/sidecam_fifo'):
+        dummy=subprocess.call('mkfifo /tmp/sidecam_fifo', shell=True)
+    if not ('indiserver' and '/tmp/sidecam_fifo') in os.popen("ps aux").read():
+        indiserver_process=subprocess.Popen(['indiserver','-f','/tmp/sidecam_fifo','-p','7778'],stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        #indiserver_process=subprocess.Popen('indiserver -f /tmp/myFIFO -p 7778',shell=True)
+        sxserver_process=subprocess.call('echo start indi_v4l2_ccd > /tmp/sidecam_fifo', shell=True)
+        #procs=[indiserver_process]
 except Exception: print 'Unable to start indi server for sidecam'
 
 def kill_everything(ss,server,process):
-        server.indi.quit()
-        ss.close()
-        process.terminate()
-        returncode = process.wait()
-        print 'Successfully terminated the indiserver with return code: %s' % returncode
-        sys.exit()
+    server.indi.quit()
+    ss.close()
+    process.terminate()
+    returncode = process.wait()
+    print 'Successfully terminated the indiserver with return code: %s' % returncode
+    sys.exit()
 
 
 import sidecamera_server
@@ -32,10 +32,10 @@ import find_port
 f = find_port.FindPort()
 Port = f.findPort('sidecamera')
 isc=sidecamera_server.SideCameraServer()
-ss=server_socket.ServerSocket(Port, 'sidecamera', isc)	
+ss=server_socket.ServerSocket(Port, 'sidecamera', isc)
 if sidecamera_server.failed:
-        kill_everything(ss,sidecamera_server,indiserver_process)
+    kill_everything(ss,sidecamera_server,indiserver_process)
 try: ss.run()
-except KeyboardInterrupt: 
-        kill_everything(ss,sidecamera_server,indiserver_process)
+except KeyboardInterrupt:
+    kill_everything(ss,sidecamera_server,indiserver_process)
 kill_everything(ss,sidecamera_server,indiserver_process)

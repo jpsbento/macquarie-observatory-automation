@@ -11,7 +11,7 @@ import find_port
 f = find_port.FindPort()
 Port = f.findPort('labjacku6')
 lj=labjacku6_server.LabjackU6Server()
-ss=server_socket.ServerSocket(Port, 'labjacku6', lj)	
+ss=server_socket.ServerSocket(Port, 'labjacku6', lj)
 ss.add_job(lj.heaterControl)
 ss.add_job(lj.feedbackLoop)
 ss.run()
