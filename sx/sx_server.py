@@ -322,7 +322,7 @@ class SX:
         elif self.shutter=='closed':
             self.imtype='Dark'
         print 'Current image type just before populating header is:',self.imtype
-        hdu.header.update('IMGTYPE', self.imtype, 'Image type')
+        hdu.header.update('IMAGETYP', self.imtype, 'Image type')
         #if finishstatus=='Aborted':
         #       hdu.header.update('EXPSTAT','Aborted', 'This exposure was aborted by the user')
         '''
