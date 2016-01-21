@@ -363,7 +363,7 @@ class Subaru:
     pcm_time=0.5     #total heating cycle time. probably in seconds
     heater_frac=0.0     #fraction of the pcm_time that the heater is on
     delT_int = 0.0
-    T_targ = 15.0
+    T_targ = 23.0
     heater_gain=5
     integral_gain=0.1
     T1=0
@@ -460,10 +460,11 @@ class Subaru:
                 Vref = LJ.getAIN(5,resolutionIndex=8,gainIndex=0,settlingFactor=0)     #Reference voltage (5V)
 
                 R0 = 10 #10KOhm at 25deg!
+                Rref = 16
 
-                dR_B1 = 2*R0*a0/(Vref-a0)     #differential change
-                R1 = R0 + dR_B1                #value of R2 in bridge
-
+#                dR_B1 = 2*R0*a0/(Vref-a0)     #differential change
+#                R1 = R0 + dR_B1                #value of R2 in bridge
+                R1 = Rref * (Vref + a0) / (Vref - a0)
 
                 R2 = R0 * (Vref-a2)/a2        
 
@@ -491,9 +492,9 @@ class Subaru:
 
                 lineOut = " %.3f %.3f %.3f %.3f %.3f %.3f " % (self.T1,Vref,self.T2, self.RH, self.P,self.heater_frac)#  self.heater_frac,self.delT_int)
                 print lineOut
-                        #localtime = time.asctime( time.localtime(time.time()) )
-                        #self.f.write(lineOut+' '+localtime+'\n')
-                        #self.f.close()
+                #localtime = time.asctime( time.localtime(time.time()) )
+                #self.f.write(lineOut+' '+localtime+'\n')
+                #self.f.close()
                 self.log_loop = 0
 
                   #Spectrograph temperature servo:
