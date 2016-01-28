@@ -433,11 +433,8 @@ class Subaru:
 
         if self.feedback_freq==0: return
         fileName='TLog' #'TLog_'+localtime+'.log'
-        self.f = open(fileName,'a')
         self.loop_count = self.loop_count + 1
         self.log_loop = self.log_loop + 1
-
-
 
         if (self.loop_count == 2):
         #Firstly, compute temperatures.
@@ -488,14 +485,14 @@ class Subaru:
                 self.P = (a8+0.095*Vref)/(Vref*0.009)*10
 
 
-                #if (self.log_loop == 5):
-
-                lineOut = " %.3f %.3f %.3f %.3f %.3f %.3f " % (self.T1,Vref,self.T2, self.RH, self.P,self.heater_frac)#  self.heater_frac,self.delT_int)
-                print lineOut
-                #localtime = time.asctime( time.localtime(time.time()) )
-                #self.f.write(lineOut+' '+localtime+'\n')
-                #self.f.close()
-                self.log_loop = 0
+                if (self.log_loop == 6):
+                    lineOut = " %.3f %.3f %.3f %.3f %.3f %.3f " % (self.T1,Vref,self.T2, self.RH, self.P,self.heater_frac)#  self.heater_frac,self.delT_int)
+                    print lineOut
+                    localtime = time.asctime( time.localtime(time.time()) )
+                    self.f = open(fileName,'a')
+                    self.f.write(lineOut+' '+localtime+'\n')
+                    self.f.close()
+                    self.log_loop = 0
 
                   #Spectrograph temperature servo:
 
