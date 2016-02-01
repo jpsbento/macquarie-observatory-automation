@@ -13,3 +13,4 @@ ljtemp
 heater
 backLED
 ippower
+agitator

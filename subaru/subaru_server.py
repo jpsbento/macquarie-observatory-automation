@@ -556,3 +556,34 @@ class Subaru:
         else: return 'Invalid ippower command'
         if len(commands)>3: return 'Too many arguments'
 
+ 
+
+
+   #-------------------Micro Maestro 6 channel USB servo controller-----------------------#
+    #Fibre Agitator options. This controls the fibre agitator servo motor via the USB controller.
+    agitator_status='off'
+    agitator_process=None
+    def cmd_agitator(self,the_command):
+        '''Function to control the agitator motor/microcontroller. The first argument is either "on" or "off". Leave blank for current status of device.'''
+        commands = str.split(the_command)
+        #First check if the device is connected
+        if not os.path.exists('/dev/ttyACM0'):
+            return 'Servo controller is unavailable. Check if it is connected.'
+        if len(commands)==1:
+            return 'The agitator is currently '+self.agitator_status
+        elif len(commands) == 2:
+            if str.lower(commands[1])=='on':
+                try: 
+                    self.agitator_process=subprocess.Popen(['bash','servo_motion.sh'],stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+                    return 'Successfully started the agitator'
+                except:
+                    return 'Failed to start the servo motor controller motion'
+            if str.lower(commands[1])=='off':
+                try: 
+                    self.agitator_process.terminate()
+                    returncode=self.agitator_process.wait()
+                    return 'Successfully stopped the agitator'
+                except:
+                    return 'Could not stop the agitator. Check for problems in the hardware.'
+        else: 
+            return 'This function takes only one argument. Use the help for more info.'
