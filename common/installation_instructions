@@ -89,3 +89,9 @@ sudo /usr/local/share/ueye/bin/ueyesdk-setup.sh
 sudo apt-get install libqt4-qt3support
 Then, to run camera, do the same thing you would do for normal linux machines (see above)
 
+------------FOR POLOLU MICRO SERVO MOTOR DRIVER-----------
+
+Go to https://www.pololu.com/docs/0J40/3.b and download the linux software
+Follow the instructions on the README.txt file in the tar.gz downloaded
+
+
