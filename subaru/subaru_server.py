@@ -264,13 +264,12 @@ class Subaru:
             response=self.cmd_imageType('imageType '+imtype)
         elif len(commands)>5: return 'Invalid number of inputs'
         self.imaging=True
-        print 'imaging',self.imaging,'nexps',self.nexps,'imtype',self.imtype,'exposing',self.exposure_active
         return 'Starting the image loop'
 
 
     def imaging_loop(self):
         if self.imaging and (not self.exposure_active):
-            print 'Got here'
+            #print 'Got here'
             try:
                 self.capture()
             except Exception: 
@@ -280,7 +279,7 @@ class Subaru:
         if os.path.isfile('images/TEMPIMAGE.fits'):
             result=self.finish_exposure('Normal')
             print 'Finished exposure'
-            time.sleep(2)
+            time.sleep(1)
             self.exposure_active=False
             self.nexps-=1
             self.filename='None'
@@ -288,7 +287,7 @@ class Subaru:
                 self.nexps=-10
                 self.imaging=False
                 print 'Imaging loop finished'
-            print 'imaging',self.imaging,'nexps',self.nexps,'imtype',self.imtype,'exposing',self.exposing,'fn',self.filename
+            print 'number of exps left',self.nexps
         return 1
 
     #command that takes an image
@@ -300,10 +299,10 @@ class Subaru:
             self.filename=str(localtime[0])+str(localtime[1]).zfill(2)+str(localtime[2]).zfill(2)+str(localtime[3]).zfill(2)+str(localtime[4]).zfill(2)+str(localtime[5]).zfill(2)
         #calls checking functions
         self.checkFile(self.filename)
-        print 'Got this far'
+        #print 'Got this far'
         #try:
         indi.set_and_send_float("SX CCD SXVR-H694","CCD_EXPOSURE","CCD_EXPOSURE_VALUE",self.exposureTime)
-        print 'Got THIS far'
+        #print 'Got THIS far'
         #except Exception: return 0
         self.exposure_active=True
         return 1
@@ -377,7 +376,7 @@ class Subaru:
         '''
         #hdu.writeto(self.fullpath)
         self.startTime=0
-        self.exposureTime=0
+        #self.exposureTime=0
         im.flush()
         os.system('mv images/TEMPIMAGE.fits images/'+self.filename+'.fits')
         print 'Exposure finished'
