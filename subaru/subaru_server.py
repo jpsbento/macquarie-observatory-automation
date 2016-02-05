@@ -50,7 +50,7 @@ if failed==False:
     dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_MODE","UPLOAD_LOCAL","On")
     dummy=indi.set_and_send_text("SX CCD SXVR-H694","CCD_COOLER","COOLER_ON","On")
     dummy=indi.set_and_send_text("SX CCD SXVR-H694","CCD_COOLER","COOLER_OFF","Off")
-    dummy=indi.set_and_send_float("SX CCD SXVR-H694","CCD_BINNING","HOR_BIN",2)
+    dummy=indi.set_and_send_float("SX CCD SXVR-H694","CCD_BINNING","VER_BIN",2)
     if not os.path.exists('./images/'):
         dummy=subprocess.call('mkdir ./images', shell=True)
     dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_SETTINGS","UPLOAD_DIR","images")
@@ -93,6 +93,9 @@ class Subaru:
     ccdSetpoint=0
     #imtype='None'
     shutter='None'
+    imaging=False
+    filename=None
+    nexps=-10
 
     #Checks to see if the filename given exists and prompts for overight or rename if it does
     def checkFile (self,file_to_check):
@@ -236,48 +239,74 @@ class Subaru:
 
 
     def cmd_exposeAndWait(self,command):
-        ''' This function takes a full frame image and waits for the image to be read out prior to ending. Usage: exposeAndWait <exptime> <shutter state> <filename> <imtype (optional, if not bias, dark or light)>'''
+        ''' This function takes a full frame image and waits for the image to be read out prior to ending. Usage: exposeAndWait <exptime> <nexps> <filename (optional)> <imtype=light (optional, if not bias or light)>'''
         commands = str.split(command)
-        if len(commands) < 4 : return 'error: require 3 input values (exposure time, lens (open/closed) and filename. optional argument imtype for header keyword if image type is not bias, dark or light.'
-        #Tests to see if the first command is a float (exposure time) and the second command is either open or close
-        try: exposureTime = float(commands[1])
-        except Exception: return 'invalid input, first input must be a value in seconds'
+        if len(commands) < 3 : return 'error: require 2 input values (exposure time and number of exposures. optional argument is the filename and/or imtype for header keyword if image type is not bias or light. Use "imtype=<image type>" and equaly for filename without spaces'
+        #Tests to see if the first command is a float (exposure time) and the second command is a number of images
+        try: 
+            self.exposureTime = float(commands[1])
+            if self.exposureTime==0.0: self.exposureTime=0.01
+            self.nexps= int(commands[2])
+            response=self.cmd_imageType('imageType Light')
+        except Exception: return 'invalid input, first input must be a value in seconds and second must a number of exposures'
         #if loop to determine if command[2] is open or closed or invalid
-        test = 'invalid'
-        if commands[2] == 'open' or commands[2] == 'closed' : test = 1
-        try: checkCommand2 = float(test)
-        except Exception: return 'invalid input, second input must be open or closed'
-        shutter = str(commands[2])
-        fileInput = str(commands[3])
-        try:
-            if len(commands)==4:
-                self.capture(exposureTime,shutter,fileInput)
-            else:
-                self.capture(exposureTime,shutter,fileInput,imtype=commands[4])
-        except Exception: return 'Unable to start exposure, check connection to CCD'
-        return 'Exposure Initiated'
+        if len(commands)==4:
+            if 'filename' in commands[3]: self.filename = str(commands[3]).split('=')[1]
+            elif 'imtype' in commands[3]: imtype = str(commands[3]).split('=')[1]
+            else: return 'Invalid option. Use either imtype=<image type> or filename=<file name>'
+            response=self.cmd_imageType('imageType '+imtype)
+        elif len(commands)==5:
+            if 'filename' in commands[3]: self.filename = str(commands[3]).split('=')[1]
+            elif 'imtype' in commands[3]: imtype = str(commands[3]).split('=')[1]
+            if 'filename' in commands[4]: self.filename = str(commands[4]).split('=')[1]
+            elif 'imtype' in commands[4]: imtype = str(commands[4]).split('=')[1]
+            else: return 'Invalid option. Use either imtype=<image type> or filename=<file name>'
+            response=self.cmd_imageType('imageType '+imtype)
+        elif len(commands)>5: return 'Invalid number of inputs'
+        self.imaging=True
+        print 'imaging',self.imaging,'nexps',self.nexps,'imtype',self.imtype,'exposing',self.exposure_active
+        return 'Starting the image loop'
 
-    #command that takes an image
-    def capture(self,exposureTime,shutter,fileInput,imtype='Light'):
-        result=self.cmd_imageType('imageType '+imtype)
-        self.startTime = time.time()
-        self.exposureTime=exposureTime
-        #sets up file name
-        self.filename= fileInput.partition('.fits')[0]
-        #calls checking functions
-        self.checkFile(self.filename)
-        #print 'Got this far'
-        try:
-            result=indi.set_and_send_float("SX CCD SXVR-H694","CCD_EXPOSURE","CCD_EXPOSURE_VALUE",exposureTime)
-        except Exception: return 0
-        self.exposure_active=True
-        return 1
 
-    def checkIfFinished(self):
-        '''This function is constantly looking for an image named TEMPIMAGE.fits in the output directory. This is the output of the exposure and should be renamed and have the header keywords populated. This function does that. '''
+    def imaging_loop(self):
+        if self.imaging and (not self.exposure_active):
+            print 'Got here'
+            try:
+                self.capture()
+            except Exception: 
+                return 'Unable to start exposure, check connection to CCD'
+                self.imaging=False
+            return 'Exposure Initiated'
         if os.path.isfile('images/TEMPIMAGE.fits'):
             result=self.finish_exposure('Normal')
+            print 'Finished exposure'
+            time.sleep(2)
+            self.exposure_active=False
+            self.nexps-=1
+            self.filename='None'
+            if self.nexps==0:
+                self.nexps=-10
+                self.imaging=False
+                print 'Imaging loop finished'
+            print 'imaging',self.imaging,'nexps',self.nexps,'imtype',self.imtype,'exposing',self.exposing,'fn',self.filename
+        return 1
 
+    #command that takes an image
+    def capture(self):
+        self.startTime = time.time()
+        #sets up file name
+        if not self.filename:
+            localtime=time.localtime(time.time())
+            self.filename=str(localtime[0])+str(localtime[1]).zfill(2)+str(localtime[2]).zfill(2)+str(localtime[3]).zfill(2)+str(localtime[4]).zfill(2)+str(localtime[5]).zfill(2)
+        #calls checking functions
+        self.checkFile(self.filename)
+        print 'Got this far'
+        #try:
+        indi.set_and_send_float("SX CCD SXVR-H694","CCD_EXPOSURE","CCD_EXPOSURE_VALUE",self.exposureTime)
+        print 'Got THIS far'
+        #except Exception: return 0
+        self.exposure_active=True
+        return 1
 
 
     def cmd_abortExposure(self,the_command):
@@ -286,6 +315,8 @@ class Subaru:
         if len(commands)==1:
             self.exposure_active=False
             result=indi.set_and_send_float("SX CCD SXVR-H694","CCD_ABORT_EXPOSURE","ABORT",'On')
+            self.imaging=False
+            self.filename=None
             return 'Aborted exposure'
         else: return 'This function takes no arguments'
 
@@ -335,10 +366,8 @@ class Subaru:
         hdu.header.update('CAMTEMP', float(commands.getoutput('indi_getprop -p 7777 "SX CCD SXVR-H694.CCD_TEMPERATURE.CCD_TEMPERATURE_VALUE"').split('=')[1]), 'Camera temperature (C)')
         hdu.header.update('SETPOINT', self.ccdSetpoint, 'Camera temperature setpoint (C)')
         hdu.header.update('COOLING', indi.get_text("SX CCD SXVR-H694","CCD_COOLER","COOLER_ON"), 'Camera cooling enabled?')
-        if self.exposureTime==0:
+        if self.exposureTime==0.01:
             self.imtype='Bias'
-        elif self.shutter=='closed':
-            self.imtype='Dark'
         print 'Current image type just before populating header is:',self.imtype
         hdu.header.update('IMGTYPE', self.imtype, 'Image type')
         #if finishstatus=='Aborted':
@@ -582,6 +611,7 @@ class Subaru:
                 try: 
                     self.agitator_process.terminate()
                     returncode=self.agitator_process.wait()
+                    self.agitator_process=None
                     return 'Successfully stopped the agitator'
                 except:
                     return 'Could not stop the agitator. Check for problems in the hardware.'
