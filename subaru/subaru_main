@@ -26,10 +26,10 @@ def kill_everything(ss,server,processes):
 
 import subaru_server
 sys.path.append('../common')
-import server_socket
+import server_zmq_socket as server_socket
 import find_port
 f = find_port.FindPort()
-Port = f.findPort('subaru')
+Port = f.findPort('subaru_sx')
 sx=subaru_server.Subaru()
 ss=server_socket.ServerSocket(Port, 'subaru', sx)
 ss.add_job(sx.imaging_loop)

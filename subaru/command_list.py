@@ -34,7 +34,7 @@ def execute_command(the_command, m):
         return ""
     if commands[0] == "help":
         if (len(commands) == 1):
-            return 'checkTemperature\nsetTemperature\nestablishLink\ncloseLink\ngetCCDParams\nenableRegulation\ndisableRegulation\nchangeBinning\nimageType\nexposeAndWait\nabortExposure\nljtemp\nheater\nbackLED\nippower'
+            return 'checkTemperature\tsetTemperature\nestablishLink\tcloseLink\ngetCCDParams\tenableRegulation\ndisableRegulation\tchangeBinning\nimageType\texposeAndWait\nabortExposure\tljtemp\nheater\tbackLED\nippower'
         elif commands[1] in the_functions:
             td=pydoc.TextDoc()
             return td.docroutine(the_functions[commands[1]])
