@@ -26,7 +26,7 @@ class ClientSocket:
             tcpstring = "tcp://"+IP+":"+Port
             print(tcpstring)
             self.client.connect(tcpstring)
-            self.client.RCVTIMEO = 1000
+            self.client.RCVTIMEO = 2000
             self.connected=True
         except: 
             print('ERROR: Could not connect to server. Please check that the server is running.')
@@ -52,7 +52,7 @@ class RHEASXGui(QWidget):
         self.wl_button = QPushButton('SX', self)
         self.wl_button.clicked.connect(self.ippower_button_click)
         self.wl_button.setCheckable(True)
-        self.arc_button = QPushButton('XeAr', self)
+        self.arc_button = QPushButton('Arc', self)
         self.arc_button.clicked.connect(self.ippower_button_click)
         self.arc_button.setCheckable(True)
         self.sx_button = QPushButton('WhiteLight', self)
@@ -76,11 +76,14 @@ class RHEASXGui(QWidget):
         hbox1 = QHBoxLayout()
         hbox1.addWidget(lbl1)
         hbox1.addWidget(self.lineedit)
-        
+       
+        self.status_label = QLabel("", self)
+ 
         layout = QVBoxLayout()
         layout.addLayout(hbox2)
         layout.addLayout(hbox1)
         layout.addWidget(self.response_label)
+        layout.addWidget(self.status_label)
         self.setLayout(layout)
         self.setWindowTitle("RHEA@Subaru Spectrograph")
         self.stimer = QTimer()
@@ -89,9 +92,9 @@ class RHEASXGui(QWidget):
     def ippower_button_click(self):
         command = "ippower "+str(self.sender().text())
         if self.sender().isChecked():
-            command += " off"
-        else:
             command += " on"
+        else:
+            command += " off"
         print(command)
         response = self.client_socket.send_command(command)
         self.response_label.setText(response)
@@ -101,15 +104,20 @@ class RHEASXGui(QWidget):
         command = "status"
         if (self.client_socket.connected):
             response = self.client_socket.send_command(command)
-            if (response.split(" ", 1)[0]=="status"):
-                self.update_status(response)
+            split_response = response.split(" ", 1)
+            if (split_response[0]=="status"):
+                self.update_status(split_response[1])
             else:
                 self.response_label.setText(response)
-        self.stimer.singleShot(1000, self.ask_for_status)
+        self.stimer.singleShot(2000, self.ask_for_status)
 
     def update_status(self,response):
-        self.status=json.loads(response)
-        #!!! Up to here.
+        try:
+            self.status=json.loads(response)
+        except:
+            pdb.set_trace()
+        #!!! Make this better.
+        self.status_label.setText("CCDTemp: {0:5.1f}".format(self.status["CCDTemp"]))
         return
 
     def send_to_server(self):
