@@ -11,6 +11,7 @@ import zlib
 import pdb
 import time
 import zmq
+import json
 
 class ClientSocket:
     MAX_BUFFER = 65536
@@ -106,7 +107,9 @@ class RHEASXGui(QWidget):
                 self.response_label.setText(response)
         self.stimer.singleShot(1000, self.ask_for_status)
 
-    def update_status(self):
+    def update_status(self,response):
+        self.status=json.loads(response)
+        #!!! Up to here.
         return
 
     def send_to_server(self):
