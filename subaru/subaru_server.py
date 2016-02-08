@@ -80,7 +80,7 @@ class Subaru():
     exposing=False
     exposureTime=0
     shutter_position='Closed'
-    filename='None'
+    filename=None
     imtype='none'
     gain=0.3
     exposure_active=False
@@ -93,7 +93,7 @@ class Subaru():
     camtemp=0
     ccdSetpoint=0
     #imtype='None'
-    shutter='None'
+    shutter=None
     imaging=False
     filename=None
     nexps=-10
@@ -269,16 +269,21 @@ class Subaru():
         #if loop to determine if command[2] is open or closed or invalid
         if len(commands)==4:
             if 'filename' in commands[3]: self.filename = str(commands[3]).split('=')[1]
-            elif 'imtype' in commands[3]: imtype = str(commands[3]).split('=')[1]
+            elif 'imtype' in commands[3]: 
+                imtype = str(commands[3]).split('=')[1]
+                response=self.cmd_imageType('imageType '+imtype)
             else: return 'Invalid option. Use either imtype=<image type> or filename=<file name>'
-            response=self.cmd_imageType('imageType '+imtype)
         elif len(commands)==5:
             if 'filename' in commands[3]: self.filename = str(commands[3]).split('=')[1]
-            elif 'imtype' in commands[3]: imtype = str(commands[3]).split('=')[1]
+            elif 'imtype' in commands[3]: 
+                imtype = str(commands[3]).split('=')[1]
+                response=self.cmd_imageType('imageType '+imtype)
             if 'filename' in commands[4]: self.filename = str(commands[4]).split('=')[1]
-            elif 'imtype' in commands[4]: imtype = str(commands[4]).split('=')[1]
+            elif 'imtype' in commands[4]: 
+                imtype = str(commands[4]).split('=')[1]
+                response=self.cmd_imageType('imageType '+imtype)
+            if 'filename' in commands[4]: self.filename = str(commands[4]).split('=')[1]                          
             else: return 'Invalid option. Use either imtype=<image type> or filename=<file name>'
-            response=self.cmd_imageType('imageType '+imtype)
         elif len(commands)>5: return 'Invalid number of inputs'
         self.imaging=True
         return 'Starting the image loop'
@@ -299,13 +304,12 @@ class Subaru():
             time.sleep(1)
             self.exposure_active=False
             self.nexps-=1
-            self.filename='None'
+            self.filename=None
             if self.nexps==0:
                 self.nexps=-10
                 self.imaging=False
                 print 'Imaging loop finished'
             print 'number of exps left',self.nexps
-        return 1
 
     #command that takes an image
     def capture(self):
@@ -322,7 +326,6 @@ class Subaru():
         #print 'Got THIS far'
         #except Exception: return 0
         self.exposure_active=True
-        return 1
 
 
     def cmd_abortExposure(self,the_command):
@@ -562,8 +565,9 @@ class Subaru():
     #-----------------------ippower-------------------------------------#
     #ipPower options. This is a unit that is used to control power to units.
     #This dictionary contains which device is plugged into each port. If the connections change, this needs to be changed too!
-    power_order={'NUC':1,'SX':2,'XeAr':3,'WhiteLight':4}
-    ippower.Options.ipaddr='rhea-ippower'
+    power_order={'SX':1,'NUC':2,'Ar':3,'WhiteLight':4}
+    #ippower.Options.ipaddr='rhea-ippower'
+    ippower.Options.ipaddr='150.203.89.62'
     ippower.Options.login = 'admin'
     ippower.Options.passwd = '12345678'
     ippower.Options.port = 80
