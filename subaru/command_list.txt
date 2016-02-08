@@ -1,4 +1,3 @@
-status
 checkTemperature
 setTemperature
 establishLink
@@ -15,3 +14,4 @@ heater
 backLED
 ippower
 agitator
+status

@@ -97,7 +97,7 @@ class ServerSocket:
             for the_job in self.jobs:
                 try: message=the_job()
                 except Exception: 
-                    print('Unable to do the'+the_job+'function. Check if the hardward needed is connected.')
+                    print('Unable to do the '+the_job.__name__+' function. Check if the hardward needed is connected.')
                 if message:
                     print(message)
                     #ISSUE: No way to get these messages to clients with the client-server model.

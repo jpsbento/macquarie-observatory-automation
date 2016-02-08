@@ -14,6 +14,10 @@ import zmq
 import json
 
 class ClientSocket:
+    """ This class aims to be the simplest possible class to act as a client in 
+    simple client-server communication. The protocol is: command (a string with no
+    spaces), then a space, then data. A returned string begins with the same command
+    if it is the kind of response that needs action. Otherwise just a message."""
     MAX_BUFFER = 65536
 #    def __init__(self,IP="133.40.162.192", Port=3001):
 #    def __init__(self,IP="150.203.89.12",Port=3001):
@@ -26,23 +30,27 @@ class ClientSocket:
             tcpstring = "tcp://"+IP+":"+Port
             print(tcpstring)
             self.client.connect(tcpstring)
-            self.client.RCVTIMEO = 2000
+            self.client.RCVTIMEO = 20000
             self.connected=True
         except: 
             print('ERROR: Could not connect to server. Please check that the server is running.')
             self.connected=False
 
     def send_command(self, command):
-        """WARNING: currently a blocking send/recv!"""
+        """The main send-command routine for the client.
+        
+        TODO: If there is a timeout, we maybe just need to record that there has 
+        been a timeout, and try recv later. BUT - the server should never 
+        take a long time to return."""
         try: 
             self.client.send(command,zmq.NOBLOCK)
             return self.client.recv(self.MAX_BUFFER,zmq.NOBLOCK)
         except:
+#           The commands below should only be part of a "reconnect" function 
+#           (NOT YET IMPLEMENTED, NEEDS A PING FUNCTION, MAYBE CALLED PING)
 #            self.connected=False 
 #            self.client.close()
-            return 'Error sending command, connection lost.'
-#        try: return self.client.recv(self.MAX_BUFFER,zmq.NOBLOCK)
-#        except Exception: return 'Error receiving response'
+            return 'Error sending command, connection lost or excessive command time.'
 
 class RHEASXGui(QWidget):
     current_image=0;

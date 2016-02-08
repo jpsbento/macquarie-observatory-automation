@@ -51,7 +51,8 @@ if failed==False:
     dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_MODE","UPLOAD_LOCAL","On")
     dummy=indi.set_and_send_text("SX CCD SXVR-H694","CCD_COOLER","COOLER_ON","On")
     dummy=indi.set_and_send_text("SX CCD SXVR-H694","CCD_COOLER","COOLER_OFF","Off")
-    dummy=indi.set_and_send_float("SX CCD SXVR-H694","CCD_BINNING","VER_BIN",2)
+#   Default binning is 1x1. Not need to set this as it is a CCD default.
+#    dummy=indi.set_and_send_float("SX CCD SXVR-H694","CCD_BINNING","VER_BIN",2)
     if not os.path.exists('./images/'):
         dummy=subprocess.call('mkdir ./images', shell=True)
     dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_SETTINGS","UPLOAD_DIR","images")
@@ -72,6 +73,15 @@ except Exception:
 
 
 class Subaru():
+    """As this server class controls several pieces of hardware at once, d
+      defaults for this class are in blocks, in the order below... 
+      
+        SX CAMERA
+        Labjack
+        IPPower
+        Micro Maestro
+        
+    """
     #------------------------------------SX CAMERA----------------------------#
     #Some parameters for the default stats of the camera
     frame_types=['LIGHT','BIAS','DARK','FLAT']
@@ -97,14 +107,8 @@ class Subaru():
     imaging=False
     filename=None
     nexps=-10
-    #PArameters to return
+    #PArameters to return in the status.
     CCDTemp = 99
-    T1 = 99
-    Vref = 99
-    T2=99
-    RH = 99
-    P = 99
-    heater_frac = 99
     last_CCD_temp_check = 0
 
     #Checks to see if the filename given exists and prompts for overight or rename if it does
@@ -124,14 +128,6 @@ class Subaru():
                 #offers a new name (or directory for input)
                 fileInput2 = raw_input()
                 self.filename= fileInput2.partition('.fits')[0]
-
-    def cmd_status(self,the_command):
-        """Return a dictionary containing the CCD status"""
-        if (time.time() - self.last_CCD_temp_check > 5):
-            self.cmd_checkTemperature("checkTemperature")
-        status = {"CCDTemp":self.CCDTemp,"T1":self.T1,"Vref":self.Vref,"T2":self.T2,\
-            "RH":self.RH,"P":self.P,"heater_frac":self.heater_frac}
-        return "status " + json.dumps(status)
 
     def cmd_checkTemperature(self,the_command):
         '''This command checks the temperature at the time it is run. No inputs for this function'''
@@ -642,3 +638,15 @@ class Subaru():
                     return 'Could not stop the agitator. Check for problems in the hardware.'
         else: 
             return 'This function takes only one argument. Use the help for more info.'
+            
+    #---------- Additional methods that apply to all submodules/hardware ------------
+    
+    def cmd_status(self,the_command):
+        """Return a dictionary containing the whole instrument status"""
+        if (time.time() - self.last_CCD_temp_check > 5):
+            self.cmd_checkTemperature("checkTemperature")
+        status = {"CCDTemp":self.CCDTemp,"T1":self.T1,"Vref":self.Vref,"T2":self.T2,\
+            "RH":self.RH,"P":self.P,"heater_frac":self.heater_frac}
+        return "status " + json.dumps(status)
+
+
