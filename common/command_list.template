@@ -45,5 +45,5 @@ def execute_command(the_command, m):
     elif commands[0] in the_functions:
         return the_functions[commands[0]](the_command)
     else:
-        return "ERROR: Command not found."
+        return "ERROR: Command not found - {0:s} ".format(commands[0])
 

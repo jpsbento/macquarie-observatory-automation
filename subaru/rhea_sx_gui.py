@@ -48,6 +48,21 @@ class RHEASXGui(QWidget):
     def __init__(self, IP='127.0.0.1', parent=None):
         super(RHEASXGui,self).__init__(parent)
         self.client_socket = ClientSocket(IP=IP) 
+        self.wl_button = QPushButton('SX', self)
+        self.wl_button.clicked.connect(self.ippower_button_click)
+        self.wl_button.setCheckable(True)
+        self.arc_button = QPushButton('XeAr', self)
+        self.arc_button.clicked.connect(self.ippower_button_click)
+        self.arc_button.setCheckable(True)
+        self.sx_button = QPushButton('WhiteLight', self)
+        self.sx_button.clicked.connect(self.ippower_button_click)
+        self.sx_button.setCheckable(True)
+        hbox2 = QHBoxLayout()
+        hbox2.addWidget(self.wl_button)
+        hbox2.addWidget(self.arc_button)
+        hbox2.addWidget(self.sx_button)
+        
+        
         lbl1 = QLabel('Command: ', self)
         self.lineedit = QLineEdit("")
         self.connect(self.lineedit, SIGNAL("returnPressed()"),
@@ -62,6 +77,7 @@ class RHEASXGui(QWidget):
         hbox1.addWidget(self.lineedit)
         
         layout = QVBoxLayout()
+        layout.addLayout(hbox2)
         layout.addLayout(hbox1)
         layout.addWidget(self.response_label)
         self.setLayout(layout)
@@ -69,8 +85,18 @@ class RHEASXGui(QWidget):
         self.stimer = QTimer()
         self.ask_for_status()
 
-    def ask_for_status(self):
+    def ippower_button_click(self):
+        command = "ippower "+str(self.sender().text())
+        if self.sender().isChecked():
+            command += " off"
+        else:
+            command += " on"
+        print(command)
+        response = self.client_socket.send_command(command)
+        self.response_label.setText(response)
         return
+
+    def ask_for_status(self):
         command = "status"
         if (self.client_socket.connected):
             response = self.client_socket.send_command(command)
@@ -78,7 +104,7 @@ class RHEASXGui(QWidget):
                 self.update_status(response)
             else:
                 self.response_label.setText(response)
-        self.stimer.singleShot(200, self.ask_for_image)
+        self.stimer.singleShot(1000, self.ask_for_status)
 
     def update_status(self):
         return

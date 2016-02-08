@@ -12,6 +12,7 @@ import time
 import ctypes
 import os,subprocess
 import ippower
+import json
 #import the tools to do time and coordinate transforms
 import ctx
 
@@ -70,7 +71,7 @@ except Exception:
     print 'Unable to connect to the labjack.'
 
 
-class Subaru:
+class Subaru():
     #------------------------------------SX CAMERA----------------------------#
     #Some parameters for the default stats of the camera
     frame_types=['LIGHT','BIAS','DARK','FLAT']
@@ -96,6 +97,15 @@ class Subaru:
     imaging=False
     filename=None
     nexps=-10
+    #PArameters to return
+    CCDTemp = 99
+    T1 = 99
+    Vref = 99
+    T2=99
+    RH = 99
+    P = 99
+    heater_frac = 99
+    last_CCD_temp_check = 0
 
     #Checks to see if the filename given exists and prompts for overight or rename if it does
     def checkFile (self,file_to_check):
@@ -115,13 +125,20 @@ class Subaru:
                 fileInput2 = raw_input()
                 self.filename= fileInput2.partition('.fits')[0]
 
+    def cmd_status(self,the_command):
+        """Return a dictionary containing the CCD status"""
+        if (time.time() - self.last_CCD_temp_check > 5):
+            self.cmd_checkTemperature("checkTemperature")
+        status = {"CCDTemp":self.CCDTemp,"T1":self.T1,"Vref":self.Vref,"T2":self.T2,\
+            "RH":self.RH,"P":self.P,"heater_frac":self.heater_frac}
+        return "status " + json.dumps(status)
 
     def cmd_checkTemperature(self,the_command):
         '''This command checks the temperature at the time it is run. No inputs for this function'''
         try:
-            temp=float(commands.getoutput('indi_getprop -p 7777 "SX CCD SXVR-H694.CCD_TEMPERATURE.CCD_TEMPERATURE_VALUE"').split('=')[1])
+            self.CCDTemp=float(commands.getoutput('indi_getprop -p 7777 "SX CCD SXVR-H694.CCD_TEMPERATURE.CCD_TEMPERATURE_VALUE"').split('=')[1])
         except Exception: return 'Unable to check CCD temperature for some reason'
-        return 'CCD temperature is '+str(temp)+' degrees C'
+        return 'CCD temperature is '+str(self.CCDTemp)+' degrees C'
 
     def cmd_setTemperature(self,the_command):
         '''this command sets the temperature of the imaging CCD, input is in degrees C.'''
@@ -556,7 +573,7 @@ class Subaru:
         commands = str.split(the_command)
         skip_word_check=False
         if len(commands)<2:
-            return 'This function requires extra arguments'
+            return 'Useage: ippower show or ippower [device] [on|off]]'
         if commands[1]=='show': return str(self.power_order)
         try:
             port=int(commands[1])
@@ -570,7 +587,11 @@ class Subaru:
                         port=number
             else: return 'Invalid device. type "ippower show" for a list of devices.'
         if len(commands) == 2:
-            return 'The power status of the port into which the '+commands[1]+' is connected is '+str( ippower.get_power(ippower.Options,port) )
+            try:
+                retstr = str( ippower.get_power(ippower.Options,port) )
+            except:
+                return "IPPower Error"
+            return 'The power status of the port into which the '+commands[1]+' is connected is '+ retstr
         elif len(commands) == 3:
             if commands[2]=='on': s=True
             elif commands[2]=='off': s=False

@@ -41,7 +41,10 @@ def ip9258_rpc(opts, cmd, args=[]):
     headers['Authorization'] = 'Basic %s' % creds.encode('base64')
     url = '/Set.cmd?CMD=%s' % cmd
     url += ''.join(['+%s=%s' % (k, v) for k,v in args ])
-    conn.request('GET', url, headers=headers)
+    try:
+        conn.request('GET', url, headers=headers)
+    except:
+        return "Exception on conn.request"
     return conn.getresponse()
 
 
