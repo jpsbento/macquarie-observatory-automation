@@ -106,7 +106,7 @@ class Subaru():
     shutter=None
     imaging=False
     filename=None
-    nexps=-10
+    nexps=None
     #PArameters to return in the status.
     CCDTemp = 99
     last_CCD_temp_check = 0
@@ -133,6 +133,7 @@ class Subaru():
         '''This command checks the temperature at the time it is run. No inputs for this function'''
         try:
             self.CCDTemp=float(commands.getoutput('indi_getprop -p 7777 "SX CCD SXVR-H694.CCD_TEMPERATURE.CCD_TEMPERATURE_VALUE"').split('=')[1])
+            self.cooling=indi.set_and_send_text("SX CCD SXVR-H694","CCD_COOLER","COOLER_ON","On")
         except Exception: return 'Unable to check CCD temperature for some reason'
         return 'CCD temperature is '+str(self.CCDTemp)+' degrees C'
 
@@ -295,17 +296,20 @@ class Subaru():
                 self.imaging=False
             return 'Exposure Initiated'
         if os.path.isfile('images/TEMPIMAGE.fits'):
-            result=self.finish_exposure('Normal')
-            print 'Finished exposure'
-            time.sleep(1)
-            self.exposure_active=False
-            self.nexps-=1
-            self.filename=None
-            if self.nexps==0:
-                self.nexps=-10
-                self.imaging=False
-                print 'Imaging loop finished'
-            print 'number of exps left',self.nexps
+            try:
+                result=self.finish_exposure('Normal')
+                print 'Finished exposure'
+                time.sleep(1)
+                self.exposure_active=False
+                self.nexps-=1
+                self.filename=None
+                if self.nexps==0:
+                    self.nexps=None
+                    self.imaging=False
+                    print 'Imaging loop finished'
+                print 'number of exps left',self.nexps
+            except: 
+                return 'Unable to finish exposure'
 
     #command that takes an image
     def capture(self):
@@ -380,7 +384,7 @@ class Subaru():
         hdu.header.update('LTEND', endtime , 'Local HH:MM:SS.ss Exp. End')
         hdu.header.update('CAMTEMP', float(commands.getoutput('indi_getprop -p 7777 "SX CCD SXVR-H694.CCD_TEMPERATURE.CCD_TEMPERATURE_VALUE"').split('=')[1]), 'Camera temperature (C)')
         hdu.header.update('SETPOINT', self.ccdSetpoint, 'Camera temperature setpoint (C)')
-        hdu.header.update('COOLING', indi.get_text("SX CCD SXVR-H694","CCD_COOLER","COOLER_ON"), 'Camera cooling enabled?')
+        hdu.header.update('COOLING', self.cooling, 'Camera cooling enabled?')
         if self.exposureTime==0.01:
             self.imtype='Bias'
         print 'Current image type just before populating header is:',self.imtype
@@ -644,9 +648,17 @@ class Subaru():
     def cmd_status(self,the_command):
         """Return a dictionary containing the whole instrument status"""
         if (time.time() - self.last_CCD_temp_check > 5):
-            self.cmd_checkTemperature("checkTemperature")
+            try:
+                self.cmd_checkTemperature("checkTemperature")
+                hor_bin=indi.get_float("SX CCD SXVR-H694","CCD_BINNING","HOR_BIN")
+                ver_bin=indi.get_float("SX CCD SXVR-H694","CCD_BINNING","VER_BIN")
+            except: 
+                return 'Unable to query CCD camera status'
         status = {"CCDTemp":self.CCDTemp,"T1":self.T1,"Vref":self.Vref,"T2":self.T2,\
-            "RH":self.RH,"P":self.P,"heater_frac":self.heater_frac}
+                  "RH":self.RH,"P":self.P,"heater_frac":self.heater_frac,\
+                  "Cooling":self.cooling,"Exposing":self.exposure_active,"Imaging":self.imaging,\
+                  "nexps":self.nexps,"horbin":hor_bin,"verbin":ver_bin,"filename":self.filename,\
+                  "agitator":self.agitator_status}
         return "status " + json.dumps(status)
 
 
