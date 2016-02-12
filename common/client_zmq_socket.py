@@ -2,53 +2,44 @@ import sys, time
 import string
 import zmq
 from datetime import datetime
+from astropy.table import Table
+import numpy as np
 
 class ClientSocket:
+    MAX_BUFFER = 65536
+#    def __init__(self,IP="133.40.162.192", Port=3001):
+#    def __init__(self,IP="150.203.89.12",Port=3001):
+    def __init__(self,device="subaru_inject",telescope_type="mtstromlo"): 
+        t = Table.read('../common/device_list.txt',format="ascii")
+        ix = np.where(t['Hardware_Object'] == device)[0][0]
+        IP   = t[telescope_type+"IP"][ix]
+        Port = t["Port"][ix]
+        #NB See the prototype in macquarie-university-automation for a slightly neater start.
+        ADS = (IP,Port)
+        try:
+            self.context = zmq.Context()
+            self.client = self.context.socket(zmq.REQ)
+            tcpstring = "tcp://"+IP+":"+Port
+            print(tcpstring)
+            self.client.connect(tcpstring)
+            self.client.RCVTIMEO = 1000
+            self.connected=True
+        except: 
+            print('ERROR: Could not connect to server. Please check that the server is running.')
+            self.connected=False
 
-	def __init__(self,device,telescope_type):
-		#Set up the class properties "server", "input", "hardware_name" and "hardware_object"
-		self.device = device
-		try: devicefile = open('../common/device_list.txt')
-		except Exception: print 'ERROR: file "device_list.txt" not found'
-		device_list = devicefile.readlines()
-		devicefile.close()
-		IP = ''
-		Port = ''
-		IP_column = ''
-		Port_column = ''
-		if device_list[0][0] == '#':
-			items = str.split(device_list[0])
-			for i in range(0, len(items)):
-				if items[i] == telescope_type+'IP': IP_column = i
-				if items[i] == 'Port': Port_column = i
-				#print items[i]
-		else: return 'ERROR 1'
-		if IP_column == '' or Port_column == '': print 'ERROR: Device file with unknown format'
-		for line in device_list:
-			item = str.split(line)
-			if item[0][0] != '#' and device == item[0]:
-				try:
-					IP = item[IP_column]
-					Port = int(item[Port_column])
-				except Exception: print 'ERROR: Unable to set IP and Port columns'
-		ADS = (IP,Port)
-		try:
-			self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-			self.client.connect(ADS)
-			self.client.settimeout(600)
-			#self.client.setsockopt(1, 2, 1)
-			self.client.setsockopt(6, 1, 1)
-		except Exception: print 'ERROR: Could not connect to server responsible for '+self.device+'. Please check that the server is running.'
+    def send_command(self, command):
+        """WARNING: currently a blocking send/recv!"""
+        try: 
+            self.client.send(command,zmq.NOBLOCK)
+            return self.client.recv(self.MAX_BUFFER,zmq.NOBLOCK)
+        except:
+#            self.connected=False 
+#            self.client.close()
+            return 'Error sending command, connection lost.'
+#        try: return self.client.recv(self.MAX_BUFFER,zmq.NOBLOCK)
+#        except Exception: return 'Error receiving response'
 
-
-
-	def send_command(self, command):
-#sends a command to the device server and waits for a response
-		try: self.client.send(command)
-		except Exception: return 'Error sending command, connection likely lost.'
-		time.sleep(0.2)
-		try: return self.client.recv(15000)
-		except Exception: return 'Error receiving response'
 
 
 

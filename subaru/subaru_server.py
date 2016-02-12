@@ -15,6 +15,7 @@ import ippower
 import json
 #import the tools to do time and coordinate transforms
 import ctx
+import client_zmq_socket as client_socket
 
 failed=False
 #Try to connect to the camera
@@ -82,6 +83,9 @@ class Subaru():
         Micro Maestro
         
     """
+    #Communications with the injection unit
+    inject = client_socket.ClientSocket(device="subaru_inject")
+    
     #------------------------------------SX CAMERA----------------------------#
     #Some parameters for the default stats of the camera
     frame_types=['LIGHT','BIAS','DARK','FLAT']
@@ -105,6 +109,7 @@ class Subaru():
     #imtype='None'
     shutter=None
     imaging=False
+    dithering=False
     filename=None
     nexps=None
     #PArameters to return in the status.
@@ -251,18 +256,29 @@ class Subaru():
         return 'Image type changed to '+self.imtype+' with the indi server image type changed to '+frame_type
 
 
+    def cmd_exp(self,command):
+        return self.cmd_exposeAndWait(command)
 
     def cmd_exposeAndWait(self,command):
         ''' This function takes a full frame image and waits for the image to be read out prior to ending. Usage: exposeAndWait <exptime> <nexps> <filename (optional)> <imtype=light (optional, if not bias or light)>'''
         commands = str.split(command)
-        if len(commands) < 3 : return 'error: require 2 input values (exposure time and number of exposures. optional argument is the filename and/or imtype for header keyword if image type is not bias or light. Use "imtype=<image type>" and equaly for filename without spaces'
+        if len(commands) < 3 : return 'error: require 2 input values (exposure time and number of exposures or dither pattern. optional argument is the filename and/or imtype for header keyword if image type is not bias or light. Use "imtype=<image type>" and equaly for filename without spaces'
         #Tests to see if the first command is a float (exposure time) and the second command is a number of images
         try: 
             self.exposureTime = float(commands[1])
             if self.exposureTime==0.0: self.exposureTime=0.01
+        except Exception: return 'invalid input, first input must be a value in seconds'
+        if commands[2].isdigit():
             self.nexps= int(commands[2])
-            response=self.cmd_imageType('imageType Light')
-        except Exception: return 'invalid input, first input must be a value in seconds and second must a number of exposures'
+        else:
+            try:
+                dither_file = os.path.join(os.path.dirname(os.path.abspath(__file__)),"dithers/"+commands[2])
+                self.dither_pattern = np.loadtxt(dither_file)
+                self.nexps = dither.shape[0]
+                self.dithering=True
+            except Exception: 
+                return 'invalid input: second input must be a number of exposures or dither pattern file'
+        response=self.cmd_imageType('imageType Light')
         #if loop to determine if command[2] is open or closed or invalid
         if len(commands)==4:
             if 'filename' in commands[3]: self.filename = str(commands[3]).split('=')[1]
@@ -299,13 +315,21 @@ class Subaru():
             try:
                 result=self.finish_exposure('Normal')
                 print 'Finished exposure'
+                self.nexps-=1
+                #Dither if we have to
+                if self.dithering:
+                    try:
+                        self.cmd_inject("movxy {0:.1f} {1:.1f}".format(self.dither_pattern[self.nexps,0], self.dither_pattern[self.nexps,1]))
+                    except:
+                        #For bugshooting... !!! When tested, neaten this !!!
+                        pdb.set_trace()
                 time.sleep(1)
                 self.exposure_active=False
-                self.nexps-=1
                 self.filename=None
                 if self.nexps==0:
                     self.nexps=None
                     self.imaging=False
+                    self.dithering=False
                     print 'Imaging loop finished'
                 print 'number of exps left',self.nexps
             except: 
@@ -661,4 +685,7 @@ class Subaru():
                   "agitator":self.agitator_status}
         return "status " + json.dumps(status)
 
+    def cmd_inject(self,the_command):
+        """Communicate with rhea_inject"""
+        return self.inject.send_command(self.the_command)        
 

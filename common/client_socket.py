@@ -17,13 +17,13 @@ class ClientSocket:
 		Port = ''
 		IP_column = ''
 		Port_column = ''
-		if device_list[0][0] == '#':
-			items = str.split(device_list[0])
-			for i in range(0, len(items)):
-				if items[i] == telescope_type+'IP': IP_column = i
-				if items[i] == 'Port': Port_column = i
-				#print items[i]
-		else: return 'ERROR 1'
+		#The first line of the file *shouldn't* have a comment to conform to astropy.Table
+        items = str.split(device_list[0])
+        for i in range(0, len(items)):
+            if items[i] == telescope_type+'IP': IP_column = i
+            if items[i] == 'Port': Port_column = i
+            #print items[i]
+
 		if IP_column == '' or Port_column == '': print 'ERROR: Device file with unknown format'
 		for line in device_list:
 			item = str.split(line)
