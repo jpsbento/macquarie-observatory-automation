@@ -7,6 +7,7 @@ enableRegulation
 disableRegulation
 changeBinning
 imageType
+exp
 exposeAndWait
 abortExposure
 ljtemp
@@ -15,3 +16,4 @@ backLED
 ippower
 agitator
 status
+inject

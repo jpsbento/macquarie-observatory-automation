@@ -4,6 +4,7 @@ import zmq
 from datetime import datetime
 from astropy.table import Table
 import numpy as np
+import pdb
 
 class ClientSocket:
     MAX_BUFFER = 65536
@@ -19,13 +20,13 @@ class ClientSocket:
         try:
             self.context = zmq.Context()
             self.client = self.context.socket(zmq.REQ)
-            tcpstring = "tcp://"+IP+":"+Port
+            tcpstring = "tcp://"+IP+":"+str(Port)
             print(tcpstring)
             self.client.connect(tcpstring)
             self.client.RCVTIMEO = 1000
             self.connected=True
         except: 
-            print('ERROR: Could not connect to server. Please check that the server is running.')
+            print("ERROR: Could not connect to server {0:s}. Please check that the server is running.".format(device))
             self.connected=False
 
     def send_command(self, command):

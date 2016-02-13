@@ -28,13 +28,13 @@ def execute_command(the_command, m):
     '''Find the_command amongst the list of commands like cmd_one in module m
     
     This returns a string containing the response, or a -1 if a quit is commanded.'''
-    the_functions = dict(checkTemperature=m.cmd_checkTemperature,setTemperature=m.cmd_setTemperature,establishLink=m.cmd_establishLink,closeLink=m.cmd_closeLink,getCCDParams=m.cmd_getCCDParams,enableRegulation=m.cmd_enableRegulation,disableRegulation=m.cmd_disableRegulation,changeBinning=m.cmd_changeBinning,imageType=m.cmd_imageType,exp=m.cmd_exposeAndWait,exposeAndWait=m.cmd_exposeAndWait,abortExposure=m.cmd_abortExposure,ljtemp=m.cmd_ljtemp,heater=m.cmd_heater,backLED=m.cmd_backLED,ippower=m.cmd_ippower)
+    the_functions = dict(checkTemperature=m.cmd_checkTemperature,setTemperature=m.cmd_setTemperature,establishLink=m.cmd_establishLink,closeLink=m.cmd_closeLink,getCCDParams=m.cmd_getCCDParams,enableRegulation=m.cmd_enableRegulation,disableRegulation=m.cmd_disableRegulation,changeBinning=m.cmd_changeBinning,imageType=m.cmd_imageType,exp=m.cmd_exp,exposeAndWait=m.cmd_exposeAndWait,abortExposure=m.cmd_abortExposure,ljtemp=m.cmd_ljtemp,heater=m.cmd_heater,backLED=m.cmd_backLED,ippower=m.cmd_ippower,agitator=m.cmd_agitator,status=m.cmd_status,inject=m.cmd_inject)
     commands = string.split(the_command)
     if len(commands) == 0:
         return ""
     if commands[0] == "help":
         if (len(commands) == 1):
-            return 'checkTemperature\tsetTemperature\nestablishLink\tcloseLink\ngetCCDParams\tenableRegulation\ndisableRegulation\tchangeBinning\nimageType\texposeAndWait\nabortExposure\tljtemp\nheater\tbackLED\nippower'
+            return 'checkTemperature\nsetTemperature\nestablishLink\ncloseLink\ngetCCDParams\nenableRegulation\ndisableRegulation\nchangeBinning\nimageType\nexp\nexposeAndWait\nabortExposure\nljtemp\nheater\nbackLED\nippower\nagitator\nstatus\ninject'
         elif commands[1] in the_functions:
             td=pydoc.TextDoc()
             return td.docroutine(the_functions[commands[1]])

@@ -17,6 +17,10 @@ import json
 import ctx
 import client_zmq_socket as client_socket
 
+#Definitions
+CCD_TEMP_CHECK_PERIOD=30
+LJ_TEMP_CHECK_PERIOD=5
+
 failed=False
 #Try to connect to the camera
 def new_timeout(devicename,vectorname,indi):
@@ -114,6 +118,9 @@ class Subaru():
     nexps=None
     #PArameters to return in the status.
     CCDTemp = 99
+    cooling = "Unknown"
+    hor_bin=1
+    ver_bin=1
     last_CCD_temp_check = 0
 
     #Checks to see if the filename given exists and prompts for overight or rename if it does
@@ -136,6 +143,7 @@ class Subaru():
 
     def cmd_checkTemperature(self,the_command):
         '''This command checks the temperature at the time it is run. No inputs for this function'''
+        self.last_CCD_temp_check = time.time()
         try:
             self.CCDTemp=float(commands.getoutput('indi_getprop -p 7777 "SX CCD SXVR-H694.CCD_TEMPERATURE.CCD_TEMPERATURE_VALUE"').split('=')[1])
             self.cooling=indi.set_and_send_text("SX CCD SXVR-H694","CCD_COOLER","COOLER_ON","On")
@@ -448,14 +456,16 @@ class Subaru():
     T8=0
     P=0
     RH=0
-
+    last_LJ_temp_check = 0
+    LJTemp = 99
 
     #*************************************** List of user commands ***************************************#
 
     def cmd_ljtemp(self,the_command):
         ''' Get the temperature of the labjack in Kelvin'''
-        temperature = LJ.getTemperature()
-        return str(temperature)
+        self.last_LJ_temp_check = time.time()
+        self.LJTemp = LJ.getTemperature()
+        return str(self.LJTemp)
 
     def cmd_heater(self,the_command):
         '''Set the Heater PCM current'''
@@ -527,6 +537,7 @@ class Subaru():
                 #a4 = LJ.getAIN(4,resolutionIndex=8,gainIndex=0,settlingFactor=0)        #humidity
                 #a6 = LJ.getAIN(6,resolutionIndex=8,gainIndex=0,settlingFactor=0)      #pressure
                 Vref = LJ.getAIN(5,resolutionIndex=8,gainIndex=0,settlingFactor=0)     #Reference voltage (5V)
+                self.Vref=Vref
 
                 R0 = 10 #10KOhm at 25deg!
                 Rref = 16
@@ -559,7 +570,7 @@ class Subaru():
 
                 if (self.log_loop == 6):
                     lineOut = " %.3f %.3f %.3f %.3f %.3f %.3f " % (self.T1,Vref,self.T2, self.RH, self.P,self.heater_frac)#  self.heater_frac,self.delT_int)
-                    print lineOut
+                    #print lineOut
                     localtime = time.asctime( time.localtime(time.time()) )
                     self.f = open(fileName,'a')
                     self.f.write(lineOut+' '+localtime+'\n')
@@ -671,21 +682,29 @@ class Subaru():
     
     def cmd_status(self,the_command):
         """Return a dictionary containing the whole instrument status"""
-        if (time.time() - self.last_CCD_temp_check > 5):
+        if (time.time() - self.last_CCD_temp_check > CCD_TEMP_CHECK_PERIOD):
             try:
                 self.cmd_checkTemperature("checkTemperature")
-                hor_bin=indi.get_float("SX CCD SXVR-H694","CCD_BINNING","HOR_BIN")
-                ver_bin=indi.get_float("SX CCD SXVR-H694","CCD_BINNING","VER_BIN")
+                self.hor_bin=indi.get_float("SX CCD SXVR-H694","CCD_BINNING","HOR_BIN")
+                self.ver_bin=indi.get_float("SX CCD SXVR-H694","CCD_BINNING","VER_BIN")
             except: 
-                return 'Unable to query CCD camera status'
+                print "Unable to query CCD camera status!" 
+                self.CCDTemp=99
+        if (time.time() - self.last_LJ_temp_check > LJ_TEMP_CHECK_PERIOD):
+            try:
+                self.cmd_ljtemp("ljtemp")
+            except: 
+                print "Unable to query Labjack Temperature!" 
+                self.LJTemp=99
         status = {"CCDTemp":self.CCDTemp,"T1":self.T1,"Vref":self.Vref,"T2":self.T2,\
                   "RH":self.RH,"P":self.P,"heater_frac":self.heater_frac,\
                   "Cooling":self.cooling,"Exposing":self.exposure_active,"Imaging":self.imaging,\
-                  "nexps":self.nexps,"horbin":hor_bin,"verbin":ver_bin,"filename":self.filename,\
-                  "agitator":self.agitator_status}
+                  "nexps":self.nexps,"horbin":self.hor_bin,"verbin":self.ver_bin,"filename":self.filename,\
+                  "agitator":self.agitator_status, "ljtemp":self.LJTemp} 
         return "status " + json.dumps(status)
 
     def cmd_inject(self,the_command):
         """Communicate with rhea_inject"""
-        return self.inject.send_command(self.the_command)        
+        subaru_inject_command = the_command.split(None,1)[1]
+        return self.inject.send_command(subaru_inject_command)        
 
