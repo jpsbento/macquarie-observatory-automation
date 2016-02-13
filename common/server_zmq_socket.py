@@ -74,9 +74,10 @@ class ServerSocket:
             time.sleep(0.1)
             inputready,outputready,exceptready = select.select(self.input,[],[],0)
             #pdb.set_trace()
-            socks = dict(self.poller.poll(10))
-            if self.connected and self.server in socks and socks[self.server] == zmq.POLLIN:
-                inputready.append(self.server)
+            if self.connected:
+                socks = dict(self.poller.poll(10))
+                if self.server in socks and socks[self.server] == zmq.POLLIN:
+                    inputready.append(self.server)
             for s in inputready:  #loop through our array of sockets/inputs
                 data = self.socket_funct(s)
                 if data == -1:

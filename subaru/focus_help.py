@@ -23,11 +23,12 @@ old_files = []
 while True:
     files = glob.glob(dir + '/*.fit*')
     if len(files) > len(old_files):
-        im = pyfits.getdata(files[-1])
+        im = pyfits.getdata(files[-1]).astype(np.int)
         im -= np.median(im)
+        #pdb.set_trace()
         plt.imshow( np.arcsinh(im/1e2), aspect='auto', interpolation='nearest', cmap=cm.gray)
         plt.draw()
-        sources = irafstarfind(im, 300.0,2.5,roundhi=0.7)
+        sources = irafstarfind(im, 600.0,4,roundhi=0.7)
         print("{0:d} sources detected in file {1:s}.".format(len(sources),files[-1]))
         print("Median FWHM = {0:6.2f}".format(np.median(sources["fwhm"])))
         plt.plot(sources["xcentroid"],sources["ycentroid"],'rx')

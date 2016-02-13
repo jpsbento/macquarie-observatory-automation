@@ -11,7 +11,6 @@ from datetime import datetime, timedelta
 from httplib import HTTPConnection
 from optparse import OptionParser
 
-
 re_html = re.compile('<.*?>')
 
 
@@ -58,7 +57,7 @@ def set_power(opts, port, enable):
         raise Error, m
 
 
-def get_power(opts, port):
+def get_power(opts, port=None):
     """Get power status of port `port'."""
     response = ip9258_rpc(opts, 'GetPower')
     if response.status != httplib.OK:
@@ -73,8 +72,10 @@ def get_power(opts, port):
     except ValueError:
         m = 'Could not parse output of "GetPower" RPC.'
         raise Error, m
-    return status[port]
-
+    if port:
+        return status[port]
+    else:
+        return status
 
 def reboot(opts, port):
     """Reboot the port `port'."""

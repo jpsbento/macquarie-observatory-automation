@@ -13,6 +13,7 @@ import ctypes
 import os,subprocess
 import ippower
 import json
+import pdb
 #import the tools to do time and coordinate transforms
 import ctx
 import client_zmq_socket as client_socket
@@ -146,7 +147,7 @@ class Subaru():
         self.last_CCD_temp_check = time.time()
         try:
             self.CCDTemp=float(commands.getoutput('indi_getprop -p 7777 "SX CCD SXVR-H694.CCD_TEMPERATURE.CCD_TEMPERATURE_VALUE"').split('=')[1])
-            self.cooling=indi.set_and_send_text("SX CCD SXVR-H694","CCD_COOLER","COOLER_ON","On")
+            self.cooling= indi.get_text("SX CCD SXVR-H694","CCD_COOLER","COOLER_ON")
         except Exception: return 'Unable to check CCD temperature for some reason'
         return 'CCD temperature is '+str(self.CCDTemp)+' degrees C'
 
@@ -601,9 +602,9 @@ class Subaru():
     #ipPower options. This is a unit that is used to control power to units.
     #This dictionary contains which device is plugged into each port. If the connections change, this needs to be changed too!
     power_order={'SX':1,'NUC':2,'Arc':3,'WhiteLight':4}
-    #ippower.Options.ipaddr='rhea-ippower'
-    ippower.Options.ipaddr='150.203.89.62'
-    ippower.Options.ipaddr='150.203.91.138'
+    ippower.Options.ipaddr='rhea-ippower'
+    #ippower.Options.ipaddr='150.203.89.62'
+    #ippower.Options.ipaddr='150.203.91.138'
     ippower.Options.login = 'admin'
     ippower.Options.passwd = '12345678'
     ippower.Options.port = 80
@@ -613,8 +614,12 @@ class Subaru():
         commands = str.split(the_command)
         skip_word_check=False
         if len(commands)<2:
-            return 'Useage: ippower show or ippower [device] [on|off]]'
+            return 'Useage: ippower show or ippower status or ippower [device] [on|off]]'
         if commands[1]=='show': return str(self.power_order)
+        if commands[1]=='status':
+            IPstatus = ippower.get_power(ippower.Options)
+            ret_dict = dict( (k,IPstatus[v]) for k,v in self.power_order.items() )
+            return json.dumps(ret_dict)
         try:
             port=int(commands[1])
             if port > 4 or port <1: return 'Invalid port number'
@@ -700,8 +705,13 @@ class Subaru():
                   "RH":self.RH,"P":self.P,"heater_frac":self.heater_frac,\
                   "Cooling":self.cooling,"Exposing":self.exposure_active,"Imaging":self.imaging,\
                   "nexps":self.nexps,"horbin":self.hor_bin,"verbin":self.ver_bin,"filename":self.filename,\
-                  "agitator":self.agitator_status, "ljtemp":self.LJTemp} 
-        return "status " + json.dumps(status)
+                  "agitator":self.agitator_status, "LJTemp":self.LJTemp} 
+        try:
+            status = "status " + json.dumps(status)
+        except:
+            print "Bad JSON parsing..."
+            return
+        return status
 
     def cmd_inject(self,the_command):
         """Communicate with rhea_inject"""
