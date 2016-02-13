@@ -57,19 +57,27 @@ class RHEASXGui(QWidget):
     def __init__(self, IP='127.0.0.1', parent=None):
         super(RHEASXGui,self).__init__(parent)
         self.client_socket = ClientSocket(IP=IP) 
-        self.wl_button = QPushButton('SX', self)
-        self.wl_button.clicked.connect(self.ippower_button_click)
-        self.wl_button.setCheckable(True)
-        self.arc_button = QPushButton('Arc', self)
-        self.arc_button.clicked.connect(self.ippower_button_click)
-        self.arc_button.setCheckable(True)
-        self.sx_button = QPushButton('WhiteLight', self)
-        self.sx_button.clicked.connect(self.ippower_button_click)
-        self.sx_button.setCheckable(True)
+        iplabels = ['SX','Arc','WhiteLight']
+        self.ipbuttons = []
+        for iplabel in iplabels:
+            self.ipbuttons.append(QPushButton(iplabel, self))
+            self.ipbuttons[-1].clicked.connect(self.ippower_button_click)
+            self.ipbuttons[-1].setCheckable(True)
+            
+#            self.wl_button.clicked.connect(self.ippower_button_click)
+#            self.wl_button.setCheckable(True)
+#        self.arc_button = QPushButton('Arc', self)
+#        self.arc_button.clicked.connect(self.ippower_button_click)
+#        self.arc_button.setCheckable(True)
+#        self.sx_button = QPushButton('WhiteLight', self)
+#        self.sx_button.clicked.connect(self.ippower_button_click)
+#        self.sx_button.setCheckable(True)
         hbox2 = QHBoxLayout()
-        hbox2.addWidget(self.wl_button)
-        hbox2.addWidget(self.arc_button)
-        hbox2.addWidget(self.sx_button)
+        for button in self.ipbuttons:
+            hbox2.addWidget(button)
+#        hbox2.addWidget(self.wl_button)
+#        hbox2.addWidget(self.arc_button)
+#        hbox2.addWidget(self.sx_button)
         
         
         lbl1 = QLabel('Command: ', self)
@@ -95,9 +103,21 @@ class RHEASXGui(QWidget):
         layout.addLayout(hbox1)
         layout.addWidget(self.response_label)
         layout.addWidget(self.status_label)
+        
+        #Lets get the ippower status, so the 
+        print("Asking for IPPower status...")
+        try:
+            ipstat = json.loads(self.client_socket.send_command("ippower status"))
+            for button in self.ipbuttons:
+                button.setChecked(ipstat[str(button.text())])
+        except:
+            print("Error finding IPPower status from server...")
+        
         self.setLayout(layout)
         self.setWindowTitle("RHEA@Subaru Spectrograph")
         self.stimer = QTimer()
+        
+        
         self.ask_for_status()
 
     def ippower_button_click(self):
@@ -120,7 +140,7 @@ class RHEASXGui(QWidget):
                 self.update_status(split_response[1])
             else:
                 self.response_label.setText(response)
-        self.stimer.singleShot(2000, self.ask_for_status)
+        self.stimer.singleShot(1000, self.ask_for_status)
 
     def update_status(self,response):
         try:
@@ -128,8 +148,8 @@ class RHEASXGui(QWidget):
         except:
             pdb.set_trace()
         #!!! Make this better.
-        self.status_label.setText("CCDTemp:{0:5.1f} LJTemp:{1:4.1f} T1:{2:7.4f} T2:{3:6.3f} RH:{4:4.1f} P:{5:6.1f}".\
-            format(self.status["CCDTemp"],self.status["LJTemp"],
+        self.status_label.setText("CCDT:{0:5.1f} LJT:{1:4.1f} T1:{2:7.4f} T2:{3:6.3f} RH:{4:4.1f} P:{5:6.1f}".\
+            format(self.status["CCDTemp"],self.status["LJTemp"]-273.0,
             self.status["T1"],self.status["T2"],self.status["RH"],self.status["P"]))
         return
 
@@ -149,7 +169,7 @@ app = QApplication(sys.argv)
 if len(sys.argv) > 1:
     myapp = RHEASXGui(IP=sys.argv[1])
 else:
-    myapp = RHEASXGui()
+    myapp = RHEASXGui(IP="rhea-subaru")
 myapp.show()
 sys.exit(app.exec_())      
             
