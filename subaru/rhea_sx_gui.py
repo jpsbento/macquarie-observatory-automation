@@ -76,8 +76,11 @@ class RHEASXGui(QWidget):
         self.lineedit = QLineEdit("")
         self.connect(self.lineedit, SIGNAL("returnPressed()"),
                         self.send_to_server)
-        self.response_label = QLabel('[No Sever Response Yet]', self)
-        self.response_label.setStyleSheet("QLabel { background-color : black; color : lime; }")
+        self.response_label = QTextEdit('[No Sever Response Yet]', self)
+        self.response_label.setReadOnly(True)
+#        self.response_label.setTextColor(QColor("lime"))
+#        self.response_label.setTextBackgroundColor(QColor("black"))
+        self.response_label.setStyleSheet("QTextEdit { background-color : black; color : lime; }")
         self.response_label.setFixedWidth(400)
         self.response_label.setFixedHeight(160)
        
@@ -125,7 +128,9 @@ class RHEASXGui(QWidget):
         except:
             pdb.set_trace()
         #!!! Make this better.
-        self.status_label.setText("CCDTemp: {0:5.1f}".format(self.status["CCDTemp"]))
+        self.status_label.setText("CCDTemp:{0:5.1f} LJTemp:{1:4.1f} T1:{2:7.4f} T2:{3:6.3f} RH:{4:4.1f} P:{5:6.1f}".\
+            format(self.status["CCDTemp"],self.status["LJTemp"],
+            self.status["T1"],self.status["T2"],self.status["RH"],self.status["P"]))
         return
 
     def send_to_server(self):
