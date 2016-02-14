@@ -444,7 +444,7 @@ class Subaru():
     pcm_time=0.5     #total heating cycle time. probably in seconds
     heater_frac=0.0     #fraction of the pcm_time that the heater is on
     delT_int = 0.0
-    T_targ = 23.0
+    T_targ = 20.0
     heater_gain=5
     integral_gain=0.1
     T1=0
@@ -459,6 +459,8 @@ class Subaru():
     RH=0
     last_LJ_temp_check = 0
     LJTemp = 99
+    Vref=99
+    backLED = False
 
     #*************************************** List of user commands ***************************************#
 
@@ -483,10 +485,12 @@ class Subaru():
         if len(commands) != 2: return 'ERROR'
         if commands[1] == 'on':
             LJ.getFeedback(u6.BitStateWrite(3,1))
-            return 'LED on'
+            self.backLED=True
+            return 'backLED on'
         elif commands[1] == 'off':
             LJ.getFeedback(u6.BitStateWrite(3,0))
-            return 'LED off'
+            self.backLED=False
+            return 'backLED off'
         else: return 'ERROR'
 #******************************* End of user commands ********************************#
 
@@ -538,7 +542,13 @@ class Subaru():
                 #a4 = LJ.getAIN(4,resolutionIndex=8,gainIndex=0,settlingFactor=0)        #humidity
                 #a6 = LJ.getAIN(6,resolutionIndex=8,gainIndex=0,settlingFactor=0)      #pressure
                 Vref = LJ.getAIN(5,resolutionIndex=8,gainIndex=0,settlingFactor=0)     #Reference voltage (5V)
+                #Use the actual Vref for settings
                 self.Vref=Vref
+
+                #Now modify Vref as seen by the thermistor.
+                if self.backLED:
+                    Vref += 0.09
+                #print "Vref: {0:5.3f}".format(Vref)
 
                 R0 = 10 #10KOhm at 25deg!
                 Rref = 16
