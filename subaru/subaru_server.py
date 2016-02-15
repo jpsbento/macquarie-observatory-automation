@@ -88,7 +88,7 @@ class Subaru():
         Micro Maestro
         
     """
-    #Communications with the injection unit
+    #Communications with the injection unit. NB this should really all be in an __init__
     inject = client_socket.ClientSocket(device="subaru_inject")
     
     #------------------------------------SX CAMERA----------------------------#
@@ -123,6 +123,10 @@ class Subaru():
     hor_bin=1
     ver_bin=1
     last_CCD_temp_check = 0
+
+    #This sort of thing really shows why we need an __init__ !!!
+    if os.path.isfile('images/TEMPIMAGE.fits'):
+        os.remove('images/TEMPIMAGE.fits')
 
     #Checks to see if the filename given exists and prompts for overight or rename if it does
     def checkFile (self,file_to_check):
@@ -283,7 +287,7 @@ class Subaru():
             try:
                 dither_file = os.path.join(os.path.dirname(os.path.abspath(__file__)),"dithers/"+commands[2])
                 self.dither_pattern = np.loadtxt(dither_file)
-                self.nexps = dither.shape[0]
+                self.nexps = self.dither_pattern.shape[0]
                 self.dithering=True
             except Exception: 
                 return 'invalid input: second input must be a number of exposures or dither pattern file'
@@ -324,15 +328,17 @@ class Subaru():
             try:
                 result=self.finish_exposure('Normal')
                 print 'Finished exposure'
-                self.nexps-=1
                 #Dither if we have to
                 if self.dithering:
                     try:
-                        self.cmd_inject("movxy {0:.1f} {1:.1f}".format(self.dither_pattern[self.nexps,0], self.dither_pattern[self.nexps,1]))
+                        inject_command = "inject xy {0:.1f} {1:.1f}".format(self.dither_pattern[-self.nexps,0], self.dither_pattern[-self.nexps,1])
+                        print inject_command
+                        print self.cmd_inject(inject_command)
                     except:
                         #For bugshooting... !!! When tested, neaten this !!!
                         pdb.set_trace()
-                time.sleep(1)
+                self.nexps-=1
+                time.sleep(0.1) #How much of a sleep is really needed???
                 self.exposure_active=False
                 self.filename=None
                 if self.nexps==0:
@@ -715,7 +721,7 @@ class Subaru():
                   "RH":self.RH,"P":self.P,"heater_frac":self.heater_frac,\
                   "Cooling":self.cooling,"Exposing":self.exposure_active,"Imaging":self.imaging,\
                   "nexps":self.nexps,"horbin":self.hor_bin,"verbin":self.ver_bin,"filename":self.filename,\
-                  "agitator":self.agitator_status, "LJTemp":self.LJTemp} 
+                  "agitator":self.agitator_status, "LJTemp":self.LJTemp, "backLED":self.backLED} 
         try:
             status = "status " + json.dumps(status)
         except:
