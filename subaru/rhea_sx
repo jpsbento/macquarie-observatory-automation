@@ -31,6 +31,8 @@ import find_port
 f = find_port.FindPort()
 Port = f.findPort('subaru_sx')
 sx=subaru_server.Subaru()
+#As we don't have an __init__, choose what we want to init...
+sx.cmd_ippower("ippower status")
 ss=server_socket.ServerSocket(Port, 'subaru_sx', sx)
 ss.add_job(sx.imaging_loop)
 ss.add_job(sx.feedbackLoop)

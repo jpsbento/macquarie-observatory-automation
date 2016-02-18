@@ -126,6 +126,7 @@ class Subaru():
     hor_bin=1
     ver_bin=1
     last_CCD_temp_check = 0
+    previous_LED_status=False
 
     #This sort of thing really shows why we need an __init__ !!!
     if os.path.isfile('images/TEMPIMAGE.fits'):
@@ -315,6 +316,10 @@ class Subaru():
             else: return 'Invalid option. Use either imtype=<image type> or filename=<file name>'
         elif len(commands)>5: return 'Invalid number of inputs'
         self.imaging=True
+        #Turn the backLED off if it is on.
+        self.previous_LED_status = self.backLED
+        if (self.backLED):
+            self.cmd_backLED("backLED off") 
         return 'Starting the image loop'
 
 
@@ -349,6 +354,8 @@ class Subaru():
                     self.imaging=False
                     self.dithering=False
                     print 'Imaging loop finished'
+                    if self.previous_LED_status:
+                        self.cmd_backLED("backLED on")
                 print 'number of exps left',self.nexps
             except: 
                 return 'Unable to finish exposure'
@@ -432,12 +439,22 @@ class Subaru():
         print 'Current image type just before populating header is:',self.imtype
         hdu.header.update('IMGTYPE', self.imtype, 'Image type')
 
+        #Add Zaber keywords
         try:
             hdu.header.update('ZABERY', self.inject_status['pos'][0], "Zaber y-axis position")
             hdu.header.update('ZABERX', self.inject_status['pos'][1], "Zaber x-axis position")
             hdu.header.update('ZABERF', self.inject_status['pos'][2], "Zaber focus axis position")
         except:
             print "Error updating header with injection unit keywords" 
+
+        #Add ippower keywords
+        try:
+            hdu.header.update('ARC', self.ippower_status['Arc'], "Arc Lamp Status")
+            hdu.header.update('FLAT', self.ippower_status['Flat'], "Flat Lamp Status")
+            hdu.header.update('SXPWR', self.ippower_status['SX'], "SX Power status")
+        except:
+            print "Error updating header with IPPower keywords"
+
 
         #if finishstatus=='Aborted':
         #       hdu.header.update('EXPSTAT','Aborted', 'This exposure was aborted by the user')
@@ -626,7 +643,8 @@ class Subaru():
     #-----------------------ippower-------------------------------------#
     #ipPower options. This is a unit that is used to control power to units.
     #This dictionary contains which device is plugged into each port. If the connections change, this needs to be changed too!
-    power_order={'SX':1,'NUC':2,'Arc':3,'WhiteLight':4}
+    power_order={'SX':1,'NUC':2,'Arc':3,'Flat':4}
+    ippower_status = dict( (k,False) for k,v in power_order.items() )
     ippower.Options.ipaddr='rhea-ippower'
     #ippower.Options.ipaddr='150.203.89.62'
     #ippower.Options.ipaddr='150.203.91.138'
@@ -643,8 +661,8 @@ class Subaru():
         if commands[1]=='show': return str(self.power_order)
         if commands[1]=='status':
             IPstatus = ippower.get_power(ippower.Options)
-            ret_dict = dict( (k,IPstatus[v]) for k,v in self.power_order.items() )
-            return json.dumps(ret_dict)
+            self.ippower_status = dict( (k,IPstatus[v]) for k,v in self.power_order.items() )
+            return json.dumps(self.ippower_status)
         try:
             port=int(commands[1])
             if port > 4 or port <1: return 'Invalid port number'
@@ -666,7 +684,9 @@ class Subaru():
             if commands[2]=='on': s=True
             elif commands[2]=='off': s=False
             else: return 'Invalid power status option'
-            try: ippower.set_power(ippower.Options,port,s)
+            try: 
+                ippower.set_power(ippower.Options,port,s)
+                self.ippower_status[port]=s
             except Exception:
                 #logging.error('Unable to set power status for port')
                 return 'Unable to set power status for port'
@@ -757,6 +777,7 @@ class Subaru():
             except: 
                 print "Unable to query CCD camera status!" 
                 self.CCDTemp=99
+
         if (time.time() - self.last_LJ_temp_check > LJ_TEMP_CHECK_PERIOD):
             try:
                 self.cmd_ljtemp("ljtemp")
