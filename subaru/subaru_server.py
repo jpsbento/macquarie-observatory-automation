@@ -17,10 +17,13 @@ import pdb
 #import the tools to do time and coordinate transforms
 import ctx
 import client_zmq_socket as client_socket
+from astropy.time import Time
 
 #Definitions
-CCD_TEMP_CHECK_PERIOD=30
+CCD_TEMP_CHECK_PERIOD=20
 LJ_TEMP_CHECK_PERIOD=5
+INJECT_STATUS_PERIOD=2
+LOG_PERIOD=5
 
 failed=False
 #Try to connect to the camera
@@ -428,6 +431,14 @@ class Subaru():
             self.imtype='Bias'
         print 'Current image type just before populating header is:',self.imtype
         hdu.header.update('IMGTYPE', self.imtype, 'Image type')
+
+        try:
+            hdu.header.update('ZABERY', self.inject_status['pos'][0], "Zaber y-axis position")
+            hdu.header.update('ZABERX', self.inject_status['pos'][1], "Zaber x-axis position")
+            hdu.header.update('ZABERF', self.inject_status['pos'][2], "Zaber focus axis position")
+        except:
+            print "Error updating header with injection unit keywords" 
+
         #if finishstatus=='Aborted':
         #       hdu.header.update('EXPSTAT','Aborted', 'This exposure was aborted by the user')
         '''
@@ -467,13 +478,14 @@ class Subaru():
     LJTemp = 99
     Vref=99
     backLED = False
+    heater_mid=0.2 
 
     #*************************************** List of user commands ***************************************#
 
     def cmd_ljtemp(self,the_command):
         ''' Get the temperature of the labjack in Kelvin'''
         self.last_LJ_temp_check = time.time()
-        self.LJTemp = LJ.getTemperature()
+        self.LJTemp = LJ.getTemperature()-273.15
         return str(self.LJTemp)
 
     def cmd_heater(self,the_command):
@@ -522,14 +534,13 @@ class Subaru():
 
 #********************************** Feedback loops ***********************************#
     def feedbackLoop(self):
-        '''Execute the feedback loop every feedback_freq times'''
+        '''Execute the feedback loop every feedback_freq times. There is no need
+        for this loop to be run too often... so feedback_freq should be 2 or more.
+        if it is changed, the loop has to be re-tuned.'''
 
         if self.feedback_freq==0: return
-        fileName='TLog' #'TLog_'+localtime+'.log'
-        self.loop_count = self.loop_count + 1
-        self.log_loop = self.log_loop + 1
 
-        if (self.loop_count == 2):
+        if (self.loop_count == 0):
         #Firstly, compute temperatures.
         #ResolutionIndex: 0=default, 1-8 for high-speed ADC, 9-13 for high-res ADC on U6-Pro.
         #GainIndex: 0=x1, 1=x10, 2=x100, 3=x1000, 15=autorange.
@@ -551,9 +562,9 @@ class Subaru():
                 #Use the actual Vref for settings
                 self.Vref=Vref
 
-                #Now modify Vref as seen by the thermistor.
-                if self.backLED:
-                    Vref += 0.09
+                #Now modify Vref as seen by the thermistor. NB This *doesn't* work.
+                #if self.backLED:
+                #    Vref += 0#0.09
                 #print "Vref: {0:5.3f}".format(Vref)
 
                 R0 = 10 #10KOhm at 25deg!
@@ -561,8 +572,14 @@ class Subaru():
 
 #                dR_B1 = 2*R0*a0/(Vref-a0)     #differential change
 #                R1 = R0 + dR_B1                #value of R2 in bridge
+
+                #A wheatstone bridge with Vref-R1-Rref-Gnd on one side, and 
+                # Vref-Rref-R1-Gnd on the other side
                 R1 = Rref * (Vref + a0) / (Vref - a0)
 
+                #No Wheatstone bridge here - just a voltage divider with
+                # Vref - R_therm - R0 - Gnd.
+                # a2 / R0 = (Vref - a2) / R_therm
                 R2 = R0 * (Vref-a2)/a2        
 
 
@@ -580,40 +597,32 @@ class Subaru():
                 T2  = 1.0/T0 + math.log(R2/R0)/B
                 self.T2 = 1/T2 - 273
 
+                #A Hack for the backLED... no idea why both T1 and T2 change so much.
+                #It can't be a Vref change.
+                if self.backLED:
+                    self.T1 -= 0.1
+                    self.T2 -= 0.1
 
                 self.RH = a3/(Vref*0.00636)-(0.1515/0.00636)
                 self.P = (a8+0.095*Vref)/(Vref*0.009)*10
 
-
-                if (self.log_loop == 6):
-                    lineOut = " %.3f %.3f %.3f %.3f %.3f %.3f " % (self.T1,Vref,self.T2, self.RH, self.P,self.heater_frac)#  self.heater_frac,self.delT_int)
-                    #print lineOut
-                    localtime = time.asctime( time.localtime(time.time()) )
-                    self.f = open(fileName,'a')
-                    self.f.write(lineOut+' '+localtime+'\n')
-                    self.f.close()
-                    self.log_loop = 0
-
-                  #Spectrograph temperature servo:
-
+                #Spectrograph temperature servo:
                 delT = self.T1 - self.T_targ            #delta_T = average of both sensors - T_set    
                 self.delT_int += delT              #start: deltT_int = 0 --> add delT to deltT_int per cycle
                 if (self.delT_int > 0.5/self.integral_gain): self.delT_int = 0.5/self.integral_gain      # = +5
                 elif (self.delT_int < -0.5/self.integral_gain): self.delT_int = -0.5/self.integral_gain  # = -5
-
                 integral_term = self.integral_gain*self.delT_int #integral term (int_gain * delta_T)
                   #Full range is 0.7 mK/s. So a gain of 10 will set
                   #0.7 mK/s for a 100mK temperature difference.
-                self.heater_frac =  0.5 - self.heater_gain*delT - integral_term   #see equation in notebook
+                self.heater_frac =  self.heater_mid - self.heater_gain*delT - integral_term   #see equation in notebook
 
+        #Add to and reset the loop counter if needed.
+        self.loop_count += 1
+        if (self.loop_count == self.feedback_freq):
                 self.loop_count=0
 
 
-        
-
-
-
-
+       
     #-----------------------ippower-------------------------------------#
     #ipPower options. This is a unit that is used to control power to units.
     #This dictionary contains which device is plugged into each port. If the connections change, this needs to be changed too!
@@ -700,23 +709,12 @@ class Subaru():
             return 'This function takes only one argument. Use the help for more info.'
             
     #---------- Additional methods that apply to all submodules/hardware ------------
-    
+    last_inject_status=0
+    last_log_time =0
+    log_filename='TLog' 
+
     def cmd_status(self,the_command):
         """Return a dictionary containing the whole instrument status"""
-        if (time.time() - self.last_CCD_temp_check > CCD_TEMP_CHECK_PERIOD):
-            try:
-                self.cmd_checkTemperature("checkTemperature")
-                self.hor_bin=indi.get_float("SX CCD SXVR-H694","CCD_BINNING","HOR_BIN")
-                self.ver_bin=indi.get_float("SX CCD SXVR-H694","CCD_BINNING","VER_BIN")
-            except: 
-                print "Unable to query CCD camera status!" 
-                self.CCDTemp=99
-        if (time.time() - self.last_LJ_temp_check > LJ_TEMP_CHECK_PERIOD):
-            try:
-                self.cmd_ljtemp("ljtemp")
-            except: 
-                print "Unable to query Labjack Temperature!" 
-                self.LJTemp=99
         status = {"CCDTemp":self.CCDTemp,"T1":self.T1,"Vref":self.Vref,"T2":self.T2,\
                   "RH":self.RH,"P":self.P,"heater_frac":self.heater_frac,\
                   "Cooling":self.cooling,"Exposing":self.exposure_active,"Imaging":self.imaging,\
@@ -732,5 +730,53 @@ class Subaru():
     def cmd_inject(self,the_command):
         """Communicate with rhea_inject"""
         subaru_inject_command = the_command.split(None,1)[1]
-        return self.inject.send_command(subaru_inject_command)        
+        return self.inject.send_command(subaru_inject_command)  
+
+    def inject_status(self):
+        """Ask the inject server for status"""
+        if (time.time() > self.last_inject_status + INJECT_STATUS_PERIOD):
+            self.last_inject_status = time.time()
+            inject_status = self.inject.send_command("status")
+            try:
+                self.inject_status = json.loads(inject_status.split(None,1)[1])
+            except:
+                pdb.set_trace()
+                print "Bad JSON parsing of inject..."
+    
+    def add_to_log(self):
+        """Add to the log file, and periodically check various things.
+	The log file is designed to be human readable, or readable with:
+
+	from astropy.io import ascii
+	table = ascii.read('TLog')"""
+        if (time.time() - self.last_CCD_temp_check > CCD_TEMP_CHECK_PERIOD):
+            try:
+                self.cmd_checkTemperature("checkTemperature")
+                self.hor_bin=indi.get_float("SX CCD SXVR-H694","CCD_BINNING","HOR_BIN")
+                self.ver_bin=indi.get_float("SX CCD SXVR-H694","CCD_BINNING","VER_BIN")
+            except: 
+                print "Unable to query CCD camera status!" 
+                self.CCDTemp=99
+        if (time.time() - self.last_LJ_temp_check > LJ_TEMP_CHECK_PERIOD):
+            try:
+                self.cmd_ljtemp("ljtemp")
+            except: 
+                print "Unable to query Labjack Temperature!" 
+                self.LJTemp=99
+
+        if (time.time() > self.last_log_time + LOG_PERIOD):
+            self.last_log_time = time.time()
+            lineOut = " %.4f %.3f %.3f %.3f %.3f %.3f %.1f %.2f %d" % (self.T1,self.Vref,self.T2, self.RH,\
+             self.P,self.heater_frac,self.CCDTemp,self.LJTemp,int(self.backLED))
+            if not os.path.exists(self.log_filename):
+                f = open(self.log_filename,'w')
+                f.write("T1 Vref T2 RH P Heater CCDTemp LJTemp backLED Time\n")
+                f.close() 
+            f = open(self.log_filename,'a')
+            f.write(lineOut+' "'+Time.now().iso+'"\n')
+            f.close()
+
+                   
+
+
 
