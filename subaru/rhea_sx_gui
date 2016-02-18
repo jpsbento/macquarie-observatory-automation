@@ -59,7 +59,7 @@ class RHEASXGui(QWidget):
         self.client_socket = ClientSocket(IP=IP) 
         
         #Add the buttons
-        iplabels = ['SX','Arc','WhiteLight']
+        iplabels = ['SX','Arc','Flat']
         self.ipbuttons = []
         for iplabel in iplabels:
             self.ipbuttons.append(QPushButton(iplabel, self))
