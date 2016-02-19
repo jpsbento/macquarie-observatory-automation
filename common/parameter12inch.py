@@ -43,7 +43,7 @@ slitoffset = 85.93    # The position, in degrees, of the slits when the home swi
 
 ####### BISQUEMOUNT SERVER PARAMETERS #######
 
-ipaddress="10.238.16.13"         #This is the ip address of the windows machine
+ipaddress="10.238.16.14"         #This is the ip address of the windows machine
 
 ############################################
 ###########DOME ALIGNMENT PARAMETERS##################
