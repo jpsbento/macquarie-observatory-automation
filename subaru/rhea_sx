@@ -39,6 +39,7 @@ ss.add_job(sx.feedbackLoop)
 ss.add_job(sx.heaterControl)
 ss.add_job(sx.inject_status)
 ss.add_job(sx.add_to_log)
+ss.add_job(sx.pulse_led_task)
 try: ss.run()
 except KeyboardInterrupt:
     kill_everything(ss,subaru_server,[indiserver_process,sx.agitator_process])

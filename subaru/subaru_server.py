@@ -24,6 +24,7 @@ CCD_TEMP_CHECK_PERIOD=20
 LJ_TEMP_CHECK_PERIOD=5
 INJECT_STATUS_PERIOD=2
 LOG_PERIOD=5
+LED_PULSE_TIME=0.1
 
 failed=False
 #Try to connect to the camera
@@ -377,6 +378,14 @@ class Subaru():
         self.exposure_active=True
 
 
+    def cmd_abortLoop(self,the_command):
+        #Function used to abort the current loop, once the current exposure is completed.
+        commands = str.split(the_command)
+        if (len(commands)==1 & self.nexps>1):
+            self.nexps=1
+            return 'Aborted Loop'
+        else: return 'This function takes no arguments'
+
     def cmd_abortExposure(self,the_command):
         #Function used to stop the current exposure
         commands = str.split(the_command)
@@ -496,8 +505,25 @@ class Subaru():
     Vref=99
     backLED = False
     heater_mid=0.2 
+    pulse_led = False
+    last_heater_time=0
 
     #*************************************** List of user commands ***************************************#
+    def cmd_pulse(self,the_command):
+        '''Set the LED to pulsing mode'''
+        commands = str.split(the_command)
+        if len(commands) != 2: return "Useage: pulse [on|off]"
+        if commands[1] == 'on':
+            self.pulse_led=True
+        elif commands[1] == 'off':
+            self.pulse_led=False
+            self.inject.send_command("led 2") 
+            if self.backLED:
+                self.cmd_backLED("backLED on")
+        else:
+            return "Useage: led [on|off]"
+        return commands[1]
+            
 
     def cmd_ljtemp(self,the_command):
         ''' Get the temperature of the labjack in Kelvin'''
@@ -531,23 +557,31 @@ class Subaru():
 
     def heaterControl(self):
         '''Pulse positive for heater_frac fraction of a pcm_time time'''
-      #These lines prevents an endless sleep!
-        if (self.heater_frac < 0): self.heater_frac=0
-        if (self.heater_frac > 1): self.heater_frac=1
-      #Switch the heater on...
-        if (self.heater_frac==0): LJ.getFeedback(u6.DAC0_8(0))
-        else: LJ.getFeedback(u6.DAC0_8(255))
+        if time.time() > self.last_heater_time + self.pcm_time:
+            self.last_heater_time=time.time()
+          #These lines prevents an endless sleep!
+            if (self.heater_frac < 0): self.heater_frac=0
+            if (self.heater_frac > 1): self.heater_frac=1
+          #Switch the heater on...
+            if (self.heater_frac==0): LJ.getFeedback(u6.DAC0_8(0))
+            else: LJ.getFeedback(u6.DAC0_8(255))
 
-      #Wait
-        time.sleep(self.pcm_time*self.heater_frac)
-      #Switch the heater off...
-        if (self.heater_frac==1): LJ.getFeedback(u6.DAC0_8(255))
-        else: LJ.getFeedback(u6.DAC0_8(0))
-      #Wait
-        time.sleep(self.pcm_time*(1.0 - self.heater_frac))
+          #Wait
+            time.sleep(self.pcm_time*self.heater_frac)
+          #Switch the heater off...
+            if (self.heater_frac==1): LJ.getFeedback(u6.DAC0_8(255))
+            else: LJ.getFeedback(u6.DAC0_8(0))
+          #Wait
+           # time.sleep(self.pcm_time*(1.0 - self.heater_frac))
 
-
-
+    def pulse_led_task(self):
+        """LED Should be off before this is called."""
+        if ( (self.pulse_led) & (self.backLED) ):
+            LJ.getFeedback(u6.BitStateWrite(3,1))
+            self.inject.send_command("led 1") 
+            time.sleep(LED_PULSE_TIME)   
+            LJ.getFeedback(u6.BitStateWrite(3,0))
+            self.inject.send_command("led 0") 
 
 #********************************** Feedback loops ***********************************#
     def feedbackLoop(self):
@@ -760,8 +794,7 @@ class Subaru():
             try:
                 self.inject_status = json.loads(inject_status.split(None,1)[1])
             except:
-                pdb.set_trace()
-                print "Bad JSON parsing of inject..."
+                print "Bad JSON parsing of inject...: {0:s}".format(self.inject_status)
     
     def add_to_log(self):
         """Add to the log file, and periodically check various things.
