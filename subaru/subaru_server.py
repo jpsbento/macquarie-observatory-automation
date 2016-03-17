@@ -18,6 +18,7 @@ import pdb
 import ctx
 import client_zmq_socket as client_socket
 from astropy.time import Time
+from astroquery.simbad import Simbad
 
 #Definitions
 CCD_TEMP_CHECK_PERIOD=20
@@ -25,6 +26,7 @@ LJ_TEMP_CHECK_PERIOD=5
 INJECT_STATUS_PERIOD=2
 LOG_PERIOD=5
 LED_PULSE_TIME=0.1
+LONGITUDE=-155.4681 #Mauna Kea
 
 failed=False
 #Try to connect to the camera
@@ -53,6 +55,12 @@ try:
 except Exception:
     print 'Unable to check camera connection'
     failed=True
+
+try:
+    os.system('rm images/TEMPIMAGE.fits')
+except:
+    pass
+
 
 if failed==False:
     #set up some options that should not change often
@@ -128,6 +136,8 @@ class Subaru():
     ver_bin=1
     last_CCD_temp_check = 0
     previous_LED_status=False
+
+    toaddrs=['jpsbento@gmail.com','michael.ireland@anu.edu.au']
 
     #This sort of thing really shows why we need an __init__ !!!
     if os.path.isfile('images/TEMPIMAGE.fits'):
@@ -402,6 +412,7 @@ class Subaru():
         self.endTime = time.time()
         im=pyfits.open('images/TEMPIMAGE.fits',mode='update')
         hdu=im[0]
+
         #sets up fits header. Most things are self explanatory
         #This ensures that any headers that can be populated at this time are actually done.
         #hdu.header.update('EXPTIME', self.endTime-self.startTime, comment='The frame exposure time in seconds')
@@ -426,7 +437,16 @@ class Subaru():
         hdu.header.update('UTEND', endtime , 'UTC HH:MM:SS.ss Exp. End')
         ut=str(middle[2]).zfill(2)+'/'+str(middle[1]).zfill(2)+'/'+str(middle[0])+':'+str(middle[3]).zfill(2)+':'+str(middle[4]).zfill(2)+':'+str(middle[5]).zfill(2)
         hdu.header.update('JD', ctx.ut2jd(ut), 'Julian date of Midpoint of exposure')
-        hdu.header.update('LST', ctx.ut2lst(ut,151.112,flag=1), 'Local sidereal time of Midpoint')
+        lst = ctx.ut2lst(ut,LONGITUDE,flag=1)
+        hdu.header.update('LST', lst, 'Local sidereal time of Midpoint')
+
+        #Add object keywords. TODO:Add HA, elevation etc using astropy.coord.
+        hdu.header.update('OBJECT', self.tgt_name,'Target name')
+        if self.tgt_RA:
+            hdu.header.update('RA', self.tgt_RA,'Target RA')
+            hdu.header.update('DEC', self.tgt_Dec,'Target Dec')
+            hdu.header.update('SIMBAD', self.tgt_Simbad,'Target Simbad Name')
+
         #local time header keywords
         start=time.localtime(self.startTime)
         dateobs=str(start[0])+'-'+str(start[1]).zfill(2)+'-'+str(start[2]).zfill(2)
@@ -508,6 +528,7 @@ class Subaru():
     pulse_led = False
     last_heater_time=0
 
+    nemails=0
     #*************************************** List of user commands ***************************************#
     def cmd_pulse(self,the_command):
         '''Set the LED to pulsing mode'''
@@ -648,6 +669,16 @@ class Subaru():
                 T2  = 1.0/T0 + math.log(R2/R0)/B
                 self.T2 = 1/T2 - 273
 
+                if self.T2>(self.T_targ+5) or self.T1>(self.T_targ+5):
+                    if self.nemails==0:
+                        try:
+                            dummy=self.email_alert('Failure in function feedbackLoop','Bench or Echelle temperature exceeded the safe threshold. Waiting 10 seconds then killing power to camera, heater and computer.')
+                            time.sleep(10)
+                            dummy=self.ippower('ippower SX off')
+                            dummy=self.ippower('ippower NUC off')
+                        except Exception: 
+                            dummy=self.email_alert('Failure in function feedbackLoop','Bench or Echelle temperature exceeded the safe threshold but unable to kill power to items. CHECK THIS NOW!!!!!')
+                        self.nemails=1
                 #A Hack for the backLED... no idea why both T1 and T2 change so much.
                 #It can't be a Vref change.
                 if self.backLED:
@@ -766,6 +797,34 @@ class Subaru():
     last_inject_status=0
     last_log_time =0
     log_filename='TLog' 
+    tgt_RA=None
+    tgt_Dec=None
+    tgt_Simbad=None
+    tgt_name="None"
+
+    def cmd_object(self,the_command):
+        """Set the object, RA and Dec fields from Simbad"""
+        commands = the_command.split(None,1)
+        if len(commands)==1:
+            return "Useage: object [NAME]"
+        self.tgt_name=commands[1].strip()
+        #Pass this along to subaru_inject
+        inject_command = "inject object " + self.tgt_name
+        print self.cmd_inject(inject_command)
+        try:
+            tgt = Simbad.query_object(self.tgt_name)
+        except:
+            tgt = None
+            print "Error even executing query_object"
+        if not tgt:
+            tgt_RA=None
+            tgt_Dec=None
+            tgt_Simbad=None
+            return "Error setting object name!"
+        self.tgt_Dec=str(tgt['DEC'][0])        
+        self.tgt_RA=str(tgt['RA'][0])
+        self.tgt_Simbad=str(tgt['MAIN_ID'][0])
+        return "Object name set (Simbad: {0:s}).".format(self.tgt_Simbad)
 
     def cmd_status(self,the_command):
         """Return a dictionary containing the whole instrument status"""
@@ -830,7 +889,21 @@ class Subaru():
             f.write(lineOut+' "'+Time.now().iso+'"\n')
             f.close()
 
-                   
+            
+    def email_alert(self,subject,body):
+        #function that gets called when an email alert is to be sent
+        # Credentials (if needed)
+        try:
+            username = 'mqobservatory'
+            password = 'macquarieobservatory'
+            message = "From: From Rhea Subaru <mqobservatory@gmail.com>\nTo: %s\nSubject: %s\n\n%s" % (', '.join(self.toaddrs),subject,'rhea_subaru'+': '+body)
+            # The actual mail send
+            server = smtplib.SMTP('smtp.gmail.com:587')
+            server.starttls()
+            server.login(username,password)
+            server.sendmail('mqobservatory@gmail.com', self.toaddrs, message)
+            server.quit()
+        except Exception: logging.error('Could not send email alert'); print 'Could not send email alert'
+        return 'Successfully emailed contacts'
 
-
-
+    
