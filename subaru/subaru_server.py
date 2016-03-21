@@ -123,8 +123,9 @@ class Subaru():
     #parameters relating to the imaging and exposure characteristics
     startTime=0
     endTime=0
-    camtemp=0
-    ccdSetpoint=0
+    camtemp=-5
+    try: dummy=self.cmd_setTemperature('setTemperature '+str(self.camtemp))
+    except Exception: print 'Unable to set teh camera temperature to default'
     #imtype='None'
     shutter=None
     imaging=False
@@ -534,6 +535,16 @@ class Subaru():
 
     nemails=0
     #*************************************** List of user commands ***************************************#
+     def cmd_spectemp(self,the_command):
+        '''this command sets the temperature of the spectrograph, input is in degrees C.'''
+        commands = str.split(the_command)
+        if len(commands) < 2 : return 'error: no input value'
+        if len(commands) > 2 : return 'Too many inputs. Just give us the temperature in degrees C.'
+        try:
+            self.T_targ=float(commands[1])
+        except Exception: return 'Unable to set spectrograph temperature'
+        return 'Successfully set spectrograph temperature'
+
     def cmd_pulse(self,the_command):
         '''Set the LED to pulsing mode'''
         commands = str.split(the_command)
