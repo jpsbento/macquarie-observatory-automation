@@ -4,6 +4,24 @@ import subprocess,sys,os
 
 #the following lines establish a link with the starlight xpress camera via the USB port, these run
 #automatically when sx_main is excecuted
+def findThisProcess( process_name ):
+  ps     = subprocess.Popen("ps -eaf | grep "+process_name, shell=True, stdout=subprocess.PIPE)
+  output = ps.stdout.read()
+  ps.stdout.close()
+  ps.wait()
+  return output
+
+output=findThisProcess('indiserver').split('\n')
+for i in output:
+    items=str.split(i)
+    if '/tmp/sx_fifo' in items:
+        try:
+            os.system('kill -9 '+items[1])
+            print 'Killed existing indiserver for camera on pid '+items[1]
+        except Exception:
+            print 'Unable to kill existing indiserver'
+
+
 try:
     if not os.path.exists('/tmp/sx_fifo'):
         dummy=subprocess.call('mkfifo /tmp/sx_fifo', shell=True)
@@ -41,6 +59,10 @@ ss.add_job(sx.inject_status)
 ss.add_job(sx.add_to_log)
 ss.add_job(sx.pulse_led_task)
 try: ss.run()
-except KeyboardInterrupt:
+except:
     kill_everything(ss,subaru_server,[indiserver_process,sx.agitator_process])
+    try: sx.LJ.getFeedback(u6.DAC0_8(0))
+    except: print 'Unable to kill the power to the heater'
 kill_everything(ss,subaru_server,[indiserver_process,sx.agitator_process])
+try: sx.LJ.getFeedback(u6.DAC0_8(0))
+except: print 'Unable to kill the power to the heater'

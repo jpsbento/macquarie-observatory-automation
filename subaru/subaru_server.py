@@ -57,6 +57,12 @@ except Exception:
     print 'Unable to check camera connection'
     failed=True
 
+try:
+    os.system('rm images/TEMPIMAGE.fits')
+except:
+    pass
+
+
 if failed==False:
     #set up some options that should not change often
     dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_MODE","UPLOAD_CLIENT","Off")
@@ -132,6 +138,8 @@ class Subaru():
     ver_bin=1
     last_CCD_temp_check = 0
     previous_LED_status=False
+
+    toaddrs=['jpsbento@gmail.com','michael.ireland@anu.edu.au']
 
     #This sort of thing really shows why we need an __init__ !!!
     if os.path.isfile('images/TEMPIMAGE.fits'):
@@ -524,6 +532,7 @@ class Subaru():
     pulse_led = False
     last_heater_time=0
 
+    nemails=0
     #*************************************** List of user commands ***************************************#
     def cmd_pulse(self,the_command):
         '''Set the LED to pulsing mode'''
@@ -664,6 +673,16 @@ class Subaru():
                 T2  = 1.0/T0 + math.log(R2/R0)/B
                 self.T2 = 1/T2 - 273
 
+                if self.T2>(self.T_targ+5) or self.T1>(self.T_targ+5):
+                    if self.nemails==0:
+                        try:
+                            dummy=self.email_alert('Failure in function feedbackLoop','Bench or Echelle temperature exceeded the safe threshold. Waiting 10 seconds then killing power to camera, heater and computer.')
+                            time.sleep(10)
+                            dummy=self.ippower('ippower SX off')
+                            dummy=self.ippower('ippower NUC off')
+                        except Exception: 
+                            dummy=self.email_alert('Failure in function feedbackLoop','Bench or Echelle temperature exceeded the safe threshold but unable to kill power to items. CHECK THIS NOW!!!!!')
+                        self.nemails=1
                 #A Hack for the backLED... no idea why both T1 and T2 change so much.
                 #It can't be a Vref change.
                 if self.backLED:
@@ -876,7 +895,21 @@ class Subaru():
             f.write(lineOut+' "'+Time.now().iso+'"\n')
             f.close()
 
-                   
+            
+    def email_alert(self,subject,body):
+        #function that gets called when an email alert is to be sent
+        # Credentials (if needed)
+        try:
+            username = 'mqobservatory'
+            password = 'macquarieobservatory'
+            message = "From: From Rhea Subaru <mqobservatory@gmail.com>\nTo: %s\nSubject: %s\n\n%s" % (', '.join(self.toaddrs),subject,'rhea_subaru'+': '+body)
+            # The actual mail send
+            server = smtplib.SMTP('smtp.gmail.com:587')
+            server.starttls()
+            server.login(username,password)
+            server.sendmail('mqobservatory@gmail.com', self.toaddrs, message)
+            server.quit()
+        except Exception: logging.error('Could not send email alert'); print 'Could not send email alert'
+        return 'Successfully emailed contacts'
 
-
-
+    
