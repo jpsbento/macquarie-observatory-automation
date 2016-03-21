@@ -535,7 +535,7 @@ class Subaru():
 
     nemails=0
     #*************************************** List of user commands ***************************************#
-     def cmd_spectemp(self,the_command):
+    def cmd_spectemp(self,the_command):
         '''this command sets the temperature of the spectrograph, input is in degrees C.'''
         commands = str.split(the_command)
         if len(commands) < 2 : return 'error: no input value'
