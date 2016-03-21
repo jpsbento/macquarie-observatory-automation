@@ -27,6 +27,7 @@ INJECT_STATUS_PERIOD=2
 LOG_PERIOD=5
 LED_PULSE_TIME=0.1
 LONGITUDE=-155.4681 #Mauna Kea
+INITIAL_T_TARG = 17.0
 
 failed=False
 #Try to connect to the camera
@@ -69,7 +70,8 @@ if failed==False:
         dummy=subprocess.call('mkdir ./images', shell=True)
     dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_SETTINGS","UPLOAD_DIR","images")
     dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_SETTINGS","UPLOAD_PREFIX","TEMPIMAGE")
-
+    dummy=self.cmd_setTemperature('setTemperature -5')
+    
 try:
     LJ=u6.U6()
     #Need to set up fancy DAC here for the temperature control
@@ -470,11 +472,13 @@ class Subaru():
 
         #Add ippower keywords
         try:
-            hdu.header.update('ARC', self.ippower_status['Arc'], "Arc Lamp Status")
-            hdu.header.update('FLAT', self.ippower_status['Flat'], "Flat Lamp Status")
-            hdu.header.update('SXPWR', self.ippower_status['SX'], "SX Power status")
+            hdu.header.update('ARC', self.ippower_status['Arc'], "Arc Lamp status (T/F)")
+            hdu.header.update('FLAT', self.ippower_status['Flat'], "Flat Lamp status (T/F)")
+            hdu.header.update('SXPWR', self.ippower_status['SX'], "SX Power status (T/F)")
         except:
             print "Error updating header with IPPower keywords"
+        #Add agitator keyword
+        hdu.header.update('AGITATE', self.agitator_status, "Agitator status (T/F)")
 
 
         #if finishstatus=='Aborted':
@@ -499,7 +503,7 @@ class Subaru():
     pcm_time=0.5     #total heating cycle time. probably in seconds
     heater_frac=0.0     #fraction of the pcm_time that the heater is on
     delT_int = 0.0
-    T_targ = 20.0
+    T_targ = INITIAL_T_TARG
     heater_gain=5
     integral_gain=0.1
     T1=0
@@ -746,7 +750,7 @@ class Subaru():
 
    #-------------------Micro Maestro 6 channel USB servo controller-----------------------#
     #Fibre Agitator options. This controls the fibre agitator servo motor via the USB controller.
-    agitator_status='off'
+    agitator_status=False
     agitator_process=None
     def cmd_agitator(self,the_command):
         '''Function to control the agitator motor/microcontroller. The first argument is either "on" or "off". Leave blank for current status of device.'''
@@ -755,12 +759,13 @@ class Subaru():
         if not os.path.exists('/dev/ttyACM0'):
             return 'Servo controller is unavailable. Check if it is connected.'
         if len(commands)==1:
-            return 'The agitator is currently '+self.agitator_status
+            return 'The agitator is currently '+str(self.agitator_status)
         elif len(commands) == 2:
             if str.lower(commands[1])=='on':
                 try: 
                     self.agitator_process=subprocess.Popen(['bash','servo_motion.sh'],stdin=subprocess.PIPE, stdout=subprocess.PIPE)
                     return 'Successfully started the agitator'
+                    self.agitator_status=True
                 except:
                     return 'Failed to start the servo motor controller motion'
             if str.lower(commands[1])=='off':
@@ -769,6 +774,7 @@ class Subaru():
                     returncode=self.agitator_process.wait()
                     self.agitator_process=None
                     return 'Successfully stopped the agitator'
+                    self.agitator_status=False
                 except:
                     return 'Could not stop the agitator. Check for problems in the hardware.'
         else: 
