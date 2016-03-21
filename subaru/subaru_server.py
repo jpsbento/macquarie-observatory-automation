@@ -76,7 +76,6 @@ if failed==False:
         dummy=subprocess.call('mkdir ./images', shell=True)
     dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_SETTINGS","UPLOAD_DIR","images")
     dummy=indi.set_and_send_text("SX CCD SXVR-H694","UPLOAD_SETTINGS","UPLOAD_PREFIX","TEMPIMAGE")
-    dummy=self.cmd_setTemperature('setTemperature -5')
     
 try:
     LJ=u6.U6()
