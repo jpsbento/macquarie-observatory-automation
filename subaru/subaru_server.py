@@ -414,7 +414,8 @@ class Subaru():
         self.endTime = time.time()
         im=pyfits.open('images/TEMPIMAGE.fits',mode='update')
         hdu=im[0]
-
+        
+        print "Adding main header items..."
         #sets up fits header. Most things are self explanatory
         #This ensures that any headers that can be populated at this time are actually done.
         #hdu.header.update('EXPTIME', self.endTime-self.startTime, comment='The frame exposure time in seconds')
@@ -442,6 +443,7 @@ class Subaru():
         lst = ctx.ut2lst(ut,LONGITUDE,flag=1)
         hdu.header.update('LST', lst, 'Local sidereal time of Midpoint')
 
+        print "Adding object and time..."
         #Add object keywords. TODO:Add HA, elevation etc using astropy.coord.
         hdu.header.update('OBJECT', self.tgt_name,'Target name')
         if self.tgt_RA:
@@ -470,6 +472,7 @@ class Subaru():
         print 'Current image type just before populating header is:',self.imtype
         hdu.header.update('IMGTYPE', self.imtype, 'Image type')
 
+        print "Adding ZABER and IPPOWER..."
         #Add Zaber keywords
         try:
             hdu.header.update('ZABERY', self.inject_status['pos'][0], "Zaber y-axis position")
