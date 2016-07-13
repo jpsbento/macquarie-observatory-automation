@@ -27,7 +27,7 @@ INJECT_STATUS_PERIOD=2
 LOG_PERIOD=5
 LED_PULSE_TIME=0.1
 LONGITUDE=-155.4681 #Mauna Kea
-INITIAL_T_TARG = 17.0
+INITIAL_T_TARG = 17.5
 
 failed=False
 #Try to connect to the camera
@@ -725,7 +725,8 @@ class Subaru():
                 #0.7 mK/s for a 100mK temperature difference.
                 if self.apply_servo:
                     self.heater_frac =  self.heater_mid - self.heater_gain*delT - integral_term   #see equation in notebook
-                    if (self.heater_frac < 0): self.heater_frac=0
+                    #This is an attempt to prevent an electrical problem with the heater power supply.
+                    if (self.heater_frac < 0.002): self.heater_frac=0
                     if (self.heater_frac > 1): self.heater_frac=1
 
         #Add to and reset the loop counter if needed.
