@@ -531,6 +531,7 @@ class Subaru():
     heater_mid=0.2 
     pulse_led = False
     last_heater_time=0
+    apply_servo = False
 
     nemails=0
     #*************************************** List of user commands ***************************************#
@@ -587,6 +588,18 @@ class Subaru():
             LJ.getFeedback(u6.BitStateWrite(3,0))
             self.backLED=False
             return 'backLED off'
+        else: return 'ERROR'
+
+    def cmd_servo(self, the_command):
+        '''Command to turn servo on or off.'''
+        commands = str.split(the_command)
+        if len(commands) != 2: return 'ERROR: useage servo [on|off]'
+        if commands[1] == 'on':
+            self.apply_servo=True
+            return 'servo on'
+        elif commands[1] == 'off':
+            self.apply_servo=False
+            return 'servo off'
         else: return 'ERROR'
 #******************************* End of user commands ********************************#
 
@@ -708,9 +721,12 @@ class Subaru():
                 if (self.delT_int > 0.5/self.integral_gain): self.delT_int = 0.5/self.integral_gain      # = +5
                 elif (self.delT_int < -0.5/self.integral_gain): self.delT_int = -0.5/self.integral_gain  # = -5
                 integral_term = self.integral_gain*self.delT_int #integral term (int_gain * delta_T)
-                  #Full range is 0.7 mK/s. So a gain of 10 will set
-                  #0.7 mK/s for a 100mK temperature difference.
-                self.heater_frac =  self.heater_mid - self.heater_gain*delT - integral_term   #see equation in notebook
+                #Full range is 0.7 mK/s. So a gain of 10 will set
+                #0.7 mK/s for a 100mK temperature difference.
+                if self.apply_servo:
+                    self.heater_frac =  self.heater_mid - self.heater_gain*delT - integral_term   #see equation in notebook
+                    if (self.heater_frac < 0): self.heater_frac=0
+                    if (self.heater_frac > 1): self.heater_frac=1
 
         #Add to and reset the loop counter if needed.
         self.loop_count += 1
