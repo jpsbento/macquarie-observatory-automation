@@ -513,7 +513,7 @@ class Subaru():
     delT_int = 0.0
     T_targ = INITIAL_T_TARG
     heater_gain=5
-    integral_gain=0.1
+    integral_gain=0.05
     T1=0
     T2=0
     T3=0
