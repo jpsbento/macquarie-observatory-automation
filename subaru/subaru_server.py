@@ -19,7 +19,12 @@ import ctx
 import client_zmq_socket as client_socket
 from astropy.time import Time
 from astroquery.simbad import Simbad
+from astropy.coordinates import SkyCoord
+import astropy.units as u
+from astroplan import Observer
+from astroplan import FixedTarget
 
+subaru = Observer.at_site('subaru')
 #Definitions
 CCD_TEMP_CHECK_PERIOD=20
 LJ_TEMP_CHECK_PERIOD=5
@@ -123,8 +128,9 @@ class Subaru():
     startTime=0
     endTime=0
     camtemp=-5
-    try: dummy=self.cmd_setTemperature('setTemperature '+str(self.camtemp))
-    except Exception: print 'Unable to set teh camera temperature to default'
+    try: 
+        print self.cmd_setTemperature('setTemperature '+str(self.camtemp))
+    except Exception: print 'Unable to set the camera temperature to default - set manually!'
     #imtype='None'
     shutter=None
     imaging=False
@@ -443,7 +449,7 @@ class Subaru():
         lst = ctx.ut2lst(ut,LONGITUDE,flag=1)
         hdu.header.update('LST', lst, 'Local sidereal time of Midpoint')
 
-        print "Adding object and time..."
+        print "Adding object ..."
         #Add object keywords. TODO:Add HA, elevation etc using astropy.coord.
         hdu.header.update('OBJECT', self.tgt_name,'Target name')
         if self.tgt_RA:
@@ -451,6 +457,7 @@ class Subaru():
             hdu.header.update('DEC', self.tgt_Dec,'Target Dec')
             hdu.header.update('SIMBAD', self.tgt_Simbad,'Target Simbad Name')
 
+	print "Adding Time..."
         #local time header keywords
         start=time.localtime(self.startTime)
         dateobs=str(start[0])+'-'+str(start[1]).zfill(2)+'-'+str(start[2]).zfill(2)
@@ -464,7 +471,11 @@ class Subaru():
         end=time.localtime(self.endTime)
         endtime=str(end[3]).zfill(2)+':'+str(end[4]).zfill(2)+':'+str(end[5]).zfill(2)
         hdu.header.update('LTEND', endtime , 'Local HH:MM:SS.ss Exp. End')
-        hdu.header.update('CAMTEMP', float(commands.getoutput('indi_getprop -p 7777 "SX CCD SXVR-H694.CCD_TEMPERATURE.CCD_TEMPERATURE_VALUE"').split('=')[1]), 'Camera temperature (C)')
+
+	print "Adding Camera Temperature"
+        hdu.header.update('CAMTEMP', self.CCDTemp, 'Camera temperature (C)')
+        #WARNING: The following line causes a CRASH !!! (Maybe)
+        #hdu.header.update('CAMTEMP', float(commands.getoutput('indi_getprop -p 7777 "SX CCD SXVR-H694.CCD_TEMPERATURE.CCD_TEMPERATURE_VALUE"').split('=')[1]), 'Camera temperature (C)')
         hdu.header.update('SETPOINT', self.ccdSetpoint, 'Camera temperature setpoint (C)')
         hdu.header.update('COOLING', self.cooling, 'Camera cooling enabled?')
         if self.exposureTime==0.01:
@@ -833,10 +844,48 @@ class Subaru():
     last_inject_status=0
     last_log_time =0
     log_filename='TLog' 
-    tgt_RA=None
-    tgt_Dec=None
+    tgt_RA="0 0 0.0"
+    tgt_Dec="0 0 0.0"
     tgt_Simbad=None
     tgt_name="None"
+
+    def cmd_pa(self,the_command):
+        """Find the position angle of vertical"""
+        now = Time.now()
+        print "RA: " + self.tgt_RA
+        print "Dec: " + self.tgt_Dec
+        try:
+            c = SkyCoord(self.tgt_RA + ' ' + self.tgt_Dec,unit=(u.hourangle, u.deg))
+            target = FixedTarget(name=self.tgt_name,coord=c) 
+            lat = subaru.location.latitude.rad
+            ha = subaru.target_hour_angle(now,target).rad
+            dec = target.dec.rad
+            zd = np.pi/2 - subaru.altaz(now,target).alt.rad
+            #See http://www.gb.nrao.edu/~rcreager/GBTMetrology/140ft/l0058/gbtmemo52/memo52.html
+            sinp = np.sin(ha)/np.sin(zd)*np.cos(lat)
+            cosp = (np.sin(lat) - np.sin(dec)*np.cos(zd))/np.sin(zd)/np.cos(dec)
+            parallactic_angle = np.degrees(np.arctan2(sinp,cosp))
+            #print str(new_parallactic_angle) 
+            #parallactic_angle = subaru.parallactic_angle(now, target).deg
+            #print str(parallactic_angle)
+        except:
+            pdb.set_trace() 
+            return "0"
+        return str(parallactic_angle + 12.8)
+
+    def cmd_mov_rhoth(self,the_command):
+        """Move a given distance in arcsec at a given position angle"""
+        commands = the_command.split(None,2)
+        if len(commands)!=3:
+            return "Useage: mov_rhoth [rho] [th]"
+        try:
+            pa = float(commands[2]) - float(self.cmd_pa("pa"))
+            rho = float(commands[1])
+        except:
+            return "Error parsing rho and pa"
+        xsep = rho*307.1*53.2*np.sin(np.radians(pa))
+        ysep = rho*307.1*53.2*np.cos(np.radians(pa))
+        return "xy {0:5.0f} {1:5.0f}".format(xsep,ysep)
 
     def cmd_object(self,the_command):
         """Set the object, RA and Dec fields from Simbad"""
