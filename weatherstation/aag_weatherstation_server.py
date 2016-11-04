@@ -28,7 +28,15 @@ class WeatherstationServer:
 	alertstate = 0
 	slitvariable = 0 #This is the variable to send to the slits to tell them whether
 			 #it's okay to be open or not. 0 to close, 1 to open.
-	time_delay=10 #time delay between each reading of the 
+	time_delay=5 #time delay between each reading of the 
+        nreadings=0
+        maximum_delay=90
+        
+        #Boolean variables
+        rain_list=['dry','wet','rain','unknown']
+        cloud_list=['clear','cloudy','overcast','unknown']
+        light_list=['dark','light','veryLight']
+        wind_list=['calm','moderateWind','strongWind','unknown']
 
         #set some variables that can be adjusted to redefine which limits are used for cloudy, rainy, light etc.
         dummy=indi.set_and_send_float("AAG Cloud Watcher","limitsCloud","clear",-5)
@@ -88,6 +96,15 @@ class WeatherstationServer:
 		'''Returns a 1 if it is safe to open the dome slits, and returns a zero otherwise.'''
 		return str(self.slitvariable)
 
+        def run_indigetprop(self):
+                '''Since the indiclient does not seem to work well with the AAG, we are using 
+                   indi_getprop to grab the weatherstation details'''
+                process = subprocess.Popen(['indi_getprop', '-p','7780'], stdout=subprocess.PIPE)
+                out, err = process.communicate()
+                if len(out):
+                        return out.split('\n')
+                else:
+                        return 0
 
 #************************* End of user commands ********************************#
 
@@ -97,26 +114,51 @@ class WeatherstationServer:
 	#I am assuming that only the rainsensortemp and heaterPWM are in hexadecimal
 	#I'll know for sure when the aurora guys email me back
 	currentTime=time.time()
+        last_successful=1E20
 	def main(self):
 		if time.time()-self.currentTime > self.time_delay:
-			self.currentTime=time.time()
-			self.tempair = indi.get_float("AAG Cloud Watcher","sensors","ambientTemperatureSensor")  #sensor temperature
-			
-			self.tempsky = indi.get_float("AAG Cloud Watcher","sensors","correctedInfraredSky") #sky temperature
+                        #run the function to grab the details.
+                        lines=self.run_indigetprop()
+                        if not lines:
+                                if time.time() - self.last_successful > self.maximum_delay:
+                                        self.slitvariable = 0
+                                        self.tempair = 0
+                                        self.tempsky = 0
+                                        self.clarity = 0
+                                        self.light = 0
+                                        self.rain = 0
+                                        self.wind=0
+                                        self.alertstate = 0
+                        if 'AAG' in lines[0]:
+                                self.last_successful=time.time()
+                                self.currentTime=time.time()
+                                #Initally set the alert variable to 0 (= Unsafe)
+                                #cloudvariable = 0 #this will be set to 1 if it is clear
+                                #rainvariable = 0  #this will be set to 1 if it is dry
+                                #lightvariable = 0 #this will be set to 1 if it is dark
+                                message = ''
+                                rain_list=['dry','wet','rain','unknown']
+                                cloud_list=['clear','cloudy','overcast','unknown']
+                                light_list=['dark','light','veryLight']
+                                wind_list=['calm','moderateWind','strongWind','unknown']
+                                for i in lines:
+                                        if "ambientTemperatureSensor" in i:
+                                                self.tempair=float(i.split('=')[1])
+                                        elif "correctedInfraredSky" in i:
+                                                self.tempsky=float(i.split('=')[1])
+                                        elif "brightnessSensor" in i:
+                                                self.light=float(i.split('=')[1])
+                                        elif "rainSensor" in i:
+                                                self.rain=float(i.split('=')[1])
+                                        elif "windSpeed" in i:
+                                                self.wind=float(i.split('=')[1])
+                                        elif "" in i:
+                                                self.=float(i.split('=')[1])
+                                        elif "" in i:
+                                                self.=float(i.split('=')[1])
+                                        
+                                        
 			self.clarity = self.tempair-self.tempsky #is the difference between the air temperature and the sky temperature
-			self.light =  indi.get_float("AAG Cloud Watcher","sensors","brightnessSensor") #brightness Sensor reading
-			self.rain = indi.get_float("AAG Cloud Watcher","sensors","rainSensor") #Rain Sensor reading
-			self.wind= indi.get_float("AAG Cloud Watcher","readings","windSpeed") #anemometer reading
-
-			#Initally set the alert variable to 0 (= Unsafe)
-			#cloudvariable = 0 #this will be set to 1 if it is clear
-			#rainvariable = 0  #this will be set to 1 if it is dry
-			#lightvariable = 0 #this will be set to 1 if it is dark
-			message = ''
-			rain_list=['dry','wet','rain','unknown']
-			cloud_list=['clear','cloudy','overcast','unknown']
-			light_list=['dark','light','veryLight']
-			wind_list=['calm','moderateWind','strongWind','unknown']
 
 			for i in cloud_list:
 				#print indi.get_text("AAG Cloud Watcher","cloudConditions",i)
