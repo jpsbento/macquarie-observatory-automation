@@ -753,7 +753,7 @@ class Subaru():
     #-----------------------ippower-------------------------------------#
     #ipPower options. This is a unit that is used to control power to units.
     #This dictionary contains which device is plugged into each port. If the connections change, this needs to be changed too!
-    power_order={'SX':1,'NUC':2,'Arc':3,'Flat':4}
+    power_order={'SX':2,'NUC':1,'Arc':3,'Flat':4}
     ippower_status = dict( (k,False) for k,v in power_order.items() )
     ippower.Options.ipaddr='rhea-ippower'
     #ippower.Options.ipaddr='150.203.89.62'
