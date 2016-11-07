@@ -4,7 +4,7 @@
 import sys
 sys.path.append('../common/')
 from indiclient import *
-import time
+import time,subprocess
 from datetime import datetime
 
 import parameterfile
@@ -90,7 +90,7 @@ class WeatherstationServer:
 
 	def cmd_status(self,the_command):
 		'''Returns all the latest data output from the weather station.'''
-		return "Clarity: "+str(self.clarity)+"\nLight: "+str(self.light)+"\nRain: "+str(self.rain)+"\nAir temperature: "+str(self.tempair)+"\nSky temperature: "+str(self.tempsky)+"\nWind Speed: "+str(self.wind)+"\nNumber of readings: "+str(self.nreadings)
+		return "Clarity: "+str(self.clarity)+"\nLight: "+str(self.light)+"\nRain: "+str(self.rain)+"\nAir temperature: "+str(self.tempair)+"\nSky temperature: "+str(self.tempsky)+"\nWind Speed: "+str(self.wind)+"\nNumber of readings: "+str(self.nreadings)+"\nCloud Status: "+self.cloud_conditions+"\nRain Status: "+self.rain_conditions+"\nBrightness Status: "+self.brightness_conditions+"\nWind Status: "+self.wind_conditions
 
 	def cmd_safe(self, the_command):
 		'''Returns a 1 if it is safe to open the dome slits, and returns a zero otherwise.'''
@@ -154,7 +154,7 @@ class WeatherstationServer:
                                         elif "windSpeed" in i:
                                                 self.wind=float(i.split('=')[1])
                                         elif "totalReadings" in i:
-                                                self.nreadings_temp=float(i.split('=')[1])
+                                                self.nreadings=float(i.split('=')[1])
                                         elif ("cloudConditions" in i) and ('=On' in i):
                                                 self.cloud_conditions=i.split('.')[-1].split('=')[0]
                                                 message += self.cloud_conditions+','

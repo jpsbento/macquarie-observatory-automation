@@ -18,6 +18,13 @@ else:
     print 'Unable to determine which weatherstation server to load'
     exit
 
+def kill_everything(server,processes):
+    server.indi.quit()
+    for i in processes:
+        i.terminate()
+        returncode = i.wait()
+    print 'Successfully terminated the indiserver with return code: %s' % returncode
+
 import server_socket
 import find_port
 f = find_port.FindPort()
@@ -28,8 +35,8 @@ ss.add_job(ws.main)
 try: ss.run()
 except KeyboardInterrupt:
     if parameterfile.weatherstation=='aag':
-        weatherstation_server.indi.quit()
+        kill_everything(weatherstation_server,[indiserver_process])
     ss.close()
 if parameterfile.weatherstation=='aag':
-    weatherstation_server.indi.quit()
+    kill_everything(weatherstation_server,[indiserver_process])
 ss.close()
