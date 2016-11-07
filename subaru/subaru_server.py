@@ -399,10 +399,13 @@ class Subaru():
     def cmd_abortLoop(self,the_command):
         #Function used to abort the current loop, once the current exposure is completed.
         commands = str.split(the_command)
-        if (len(commands)==1 & self.nexps>1):
+        if (len(commands)!=1):
+            return 'This function takes no arguments'
+        if (self.nexps>1):
             self.nexps=1
             return 'Aborted Loop'
-        else: return 'This function takes no arguments'
+        else: 
+            return 'NExp not greater than 1: nothing to be aborted'
 
     def cmd_abortExposure(self,the_command):
         #Function used to stop the current exposure
@@ -740,7 +743,7 @@ class Subaru():
                 if self.apply_servo:
                     self.heater_frac =  self.heater_mid - self.heater_gain*delT - integral_term   #see equation in notebook
                     #This is an attempt to prevent an electrical problem with the heater power supply.
-                    if (self.heater_frac < 0.002): self.heater_frac=0
+                    if (self.heater_frac < 0.005): self.heater_frac=0
                     if (self.heater_frac > 1): self.heater_frac=1
 
         #Add to and reset the loop counter if needed.
@@ -753,7 +756,7 @@ class Subaru():
     #-----------------------ippower-------------------------------------#
     #ipPower options. This is a unit that is used to control power to units.
     #This dictionary contains which device is plugged into each port. If the connections change, this needs to be changed too!
-    power_order={'SX':1,'NUC':2,'Arc':3,'Flat':4}
+    power_order={'SX':2,'NUC':1,'Arc':3,'Flat':4}
     ippower_status = dict( (k,False) for k,v in power_order.items() )
     ippower.Options.ipaddr='rhea-ippower'
     #ippower.Options.ipaddr='150.203.89.62'
