@@ -30,14 +30,14 @@ class WeatherstationServer:
 			 #it's okay to be open or not. 0 to close, 1 to open.
 	time_delay=5 #time delay between each reading of the 
         nreadings=0
+        nreadings_temp=0
         maximum_delay=90
-        
-        #Boolean variables
-        rain_list=['dry','wet','rain','unknown']
-        cloud_list=['clear','cloudy','overcast','unknown']
-        light_list=['dark','light','veryLight']
-        wind_list=['calm','moderateWind','strongWind','unknown']
 
+        rain_conditions='unknown'
+        cloud_conditions='unknown'
+        brightness_conditions='unknown'
+        wind_conditions='unknown'
+        
         #set some variables that can be adjusted to redefine which limits are used for cloudy, rainy, light etc.
         dummy=indi.set_and_send_float("AAG Cloud Watcher","limitsCloud","clear",-5)
         dummy=indi.set_and_send_float("AAG Cloud Watcher","limitsCloud","cloudy",0)
@@ -90,7 +90,7 @@ class WeatherstationServer:
 
 	def cmd_status(self,the_command):
 		'''Returns all the latest data output from the weather station.'''
-		return "Clarity: "+str(self.clarity)+"\nLight: "+str(self.light)+"\nRain: "+str(self.rain)+"\nAir temperature: "+str(self.tempair)+"\nSky temperature: "+str(self.tempsky)+"\nWind Speed: "+str(self.wind)
+		return "Clarity: "+str(self.clarity)+"\nLight: "+str(self.light)+"\nRain: "+str(self.rain)+"\nAir temperature: "+str(self.tempair)+"\nSky temperature: "+str(self.tempsky)+"\nWind Speed: "+str(self.wind)+"\nNumber of readings: "+str(self.nreadings)
 
 	def cmd_safe(self, the_command):
 		'''Returns a 1 if it is safe to open the dome slits, and returns a zero otherwise.'''
@@ -129,6 +129,11 @@ class WeatherstationServer:
                                         self.rain = 0
                                         self.wind=0
                                         self.alertstate = 0
+                                        self.rain_conditions='unknown'
+                                        self.cloud_conditions='unknown'
+                                        self.brightness_conditions='unknown'
+                                        self.wind_conditions='unknown'
+
                         if 'AAG' in lines[0]:
                                 self.last_successful=time.time()
                                 self.currentTime=time.time()
@@ -137,10 +142,6 @@ class WeatherstationServer:
                                 #rainvariable = 0  #this will be set to 1 if it is dry
                                 #lightvariable = 0 #this will be set to 1 if it is dark
                                 message = ''
-                                rain_list=['dry','wet','rain','unknown']
-                                cloud_list=['clear','cloudy','overcast','unknown']
-                                light_list=['dark','light','veryLight']
-                                wind_list=['calm','moderateWind','strongWind','unknown']
                                 for i in lines:
                                         if "ambientTemperatureSensor" in i:
                                                 self.tempair=float(i.split('=')[1])
@@ -152,51 +153,45 @@ class WeatherstationServer:
                                                 self.rain=float(i.split('=')[1])
                                         elif "windSpeed" in i:
                                                 self.wind=float(i.split('=')[1])
-                                        elif "" in i:
-                                                self.=float(i.split('=')[1])
-                                        elif "" in i:
-                                                self.=float(i.split('=')[1])
-                                        
-                                        
-			self.clarity = self.tempair-self.tempsky #is the difference between the air temperature and the sky temperature
+                                        elif "totalReadings" in i:
+                                                self.nreadings_temp=float(i.split('=')[1])
+                                        elif ("cloudConditions" in i) and ('=On' in i):
+                                                self.cloud_conditions=i.split('.')[-1].split('=')[0]
+                                                message += self.cloud_conditions+','
+                                                if self.cloud_conditions=='clear': 
+                                                        cloudvariable=1
+                                                else:
+                                                        cloudvariable=0
+                                        elif ("brightnessConditions" in i) and ('=On' in i):
+                                                self.brightness_conditions=i.split('.')[-1].split('=')[0]
+                                                message += self.brightness_conditions+','
+                                                if self.brightness_conditions=='dark': 
+                                                        brightnessvariable=1
+                                                else:
+                                                        brightnessvariable=0
+                                        elif ("rainConditions" in i) and ('=On' in i):
+                                                self.rain_conditions=i.split('.')[-1].split('=')[0]
+                                                message += self.rain_conditions+','
+                                                if self.rain_conditions=='dry': 
+                                                        rainvariable=1
+                                                else:
+                                                        rainvariable=0
+                                        elif ("windConditions" in i) and ('=On' in i):
+                                                self.wind_conditions=i.split('.')[-1].split('=')[0]
+                                                message += self.wind_conditions+','
+                                                if self.wind_conditions=='moderateWind' or self.wind_conditions=='calm': 
+                                                        windvariable=1
+                                                else:
+                                                        windvariable=0
 
-			for i in cloud_list:
-				#print indi.get_text("AAG Cloud Watcher","cloudConditions",i)
-				if indi.get_text("AAG Cloud Watcher","cloudConditions",i)=='On':
-					#print i
-					message += i+','
-					if i=='clear': 
-						cloudvariable=1
-					else:
-						cloudvariable=0
-			for i in rain_list:
-				if indi.get_text("AAG Cloud Watcher","rainConditions",i)=='On':
-					message += ' '+i+','
-					if i=='dry':
-						rainvariable=1
-					else:
-						rainvariable=0
-			for i in light_list:
-				if indi.get_text("AAG Cloud Watcher","brightnessConditions",i)=='On':
-					message += ' '+i+','
-					if i=='dark':
-						lightvariable=1
-					else:
-						lightvariable=0
-			for i in wind_list:
-				if indi.get_text("AAG Cloud Watcher","windConditions",i)=='On':
-					message += ' '+i+','
-					if i=='strongWind':
-						windvariable=0
-					else:
-						windvariable=1
 
-			self.slitvariable = cloudvariable*rainvariable*lightvariable*windvariable #if = 1, it's safe for slits to be open! Unsafe otherwise.
-			#except Exception: print 'Unable to define slit variable'
+                                self.clarity = self.tempair-self.tempsky #is the difference between the air temperature and the sky temperature
+                                self.slitvariable = cloudvariable*rainvariable*lightvariable*windvariable #if = 1, it's safe for slits to be open! Unsafe otherwise.
+                                #except Exception: print 'Unable to define slit variable'
 
-			if self.slitvariable: message+=' Safe for dome to open.'
-			else: message+=' NOT safe for dome to open.************' 
-			self.log(message)
+                                if self.slitvariable: message+=' Safe for dome to open.'
+                                else: message+=' NOT safe for dome to open.************' 
+                                self.log(message)
 
 			return
 
