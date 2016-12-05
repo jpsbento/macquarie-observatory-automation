@@ -32,6 +32,7 @@ Port = f.findPort('weatherstation')
 ws=weatherstation_server.WeatherstationServer()
 ss=server_socket.ServerSocket(Port, 'weatherstation', ws)
 ss.add_job(ws.main)
+ss.add_job(ws.log)
 try: ss.run()
 except KeyboardInterrupt:
     if parameterfile.weatherstation=='aag':

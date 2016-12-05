@@ -37,6 +37,7 @@ class WeatherstationServer:
         cloud_conditions='unknown'
         brightness_conditions='unknown'
         wind_conditions='unknown'
+        logged=True #Boolean for the logging routine.
         
         #set some variables that can be adjusted to redefine which limits are used for cloudy, rainy, light etc.
         dummy=indi.set_and_send_float("AAG Cloud Watcher","limitsCloud","clear",-5)
@@ -191,17 +192,22 @@ class WeatherstationServer:
 
                                 if self.slitvariable: message+=' Safe for dome to open.'
                                 else: message+=' NOT safe for dome to open.************' 
-                                self.log(message)
+                                self.logged=False
 
 			return
 
 	#definition to log the output, stores all data in a file
-	def log(self,message):
-		f = open('weatherlog.txt','a')
-		f.write(str(time.time())+" "+str(datetime.now())+" "+str(message)+'\n')
-		f.close()
-                h = open('weatherlog_detailed.txt','a')
-                h.write(str(time.time())+" "+str(datetime.now())+" "+"Clarity: "+str(self.clarity)+" Light: "+str(self.light)+" Rain: "+str(self.rain)+" Air temperature: "+str(self.tempair)+" Sky temperature: "+str(self.tempsky)+"\n"+" Wind Speed: "+str(self.wind)+"\n")
-                h.close()
+	def log(self):
+                if not logged:
+                        dir='/priv/mulga1/jbento/rhea_network_drive/weatherstation/'
+                        if self.slitvariable: message=' Safe for dome to open.'
+                        else: message=' NOT safe for dome to open.************' 
+                        f = open(dir+'weatherlog.txt','a')
+                        f.write(str(time.time())+" "+str(datetime.now())+" "+str(message)+'\n')
+                        f.close()
+                        h = open(dir+'weatherlog_detailed.txt','a')
+                        h.write(str(time.time())+" "+str(datetime.now())+" "+"Clarity: "+str(self.clarity)+" Light: "+str(self.light)+" Rain: "+str(self.rain)+" Air temperature: "+str(self.tempair)+" Sky temperature: "+str(self.tempsky)+"\n"+" Wind Speed: "+str(self.wind)+" Cloud Conditions: "+str(self.cloud_conditions)+" Brightness Conditions: "+str(self.brightness_conditions)+" Rain Conditions: "+str(self.rain_conditions)+" Wind Conditions: "+str(self.wind_conditions)+"\n")
+                        self.logged=True
+                        h.close()
 
 
