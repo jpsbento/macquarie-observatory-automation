@@ -206,7 +206,9 @@ class WeatherstationServer:
                         f.write(str(time.time())+" "+str(datetime.now())+" "+str(message)+'\n')
                         f.close()
                         h = open(dir+'weatherlog_detailed.txt','a')
-                        h.write(str(time.time())+" "+str(datetime.now())+" "+"Clarity: "+str(self.clarity)+" Light: "+str(self.light)+" Rain: "+str(self.rain)+" Air temperature: "+str(self.tempair)+" Sky temperature: "+str(self.tempsky)+"\n"+" Wind Speed: "+str(self.wind)+" Cloud Conditions: "+str(self.cloud_conditions)+" Brightness Conditions: "+str(self.brightness_conditions)+" Rain Conditions: "+str(self.rain_conditions)+" Wind Conditions: "+str(self.wind_conditions)+"\n")
+                        detailed_message=str(time.time())+" "+str(datetime.now())+" "+"Clarity: "+str(self.clarity)+" Light: "+str(self.light)+" Rain: "+str(self.rain)+" Air temperature: "+str(self.tempair)+" Sky temperature: "+str(self.tempsky)+"\n"+" Wind Speed: "+str(self.wind)+" Cloud Conditions: "+str(self.cloud_conditions)+" Brightness Conditions: "+str(self.brightness_conditions)+" Rain Conditions: "+str(self.rain_conditions)+" Wind Conditions: "+str(self.wind_conditions)+"\n"
+                        print detailed_message
+                        h.write(detailed_message)
                         self.logged=True
                         h.close()
 
