@@ -198,7 +198,7 @@ class WeatherstationServer:
 
 	#definition to log the output, stores all data in a file
 	def log(self):
-                if not logged:
+                if not self.logged:
                         dir='/media/pi/USB/'
                         if self.slitvariable: message=' Safe for dome to open.'
                         else: message=' NOT safe for dome to open.************' 
