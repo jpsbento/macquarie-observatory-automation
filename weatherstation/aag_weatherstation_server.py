@@ -199,14 +199,14 @@ class WeatherstationServer:
 	#definition to log the output, stores all data in a file
 	def log(self):
                 if not logged:
-                        dir='/priv/mulga1/jbento/rhea_network_drive/weatherstation/'
+                        dir='/media/pi/USB/'
                         if self.slitvariable: message=' Safe for dome to open.'
                         else: message=' NOT safe for dome to open.************' 
                         f = open(dir+'weatherlog.txt','a')
                         f.write(str(time.time())+" "+str(datetime.now())+" "+str(message)+'\n')
                         f.close()
                         h = open(dir+'weatherlog_detailed.txt','a')
-                        detailed_message=str(time.time())+" "+str(datetime.now())+" "+"Clarity: "+str(self.clarity)+" Light: "+str(self.light)+" Rain: "+str(self.rain)+" Air temperature: "+str(self.tempair)+" Sky temperature: "+str(self.tempsky)+"\n"+" Wind Speed: "+str(self.wind)+" Cloud Conditions: "+str(self.cloud_conditions)+" Brightness Conditions: "+str(self.brightness_conditions)+" Rain Conditions: "+str(self.rain_conditions)+" Wind Conditions: "+str(self.wind_conditions)+"\n"
+                        detailed_message=str(time.time())+";"+str(datetime.now())+";"+"Clarity: "+str(self.clarity)+";Light: "+str(self.light)+";Rain: "+str(self.rain)+";Air temperature: "+str(self.tempair)+";Sky temperature: "+str(self.tempsky)+"\n"+";Wind Speed: "+str(self.wind)+";Cloud Conditions: "+str(self.cloud_conditions)+";Brightness Conditions: "+str(self.brightness_conditions)+";Rain Conditions: "+str(self.rain_conditions)+";Wind Conditions: "+str(self.wind_conditions)+"\n"
                         print detailed_message
                         h.write(detailed_message)
                         self.logged=True
