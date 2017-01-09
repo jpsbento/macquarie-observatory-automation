@@ -1,0 +1,14 @@
+#!/usr/bin/env python
+#This is the main program. It should be *very* simple.
+import watchdog_server
+import sys
+sys.path.append('../common/')
+import server_socket
+import find_port
+f = find_port.FindPort()
+Port = f.findPort('uber')
+ub=watchdog_server.Watchdog()
+ss=server_socket.ServerSocket(Port, 'watchgod', ub)
+ss.add_job(ub.server_check)
+ss.run()
+ss.close()
