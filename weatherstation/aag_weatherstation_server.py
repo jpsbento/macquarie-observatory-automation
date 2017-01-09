@@ -119,6 +119,7 @@ class WeatherstationServer:
 	def main(self):
 		if time.time()-self.currentTime > self.time_delay:
                         #run the function to grab the details.
+                        time.sleep(6)
                         lines=self.run_indigetprop()
                         if not lines:
                                 if time.time() - self.last_successful > self.maximum_delay:
@@ -143,6 +144,8 @@ class WeatherstationServer:
                                 #rainvariable = 0  #this will be set to 1 if it is dry
                                 #lightvariable = 0 #this will be set to 1 if it is dark
                                 message = ''
+                                self.logged=False
+                                print 'Logging'
                                 for i in lines:
                                         if "ambientTemperatureSensor" in i:
                                                 self.tempair=float(i.split('=')[1])
@@ -184,16 +187,9 @@ class WeatherstationServer:
                                                         windvariable=1
                                                 else:
                                                         windvariable=0
-
-
                                 self.clarity = self.tempair-self.tempsky #is the difference between the air temperature and the sky temperature
-                                self.slitvariable = cloudvariable*rainvariable*lightvariable*windvariable #if = 1, it's safe for slits to be open! Unsafe otherwise.
+                                self.slitvariable = cloudvariable*rainvariable*brightnessvariable*windvariable #if = 1, it's safe for slits to be open! Unsafe otherwise.
                                 #except Exception: print 'Unable to define slit variable'
-
-                                if self.slitvariable: message+=' Safe for dome to open.'
-                                else: message+=' NOT safe for dome to open.************' 
-                                self.logged=False
-
 			return
 
 	#definition to log the output, stores all data in a file
@@ -206,8 +202,7 @@ class WeatherstationServer:
                         f.write(str(time.time())+" "+str(datetime.now())+" "+str(message)+'\n')
                         f.close()
                         h = open(dir+'weatherlog_detailed.txt','a')
-                        detailed_message=str(time.time())+";"+str(datetime.now())+";"+"Clarity: "+str(self.clarity)+";Light: "+str(self.light)+";Rain: "+str(self.rain)+";Air temperature: "+str(self.tempair)+";Sky temperature: "+str(self.tempsky)+"\n"+";Wind Speed: "+str(self.wind)+";Cloud Conditions: "+str(self.cloud_conditions)+";Brightness Conditions: "+str(self.brightness_conditions)+";Rain Conditions: "+str(self.rain_conditions)+";Wind Conditions: "+str(self.wind_conditions)+"\n"
-                        print detailed_message
+                        detailed_message=str(time.time())+";"+str(datetime.now())+";"+"Clarity: "+str(self.clarity)+";Light: "+str(self.light)+";Rain: "+str(self.rain)+";Air temperature: "+str(self.tempair)+";Sky temperature: "+str(self.tempsky)+";"+";Wind Speed: "+str(self.wind)+";Cloud Conditions: "+str(self.cloud_conditions)+";Brightness Conditions: "+str(self.brightness_conditions)+";Rain Conditions: "+str(self.rain_conditions)+";Wind Conditions: "+str(self.wind_conditions)+"\n"
                         h.write(detailed_message)
                         self.logged=True
                         h.close()

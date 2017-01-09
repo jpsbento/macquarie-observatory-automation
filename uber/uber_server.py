@@ -5,7 +5,8 @@ import os, sys
 sys.path.append('../common/')
 import client_socket
 import time, math, datetime, csv, ippower
-import pyfits,scipy, pickle
+import scipy, pickle
+import pyfits
 import pylab as pl
 import numpy, commands, os
 #from apscheduler.scheduler import Scheduler
