@@ -17,9 +17,6 @@ except Exception: print 'Unable to connect to weatherstation'
 
 class WeatherstationServer:
         
-        def setprop(server,section,parameter,value):
-                '''Since the indiclient does not seem to work well with the AAG, we are using indi_getprop to grab the weatherstation details'''
-                os.system('indi_setprop -p 7780 \"'+server+'.'+section+'.'+parameter+'='+str(value)+'\"')
         #Global variables
 
         running = 1
@@ -44,30 +41,30 @@ class WeatherstationServer:
         logged=True #Boolean for the logging routine.
         
         #set some variables that can be adjusted to redefine which limits are used for cloudy, rainy, light etc.
-        dummy=setprop("AAG Cloud Watcher","limitsCloud","clear",-5)
-        dummy=setprop("AAG Cloud Watcher","limitsCloud","cloudy",0)
-        dummy=setprop("AAG Cloud Watcher","limitsCloud","overcast",30)
-        dummy=setprop("AAG Cloud Watcher","limitsRain","dry",2000)
-        dummy=setprop("AAG Cloud Watcher","limitsRain","wet",1700)
-        dummy=setprop("AAG Cloud Watcher","limitsRain","rain",400)
-        dummy=setprop("AAG Cloud Watcher","limitsBrightness","dark",2100)
-        dummy=setprop("AAG Cloud Watcher","limitsBrightness","light",100)
-        dummy=setprop("AAG Cloud Watcher","limitsBrightness","veryLight",0)
-        dummy=setprop("AAG Cloud Watcher","limitsWind","calm",10)
-        dummy=setprop("AAG Cloud Watcher","limitsWind","moderateWind",40)
-        dummy=setprop("AAG Cloud Watcher","skyCorrection","k1",33)
-        dummy=setprop("AAG Cloud Watcher","skyCorrection","k2",0)
-        dummy=setprop("AAG Cloud Watcher","skyCorrection","k3",4)
-        dummy=setprop("AAG Cloud Watcher","skyCorrection","k4",100)
-        dummy=setprop("AAG Cloud Watcher","skyCorrection","k5",100)
-        dummy=setprop("AAG Cloud Watcher","heaterParameters","tempLow",0)
-        dummy=setprop("AAG Cloud Watcher","heaterParameters","tempHigh",20)
-        dummy=setprop("AAG Cloud Watcher","heaterParameters","deltaLow",6)
-        dummy=setprop("AAG Cloud Watcher","heaterParameters","deltaHigh",4)
-        dummy=setprop("AAG Cloud Watcher","heaterParameters","min",10)
-        dummy=setprop("AAG Cloud Watcher","heaterParameters","heatImpulseTemp",10)
-        dummy=setprop("AAG Cloud Watcher","heaterParameters","heatImpulseDuration",60)
-        dummy=setprop("AAG Cloud Watcher","heaterParameters","heatImpulseCycle",600)
+        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.limitsCloud.clear=-5\"')
+        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.limitsCloud.cloudy=0\"')
+        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.limitsCloud.overcast=30\"')
+        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.limitsRain.dry=2000\"')
+        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.limitsRain.wet=1700\"')
+        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.limitsRain.rain=400\"')
+        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.limitsBrightness.dark=2100\"')
+        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.limitsBrightness.light=100\"')
+        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.limitsBrightness.veryLight=0\"')
+        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.limitsWind.calm=10\"')
+        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.limitsWind.moderateWind=40\"')
+        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.skyCorrection.k1=33\"')
+        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.skyCorrection.k2=0\"')
+        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.skyCorrection.k3=4\"')
+        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.skyCorrection.k4=100\"')
+        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.skyCorrection.k5=100\"')
+        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.heaterParameters.tempLow=0\"')
+        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.heaterParameters.tempHigh=20\"')
+        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.heaterParameters.deltaLow=6\"')
+        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.heaterParameters.deltaHigh=4\"')
+        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.heaterParameters.min=10\"')
+        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.heaterParameters.heatImpulseTemp=10\"')
+        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.heaterParameters.heatImpulseDuration=60\"')
+        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.heaterParameters.heatImpulseCycle=600\"')
 
 
 #A list of user commands:
