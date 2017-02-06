@@ -27,7 +27,7 @@ class WeatherstationServer:
                         return out.split('\n')
                 else:
                         return 0
-#Global variables
+        #Global variables
 
 	running = 1
 	tempair = 0
