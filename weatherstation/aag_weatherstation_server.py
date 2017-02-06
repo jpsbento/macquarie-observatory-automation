@@ -9,9 +9,9 @@ from datetime import datetime
 
 import parameterfile
 try: 
-        process = subprocess.Popen(['indi_setprop', '-p','7780',"AAG Cloud Watcher","CONNECTION","CONNECT","On"], stdout=subprocess.PIPE)
+        process = subprocess.Popen(['indi_setprop', '-p','7780',"AAG Cloud Watcher.CONNECTION.CONNECT=On"], stdout=subprocess.PIPE)
         out, err = process.communicate()
-        process = subprocess.Popen(['indi_setprop', '-p','7780',"AAG Cloud Watcher","CONNECTION","DISCONNECT","Off"], stdout=subprocess.PIPE)
+        process = subprocess.Popen(['indi_setprop', '-p','7780',"AAG Cloud Watcher.CONNECTION.DISCONNECT=Off"], stdout=subprocess.PIPE)
         out, err = process.communicate()
 except Exception: print 'Unable to connect to weatherstation'
 
@@ -20,7 +20,7 @@ class WeatherstationServer:
         
         def setprop(self,server,section,parameter,value):
                 '''Since the indiclient does not seem to work well with the AAG, we are using indi_getprop to grab the weatherstation details'''
-                process = subprocess.Popen(['indi_setprop', '-p','7780',server,section,parameter,value], stdout=subprocess.PIPE)
+                process = subprocess.Popen(['indi_setprop', '-p','7780',server+'.'+section+'.'+parameter+'='+value], stdout=subprocess.PIPE)
                 out, err = process.communicate()
                 if len(out):
                         return out.split('\n')
