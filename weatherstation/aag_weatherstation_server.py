@@ -35,33 +35,13 @@ class WeatherstationServer:
         logged=True #Boolean for the logging routine.
         
         #set some variables that can be adjusted to redefine which limits are used for cloudy, rainy, light etc.
-        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.limitsCloud.clear=-5\"')
-        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.limitsCloud.cloudy=0\"')
-        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.limitsCloud.overcast=30\"')
-        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.limitsRain.dry=2000\"')
-        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.limitsRain.wet=1700\"')
-        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.limitsRain.rain=400\"')
-        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.limitsBrightness.dark=2100\"')
-        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.limitsBrightness.light=100\"')
-        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.limitsBrightness.veryLight=0\"')
         dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.limitsWind.calm=10\"')
+        time.sleep(1)
         dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.limitsWind.moderateWind=40\"')
-        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.skyCorrection.k1=33\"')
-        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.skyCorrection.k2=0\"')
-        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.skyCorrection.k3=4\"')
-        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.skyCorrection.k4=100\"')
-        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.skyCorrection.k5=100\"')
-        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.heaterParameters.tempLow=0\"')
-        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.heaterParameters.tempHigh=20\"')
-        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.heaterParameters.deltaLow=6\"')
-        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.heaterParameters.deltaHigh=4\"')
-        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.heaterParameters.min=10\"')
-        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.heaterParameters.heatImpulseTemp=10\"')
-        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.heaterParameters.heatImpulseDuration=60\"')
-        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.heaterParameters.heatImpulseCycle=600\"')
-        try: 
-        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.CONNECTION.CONNECT=On\"')
-        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.CONNECTION.DISCONNECT=Off\"')
+        try:
+                dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.CONNECTION.CONNECT=On\"')
+                time.sleep(1)
+                dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.CONNECTION.DISCONNECT=Off\"')
         except Exception: print 'Unable to connect to weatherstation'
 
 #A list of user commands:
