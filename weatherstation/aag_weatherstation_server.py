@@ -17,10 +17,9 @@ except Exception: print 'Unable to connect to weatherstation'
 
 
 class WeatherstationServer:
-
+        
         def setprop(self,server,section,parameter,value):
-                '''Since the indiclient does not seem to work well with the AAG, we are using 
-                   indi_getprop to grab the weatherstation details'''
+                '''Since the indiclient does not seem to work well with the AAG, we are using indi_getprop to grab the weatherstation details'''
                 process = subprocess.Popen(['indi_setprop', '-p','7780',server,section,parameter,value], stdout=subprocess.PIPE)
                 out, err = process.communicate()
                 if len(out):
@@ -29,17 +28,17 @@ class WeatherstationServer:
                         return 0
         #Global variables
 
-	running = 1
-	tempair = 0
-	tempsky = 0
-	clarity = 0
-	light = 0
-	rain = 0
-	wind=0
-	alertstate = 0
-	slitvariable = 0 #This is the variable to send to the slits to tell them whether
-			 #it's okay to be open or not. 0 to close, 1 to open.
-	time_delay=5 #time delay between each reading of the 
+        running = 1
+        tempair = 0
+        tempsky = 0
+        clarity = 0
+        light = 0
+        rain = 0
+        wind=0
+        alertstate = 0
+        slitvariable = 0 #This is the variable to send to the slits to tell them whether
+                         #it's okay to be open or not. 0 to close, 1 to open.
+        time_delay=5 #time delay between each reading of the 
         nreadings=0
         nreadings_temp=0
         maximum_delay=90
@@ -60,7 +59,7 @@ class WeatherstationServer:
         dummy=self.setprop("AAG Cloud Watcher","limitsBrightness","dark",2100)
         dummy=self.setprop("AAG Cloud Watcher","limitsBrightness","light",100)
         dummy=self.setprop("AAG Cloud Watcher","limitsBrightness","veryLight",0)
-	dummy=self.setprop("AAG Cloud Watcher","limitsWind","calm",10)
+        dummy=self.setprop("AAG Cloud Watcher","limitsWind","calm",10)
         dummy=self.setprop("AAG Cloud Watcher","limitsWind","moderateWind",40)
         dummy=self.setprop("AAG Cloud Watcher","skyCorrection","k1",33)
         dummy=self.setprop("AAG Cloud Watcher","skyCorrection","k2",0)
@@ -79,34 +78,34 @@ class WeatherstationServer:
 
 #A list of user commands:
 
-	def cmd_clarity(self,the_command):
-		'''Returns the clarity reading from the weather station. This is the difference between 
-		the air temperature and the sky temperature.'''
-		return str(self.clarity)
+        def cmd_clarity(self,the_command):
+                '''Returns the clarity reading from the weather station. This is the difference between 
+                the air temperature and the sky temperature.'''
+                return str(self.clarity)
 
-	def cmd_light(self,the_command):
-		'''Returns the light reading from the weather station. Uncalibrated value, normal range: 0 to 30.'''
-		return str(self.light)
+        def cmd_light(self,the_command):
+                '''Returns the light reading from the weather station. Uncalibrated value, normal range: 0 to 30.'''
+                return str(self.light)
 
-	def cmd_rain(self,the_command):
-		'''Returns the rain reading from the weather station. Uncalibrated value, normal range: 0 to 30.'''
-		return str(self.rain)
+        def cmd_rain(self,the_command):
+                '''Returns the rain reading from the weather station. Uncalibrated value, normal range: 0 to 30.'''
+                return str(self.rain)
 
-	def cmd_tempair(self,the_command):
-		'''Returns the air temperature reading from the weather station. Units are in degrees C.'''
-		return str(self.tempair)
+        def cmd_tempair(self,the_command):
+                '''Returns the air temperature reading from the weather station. Units are in degrees C.'''
+                return str(self.tempair)
 
-	def cmd_tempsky(self,the_command):
-		'''Returns the sky temperature reading from the weather station. Units are in degrees C.'''
-		return str(self.tempsky)
+        def cmd_tempsky(self,the_command):
+                '''Returns the sky temperature reading from the weather station. Units are in degrees C.'''
+                return str(self.tempsky)
 
-	def cmd_status(self,the_command):
-		'''Returns all the latest data output from the weather station.'''
-		return "Clarity: "+str(self.clarity)+"\nLight: "+str(self.light)+"\nRain: "+str(self.rain)+"\nAir temperature: "+str(self.tempair)+"\nSky temperature: "+str(self.tempsky)+"\nWind Speed: "+str(self.wind)+"\nNumber of readings: "+str(self.nreadings)+"\nCloud Status: "+self.cloud_conditions+"\nRain Status: "+self.rain_conditions+"\nBrightness Status: "+self.brightness_conditions+"\nWind Status: "+self.wind_conditions
+        def cmd_status(self,the_command):
+                '''Returns all the latest data output from the weather station.'''
+                return "Clarity: "+str(self.clarity)+"\nLight: "+str(self.light)+"\nRain: "+str(self.rain)+"\nAir temperature: "+str(self.tempair)+"\nSky temperature: "+str(self.tempsky)+"\nWind Speed: "+str(self.wind)+"\nNumber of readings: "+str(self.nreadings)+"\nCloud Status: "+self.cloud_conditions+"\nRain Status: "+self.rain_conditions+"\nBrightness Status: "+self.brightness_conditions+"\nWind Status: "+self.wind_conditions
 
-	def cmd_safe(self, the_command):
-		'''Returns a 1 if it is safe to open the dome slits, and returns a zero otherwise.'''
-		return str(self.slitvariable)
+        def cmd_safe(self, the_command):
+                '''Returns a 1 if it is safe to open the dome slits, and returns a zero otherwise.'''
+                return str(self.slitvariable)
 
         def run_indigetprop(self):
                 '''Since the indiclient does not seem to work well with the AAG, we are using 
@@ -122,13 +121,13 @@ class WeatherstationServer:
 
 #Background task that reads data from the weather station and records it to a file
 
-	#definition to read from the serial port
-	#I am assuming that only the rainsensortemp and heaterPWM are in hexadecimal
-	#I'll know for sure when the aurora guys email me back
-	currentTime=time.time()
+        #definition to read from the serial port
+        #I am assuming that only the rainsensortemp and heaterPWM are in hexadecimal
+        #I'll know for sure when the aurora guys email me back
+        currentTime=time.time()
         last_successful=1E20
-	def main(self):
-		if time.time()-self.currentTime > self.time_delay:
+        def main(self):
+                if time.time()-self.currentTime > self.time_delay:
                         #run the function to grab the details.
                         time.sleep(6)
                         lines=self.run_indigetprop()
@@ -201,10 +200,10 @@ class WeatherstationServer:
                                 self.clarity = self.tempair-self.tempsky #is the difference between the air temperature and the sky temperature
                                 self.slitvariable = cloudvariable*rainvariable*brightnessvariable*windvariable #if = 1, it's safe for slits to be open! Unsafe otherwise.
                                 #except Exception: print 'Unable to define slit variable'
-			return
+                        return
 
-	#definition to log the output, stores all data in a file
-	def log(self):
+        #definition to log the output, stores all data in a file
+        def log(self):
                 if not self.logged:
                         dir='/media/pi/USB/'
                         if self.slitvariable: message=' Safe for dome to open.'
