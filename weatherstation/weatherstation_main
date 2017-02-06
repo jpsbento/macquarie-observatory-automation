@@ -19,7 +19,6 @@ else:
     exit
 
 def kill_everything(server,processes):
-    server.indi.quit()
     for i in processes:
         i.terminate()
         returncode = i.wait()

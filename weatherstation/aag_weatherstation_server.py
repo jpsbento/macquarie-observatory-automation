@@ -3,17 +3,11 @@
 #****************************************************************************#
 import sys
 sys.path.append('../common/')
-from indiclient import *
+#from indiclient import *
 import time,subprocess,os
 from datetime import datetime
 
 import parameterfile
-try: 
-        indi=indiclient('localhost',7780)
-        dummy=indi.set_and_send_text("AAG Cloud Watcher","CONNECTION","CONNECT","On")
-        dummy=indi.set_and_send_text("AAG Cloud Watcher","CONNECTION","DISCONNECT","Off")
-except Exception: print 'Unable to connect to weatherstation'
-
 
 class WeatherstationServer:
         
@@ -65,7 +59,10 @@ class WeatherstationServer:
         dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.heaterParameters.heatImpulseTemp=10\"')
         dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.heaterParameters.heatImpulseDuration=60\"')
         dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.heaterParameters.heatImpulseCycle=600\"')
-
+        try: 
+        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.CONNECTION.CONNECT=On\"')
+        dummy=os.system('indi_setprop -p 7780 \"AAG Cloud Watcher.CONNECTION.DISCONNECT=Off\"')
+        except Exception: print 'Unable to connect to weatherstation'
 
 #A list of user commands:
 
