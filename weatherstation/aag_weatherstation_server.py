@@ -3,29 +3,23 @@
 #****************************************************************************#
 import sys
 sys.path.append('../common/')
-#from indiclient import *
-import time,subprocess
+from indiclient import *
+import time,subprocess,os
 from datetime import datetime
 
 import parameterfile
 try: 
-        process = subprocess.Popen(['indi_setprop', '-p','7780',"AAG Cloud Watcher.CONNECTION.CONNECT=On"], stdout=subprocess.PIPE)
-        out, err = process.communicate()
-        process = subprocess.Popen(['indi_setprop', '-p','7780',"AAG Cloud Watcher.CONNECTION.DISCONNECT=Off"], stdout=subprocess.PIPE)
-        out, err = process.communicate()
+        indi=indiclient('localhost',7780)
+        dummy=indi.set_and_send_text("AAG Cloud Watcher","CONNECTION","CONNECT","On")
+        dummy=indi.set_and_send_text("AAG Cloud Watcher","CONNECTION","DISCONNECT","Off")
 except Exception: print 'Unable to connect to weatherstation'
 
 
 class WeatherstationServer:
         
-        def setprop(self,server,section,parameter,value):
+        def setprop(server,section,parameter,value):
                 '''Since the indiclient does not seem to work well with the AAG, we are using indi_getprop to grab the weatherstation details'''
-                process = subprocess.Popen(['indi_setprop', '-p','7780',server+'.'+section+'.'+parameter+'='+value], stdout=subprocess.PIPE)
-                out, err = process.communicate()
-                if len(out):
-                        return out.split('\n')
-                else:
-                        return 0
+                os.system('indi_setprop -p 7780 \"'+server+'.'+section+'.'+parameter+'='+str(value)+'\"')
         #Global variables
 
         running = 1
@@ -50,30 +44,30 @@ class WeatherstationServer:
         logged=True #Boolean for the logging routine.
         
         #set some variables that can be adjusted to redefine which limits are used for cloudy, rainy, light etc.
-        dummy=self.setprop("AAG Cloud Watcher","limitsCloud","clear",-5)
-        dummy=self.setprop("AAG Cloud Watcher","limitsCloud","cloudy",0)
-        dummy=self.setprop("AAG Cloud Watcher","limitsCloud","overcast",30)
-        dummy=self.setprop("AAG Cloud Watcher","limitsRain","dry",2000)
-        dummy=self.setprop("AAG Cloud Watcher","limitsRain","wet",1700)
-        dummy=self.setprop("AAG Cloud Watcher","limitsRain","rain",400)
-        dummy=self.setprop("AAG Cloud Watcher","limitsBrightness","dark",2100)
-        dummy=self.setprop("AAG Cloud Watcher","limitsBrightness","light",100)
-        dummy=self.setprop("AAG Cloud Watcher","limitsBrightness","veryLight",0)
-        dummy=self.setprop("AAG Cloud Watcher","limitsWind","calm",10)
-        dummy=self.setprop("AAG Cloud Watcher","limitsWind","moderateWind",40)
-        dummy=self.setprop("AAG Cloud Watcher","skyCorrection","k1",33)
-        dummy=self.setprop("AAG Cloud Watcher","skyCorrection","k2",0)
-        dummy=self.setprop("AAG Cloud Watcher","skyCorrection","k3",4)
-        dummy=self.setprop("AAG Cloud Watcher","skyCorrection","k4",100)
-        dummy=self.setprop("AAG Cloud Watcher","skyCorrection","k5",100)
-        dummy=self.setprop("AAG Cloud Watcher","heaterParameters","tempLow",0)
-        dummy=self.setprop("AAG Cloud Watcher","heaterParameters","tempHigh",20)
-        dummy=self.setprop("AAG Cloud Watcher","heaterParameters","deltaLow",6)
-        dummy=self.setprop("AAG Cloud Watcher","heaterParameters","deltaHigh",4)
-        dummy=self.setprop("AAG Cloud Watcher","heaterParameters","min",10)
-        dummy=self.setprop("AAG Cloud Watcher","heaterParameters","heatImpulseTemp",10)
-        dummy=self.setprop("AAG Cloud Watcher","heaterParameters","heatImpulseDuration",60)
-        dummy=self.setprop("AAG Cloud Watcher","heaterParameters","heatImpulseCycle",600)
+        dummy=setprop("AAG Cloud Watcher","limitsCloud","clear",-5)
+        dummy=setprop("AAG Cloud Watcher","limitsCloud","cloudy",0)
+        dummy=setprop("AAG Cloud Watcher","limitsCloud","overcast",30)
+        dummy=setprop("AAG Cloud Watcher","limitsRain","dry",2000)
+        dummy=setprop("AAG Cloud Watcher","limitsRain","wet",1700)
+        dummy=setprop("AAG Cloud Watcher","limitsRain","rain",400)
+        dummy=setprop("AAG Cloud Watcher","limitsBrightness","dark",2100)
+        dummy=setprop("AAG Cloud Watcher","limitsBrightness","light",100)
+        dummy=setprop("AAG Cloud Watcher","limitsBrightness","veryLight",0)
+        dummy=setprop("AAG Cloud Watcher","limitsWind","calm",10)
+        dummy=setprop("AAG Cloud Watcher","limitsWind","moderateWind",40)
+        dummy=setprop("AAG Cloud Watcher","skyCorrection","k1",33)
+        dummy=setprop("AAG Cloud Watcher","skyCorrection","k2",0)
+        dummy=setprop("AAG Cloud Watcher","skyCorrection","k3",4)
+        dummy=setprop("AAG Cloud Watcher","skyCorrection","k4",100)
+        dummy=setprop("AAG Cloud Watcher","skyCorrection","k5",100)
+        dummy=setprop("AAG Cloud Watcher","heaterParameters","tempLow",0)
+        dummy=setprop("AAG Cloud Watcher","heaterParameters","tempHigh",20)
+        dummy=setprop("AAG Cloud Watcher","heaterParameters","deltaLow",6)
+        dummy=setprop("AAG Cloud Watcher","heaterParameters","deltaHigh",4)
+        dummy=setprop("AAG Cloud Watcher","heaterParameters","min",10)
+        dummy=setprop("AAG Cloud Watcher","heaterParameters","heatImpulseTemp",10)
+        dummy=setprop("AAG Cloud Watcher","heaterParameters","heatImpulseDuration",60)
+        dummy=setprop("AAG Cloud Watcher","heaterParameters","heatImpulseCycle",600)
 
 
 #A list of user commands:
