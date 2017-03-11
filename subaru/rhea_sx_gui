@@ -225,17 +225,15 @@ class RHEASXGui(QWidget):
         return
 
     def send_to_server(self):
-        if (self.client_socket.connected):
+        try:
             response = self.client_socket.send_command(str(self.lineedit.text()))
-            if (response.split(" ", 1)[0]=="image"):
-                self.display_image(response)
-            else:
-                self.response_label.setText(response)
-        else:
-            self.response_label.setText("*** Not Connected ***")
+        except:
+            response = "*** Connection Error ***"
+        cmd_message = response.split(" ", 1) 
+        self.response_label.setText(response)
 
         self.lineedit.setText("")
-
+        
 app = QApplication(sys.argv)
 if len(sys.argv) > 1:
     myapp = RHEASXGui(IP=sys.argv[1])
