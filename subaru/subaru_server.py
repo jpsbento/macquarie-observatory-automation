@@ -941,7 +941,7 @@ class Subaru():
             try:
                 self.inject_status = json.loads(inject_status.split(None,1)[1])
             except:
-                print "Bad JSON parsing of inject...: {0:s}".format(self.inject_status)
+                print "Bad JSON parsing of inject response:\n {0:s}".format(inject_status)
     
     def add_to_log(self):
         """Add to the log file, and periodically check various things.

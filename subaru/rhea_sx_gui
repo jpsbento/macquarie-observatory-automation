@@ -34,33 +34,48 @@ class ClientSocket:
     def __init__(self,IP="127.0.0.1",Port="3000"): #!!! Set this below - not here !!!
         #NB See the prototype in macquarie-university-automation for a slightly neater start.
         ADS = (IP,Port)
+        self.count=0
         try:
             self.context = zmq.Context()
             self.client = self.context.socket(zmq.REQ)
             tcpstring = "tcp://"+IP+":"+Port
             print(tcpstring)
             self.client.connect(tcpstring)
-            self.client.RCVTIMEO = 20000
+            self.client.RCVTIMEO = 2000
             self.connected=True
         except: 
             print('ERROR: Could not connect to server. Please check that the server is running.')
             self.connected=False
 
     def send_command(self, command):
-        """The main send-command routine for the client.
+        """WARNING: Currently an occasional issue where the server just doesn't respond.
+        No idea why..."""
+        if (self.connected==False) and (len(command)==0):
+            try:
+                response = self.client.recv(self.MAX_BUFFER,zmq.NOBLOCK)
+            except:
+                self.count += 1
+                return "Could not receive buffered response - connection still lost ({0:d} times).".format(self.count)
+            self.connected=True
+            return "Connection re-established!"
         
-        TODO: If there is a timeout, we maybe just need to record that there has 
-        been a timeout, and try recv later. BUT - the server should never 
-        take a long time to return."""
+        #Send a command to the client.
         try: 
             self.client.send(command,zmq.NOBLOCK)
-            return self.client.recv(self.MAX_BUFFER,zmq.NOBLOCK)
         except:
-#           The commands below should only be part of a "reconnect" function 
-#           (NOT YET IMPLEMENTED, NEEDS A PING FUNCTION, MAYBE CALLED PING)
-#            self.connected=False 
-#            self.client.close()
-            return 'Error sending command, connection lost or excessive command time.'
+            self.connected=False 
+            self.count += 1
+            return 'Error sending command, connection lost ({0:d} times).'.format(self.count)
+        
+        #Receive the response
+        try:
+            response = self.client.recv(self.MAX_BUFFER,zmq.NOBLOCK)
+            self.connected=True
+            return response
+        except:
+            self.connected=False 
+            self.count += 1
+            return 'Error receiving response, connection lost ({0:d} times)\nPress Enter to reconnect.'.format(self.count)
 
 class RHEASXGui(QWidget):
     current_image=0;

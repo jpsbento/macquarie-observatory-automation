@@ -17,6 +17,7 @@ class ClientSocket:
         Port = t["Port"][ix]
         #NB See the prototype in macquarie-university-automation for a slightly neater start.
         ADS = (IP,Port)
+        self.count=0
         try:
             self.context = zmq.Context()
             self.client = self.context.socket(zmq.REQ)
@@ -30,16 +31,33 @@ class ClientSocket:
             self.connected=False
 
     def send_command(self, command):
-        """WARNING: currently a blocking send/recv!"""
+        """Try to send a command. If we're not connected, try to receive an old command
+        first (and trash it) """
+        if self.connected==False:
+            try:
+                response = self.client.recv(self.MAX_BUFFER,zmq.NOBLOCK)
+            except:
+                self.count += 1
+                return "Could not receive buffered response - connection still lost ({0:d} times).".format(self.count)
+            self.connected=True
+        
+        #Send a command to the client.
         try: 
             self.client.send(command,zmq.NOBLOCK)
-            return self.client.recv(self.MAX_BUFFER,zmq.NOBLOCK)
         except:
-#            self.connected=False 
-#            self.client.close()
-            return 'Error sending command, connection lost.'
-#        try: return self.client.recv(self.MAX_BUFFER,zmq.NOBLOCK)
-#        except Exception: return 'Error receiving response'
+            self.connected=False 
+            self.count += 1
+            return 'Error sending command, connection lost ({0:d} times).'.format(self.count)
+        
+        #Receive the response
+        try:
+            response = self.client.recv(self.MAX_BUFFER,zmq.NOBLOCK)
+            self.connected=True
+            return response
+        except:
+            self.connected=False 
+            self.count += 1
+            return 'Error receiving response, connection lost ({0:d} times)\n'.format(self.count)
 
 
 
