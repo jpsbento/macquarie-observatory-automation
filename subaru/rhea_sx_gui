@@ -10,11 +10,12 @@ try:
 except:
     #Following doesn't work! Signals are different in PyQt5...
     try:
-        from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, QLineEdit
-        print("PyQt5 support not enabled! Downgrade to PyQt4.")
-        raise UserWarning
+        from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, QLineEdit, QTextEdit
+        from PyQt5.QtCore import pyqtSlot, QTimer
+        #print("PyQt5 support not enabled! Downgrade to PyQt4.")
+        #raise UserWarning
     except:
-        print("Please install PyQt4.")
+        print("Please install PyQt4 or PyQt5")
         raise UserWarning
 import numpy as np
 import zlib
@@ -110,8 +111,7 @@ class RHEASXGui(QWidget):
         #Add the main server response label (i.e. LineEdit)
         lbl1 = QLabel('Command: ', self)
         self.lineedit = QLineEdit("")
-        self.connect(self.lineedit, SIGNAL("returnPressed()"),
-                        self.send_to_server)
+        self.lineedit.returnPressed.connect(self.send_to_server)
         self.response_label = QTextEdit('[No Sever Response Yet]', self)
         self.response_label.setReadOnly(True)
         self.response_label.setStyleSheet("QTextEdit { background-color : black; color : lime; }")
@@ -158,6 +158,7 @@ class RHEASXGui(QWidget):
         
         self.ask_for_status()
 
+    @pyqtSlot()
     def ifu_ref_button_click(self):
         command = "inject xyf"
         if self.sender().isChecked():
@@ -168,6 +169,7 @@ class RHEASXGui(QWidget):
         self.response_label.setText(response)
         return
 
+    @pyqtSlot()
     def backLED_button_click(self):
         command = "backLED "
         if self.sender().isChecked():
@@ -178,6 +180,7 @@ class RHEASXGui(QWidget):
         self.response_label.setText(response)
         return
 
+    @pyqtSlot()
     def pulse_button_click(self):
         command = "pulse "
         if self.sender().isChecked():
@@ -188,6 +191,7 @@ class RHEASXGui(QWidget):
         self.response_label.setText(response)
         return
 
+    @pyqtSlot()
     def ippower_button_click(self):
         command = "ippower "+str(self.sender().text())
         if self.sender().isChecked():
@@ -224,6 +228,7 @@ class RHEASXGui(QWidget):
         self.status_label.setText(status_text)
         return
 
+    @pyqtSlot()
     def send_to_server(self):
         try:
             response = self.client_socket.send_command(str(self.lineedit.text()))
